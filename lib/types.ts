@@ -1,0 +1,56 @@
+/**
+ * Arayüzün kendi tipleri. Backend'in ham cevabı burada DEĞİL, lib/adapter.ts içinde
+ * karşılanır ve bu tiplere çevrilir. Backend değişirse yalnızca adapter güncellenir.
+ */
+
+export type Verdict = "SUPPORTED" | "REFUTED" | "NOT_ENOUGH_EVIDENCE" | "CONFLICTING";
+
+/** İleride: "image" (ekran görüntüsü), "image_text". Şimdilik yalnızca bunlar. */
+export type InputMode = "text" | "url";
+
+export type ErrorCode =
+  | "INVALID_INPUT"
+  | "INPUT_TOO_LONG"
+  | "URL_UNREADABLE"
+  | "IMAGE_UNREADABLE"
+  | "TIMEOUT"
+  | "NETWORK"
+  | "INTERNAL_ERROR";
+
+export interface Source {
+  /** Açıklamadaki atıfla eşleşen kimlik, örn. "kaynak_1" */
+  id: string;
+  url: string;
+  /** Kaynağın adı (örn. yayın organı). Yoksa arayüz alan adını gösterir. */
+  name: string | null;
+  /** ISO tarih. Her kaynakta bulunmayabilir. */
+  publishedAt: string | null;
+  /** Kaynaktan kısa kanıt pasajı */
+  excerpt: string | null;
+}
+
+export interface Claim {
+  id: string;
+  text: string;
+  verdict: Verdict;
+  /** İçinde [kaynak_1] gibi atıflar olabilir */
+  explanation: string;
+  /** Yalnızca açıklamanın dayandığı kaynaklar */
+  sources: Source[];
+}
+
+export interface CheckResult {
+  claims: Claim[];
+  /** Doğrulanamaz bulunan ifadeler (görüş, tahmin vb.) */
+  unverifiable: string[];
+}
+
+export interface CheckRequest {
+  mode: InputMode;
+  content: string;
+}
+
+export interface ApiError {
+  code: ErrorCode;
+  message: string;
+}
