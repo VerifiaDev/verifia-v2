@@ -5,7 +5,7 @@
 
 ## Çalıştırma
 1. Node.js 20.9 veya üstü kurulu olmalı (`node -v`).
-2. Bu klasörde terminal açın: `npm install`, bitince `npm run dev`.
+2. Bu klasörde terminal açın: `npm ci`, bitince `npm run dev`.
 3. Tarayıcıda http://localhost:3000
 
 Kontrol: `npm run typecheck`, `npm run build`, `npm test` (48 test; ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
@@ -19,6 +19,22 @@ Bağlantı sekmesinde adreste "bozuk" geçerse "bağlantı okunamadı" hatası d
 ## Gerçek backend'e bağlama
 1. `.env.local` dosyası açın: `NEXT_PUBLIC_API_BASE_URL=https://backend-adresi`
 2. Backend'in cevabı beklenenden farklıysa yalnızca **`lib/adapter.ts`** değişir; bileşenlere dokunulmaz.
+
+`NEXT_PUBLIC_` değişkenleri tarayıcı paketine build sırasında eklenir. Gerçek backend adresini production build almadan önce ayarlayın; build aldıktan sonra değiştirirseniz yeniden build gerekir. Bu değişkene API anahtarı veya başka bir gizli bilgi koymayın. Backend, production site adresinden gelen isteklere CORS üzerinden izin vermelidir.
+
+## Production sunucusunda çalıştırma
+
+Temiz bir checkout'ta Node.js 20.9+ ve npm ile:
+
+```sh
+npm ci
+npm run typecheck
+npm test
+npm run build
+npm run start -- -p 3000
+```
+
+Gerçek backend kullanılacaksa `NEXT_PUBLIC_API_BASE_URL` değerini build komutundan önce ayarlayın. Değer boşsa sayfa mock modda kalır ve örnek veriler gösterir; bu veriler gerçek doğrulama değildir. Hosting ortamında uygulamanın Node.js sunucusunu çalıştırmasına izin verilmeli, sadece statik dosya olarak yayınlanmamalıdır.
 
 Varsayılan sözleşme (Kişi 3 ile teyit edilecek):
 - İstek: `POST {BASE}/check` gövde `{ "text": "...", "input_type": "text" | "url" }`

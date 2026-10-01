@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { afterEach, before, beforeEach, describe, it, mock } from "node:test";
 
 // API_BASE_URL modül yüklenirken okunur; import'tan ÖNCE ayarlanmalı.
-process.env.NEXT_PUBLIC_API_BASE_URL = "http://backend.test";
+process.env.NEXT_PUBLIC_API_BASE_URL = "http://backend.test/";
 let checkInput: typeof import("@/lib/api").checkInput;
 let ApiRequestError: typeof import("@/lib/errors").ApiRequestError;
 before(async () => {
