@@ -11,7 +11,7 @@
   --ink: #151a21;
   --ink-2: #4a535e; /* ikincil metin */
   --rule: #d6dadf; /* ince ayraç */
-  --rule-strong: #8d97a2; /* form kenarı */
+  --rule-strong: #78838e; /* form kenarı */
   --accent: #173f5f;
   --accent-hover: #0f2e47;
   --accent-tint: #e6edf2;
@@ -222,6 +222,9 @@ a {
   min-height: 3.5rem;
 }
 .brand {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
   font-family: var(--serif);
   font-size: 1.25rem;
   font-weight: 700;
@@ -234,8 +237,10 @@ a {
   gap: 0 var(--space-5);
 }
 .nav-list a {
-  display: inline-block;
-  padding-block: var(--space-3);
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  padding-block: var(--space-2);
   color: var(--ink-2);
   font-size: var(--text-meta);
 }
@@ -331,6 +336,10 @@ a {
 textarea.field {
   min-height: 9rem;
   resize: vertical;
+}
+.field::placeholder {
+  color: #6b7480;
+  opacity: 1;
 }
 .field:focus-visible {
   border-color: var(--accent);
@@ -812,8 +821,9 @@ textarea.field {
   gap: 0 var(--space-5);
 }
 .footer-links a {
-  display: inline-block;
-  padding-block: var(--space-2);
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
 }
 
 /* ---------- Küçük ekran ---------- */
