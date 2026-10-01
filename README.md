@@ -8,7 +8,7 @@
 2. Bu klasörde terminal açın: `npm install`, bitince `npm run dev`.
 3. Tarayıcıda http://localhost:3000
 
-Kontrol: `npm run typecheck`, `npm run build`.
+Kontrol: `npm run typecheck`, `npm run build`, `npm test` (48 test; ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
 
 ## Örnek veri (mock)
 `NEXT_PUBLIC_API_BASE_URL` boşken mock çalışır; sayfada "örnek veri" uyarısı görünür. Kaynaklar uydurmadır.
@@ -34,7 +34,8 @@ Varsayılan sözleşme (Kişi 3 ile teyit edilecek):
 | `app/globals.css` | Tasarım sistemi (renk, yazı, boşluk, bileşen stilleri) |
 | `app/page.tsx` | Sayfa: navbar, hero, giriş, nasıl çalışır, güven ilkeleri, footer |
 | `components/` | Analyzer (durum), VerificationInput, AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Navbar, HowItWorks, TrustNotes, Footer |
-| `hooks/useAnalysis.ts` | idle → loading → completed \| error |
+| `hooks/useAnalysis.ts` | idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed \| error. Parantezdeki aşamalar yalnızca backend gerçek aşama bilgisi verirse kullanılır; vermezse `submitting`'de kalınır, sahte ilerleme gösterilmez |
+| `tests/` | adapter, atıflar, girdi doğrulama, state, API (hata/zaman aşımı/bozuk cevap), uç durum görünümleri |
 | `lib/` | adapter, api, mock, citations, format, input, config, types |
 
 ## Tasarım ilkeleri
