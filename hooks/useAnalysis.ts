@@ -6,28 +6,44 @@ import { checkInput } from "@/lib/api";
 import type { ApiError, CheckRequest, CheckResult } from "@/lib/types";
 
 /**
- * Arayüzün durum makinesi. Bir anda yalnızca bir durumdayız:
- * idle → loading → completed | error   (tek istek; ara aşama bilgisi yok)
+ * Arayüzün durum makinesi. Bir anda yalnızca bir durumdayız.
  *
- * Backend ileride aşama bilgisi (extracting_claims, retrieving_evidence, verifying) verirse
- * `loading` durumuna bir `stage` alanı eklenir; AnalysisProgress buna hazırdır.
+ *   idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed | error
+ *
+ * Parantez içindeki üç aşama YALNIZCA backend gerçekten aşama bilgisi verirse kullanılır
+ * (`onStage` ile). Bilgi gelmezse `submitting` içinde kalırız; sahte ilerleme gösterilmez.
  */
+export type BusyPhase = "submitting" | "extracting_claims" | "retrieving_evidence" | "verifying";
+
 export type AnalysisState =
   | { phase: "idle" }
-  | { phase: "loading" }
+  | { phase: BusyPhase }
   | { phase: "completed"; result: CheckResult; input: string }
   | { phase: "error"; error: ApiError };
 
-type Action =
+export type AnalysisAction =
   | { type: "start" }
+  | { type: "stage"; phase: Exclude<BusyPhase, "submitting"> }
   | { type: "done"; result: CheckResult; input: string }
   | { type: "fail"; error: ApiError }
   | { type: "reset" };
 
-function reducer(_state: AnalysisState, action: Action): AnalysisState {
+export function isBusy(state: AnalysisState): state is { phase: BusyPhase } {
+  return (
+    state.phase === "submitting" ||
+    state.phase === "extracting_claims" ||
+    state.phase === "retrieving_evidence" ||
+    state.phase === "verifying"
+  );
+}
+
+export function analysisReducer(state: AnalysisState, action: AnalysisAction): AnalysisState {
   switch (action.type) {
     case "start":
-      return { phase: "loading" };
+      return { phase: "submitting" };
+    case "stage":
+      // Aşama bilgisi yalnızca devam eden bir istekte anlamlıdır; geç gelen bilgi yok sayılır.
+      return isBusy(state) ? { phase: action.phase } : state;
     case "done":
       return { phase: "completed", result: action.result, input: action.input };
     case "fail":
@@ -38,7 +54,7 @@ function reducer(_state: AnalysisState, action: Action): AnalysisState {
 }
 
 export function useAnalysis() {
-  const [state, dispatch] = useReducer(reducer, { phase: "idle" });
+  const [state, dispatch] = useReducer(analysisReducer, { phase: "idle" });
   // Her yeni analizde artar; eski analizin gecikmiş cevabını yok saymak için.
   const runId = useRef(0);
   const controller = useRef<AbortController | null>(null);
@@ -61,7 +77,9 @@ export function useAnalysis() {
     dispatch({ type: "start" });
 
     try {
-      const result = await checkInput(req, ctrl.signal);
+      const result = await checkInput(req, ctrl.signal, (phase) => {
+        if (runId.current === myRun) dispatch({ type: "stage", phase });
+      });
       if (runId.current !== myRun) return;
       dispatch({ type: "done", result, input: req.content });
     } catch (err) {

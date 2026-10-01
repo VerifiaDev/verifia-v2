@@ -29,7 +29,13 @@ function errorFromBody(body: unknown): ApiRequestError {
  * gider ve `input_type: "url"` eklenir; backend ekibiyle teyit edilmeli.
  * `signal` ile kullanıcı vazgeçebilir.
  */
-export async function checkInput(req: CheckRequest, signal: AbortSignal): Promise<CheckResult> {
+export async function checkInput(
+  req: CheckRequest,
+  signal: AbortSignal,
+  // Backend aşama bilgisi verecek hale gelirse (durum sorgulama ya da akış) burada çağrılır.
+  // Şu an backend vermiyor; tek istek olduğu için çağrılmaz.
+  _onStage?: (phase: "extracting_claims" | "retrieving_evidence" | "verifying") => void,
+): Promise<CheckResult> {
   if (USING_MOCK) return mockCheck(req);
 
   const controller = new AbortController();

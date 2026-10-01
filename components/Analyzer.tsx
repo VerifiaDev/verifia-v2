@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import { useAnalysis } from "@/hooks/useAnalysis";
+import { isBusy, useAnalysis } from "@/hooks/useAnalysis";
 import { AnalysisProgress } from "./AnalysisProgress";
 import { ErrorState } from "./ErrorState";
 import { ResultView } from "./ResultView";
@@ -10,7 +10,7 @@ import { USING_MOCK } from "@/lib/config";
 import { MOCK_EXAMPLES } from "@/lib/mock";
 
 /**
- * Sayfanın etkileşimli kısmı. Durumlar: idle → loading → completed | error.
+ * Sayfanın etkileşimli kısmı. Durumlar: bkz. hooks/useAnalysis.ts.
  * Form yalnızca sonuç görünürken gizlenir; ama her zaman bağlı kalır (yazılan içerik kaybolmaz).
  */
 export function Analyzer() {
@@ -38,7 +38,7 @@ export function Analyzer() {
 
       <div ref={formWrap} hidden={!showForm}>
         <VerificationInput
-          disabled={state.phase === "loading"}
+          disabled={isBusy(state)}
           onSubmit={start}
           examples={USING_MOCK ? MOCK_EXAMPLES : undefined}
         />
@@ -53,7 +53,7 @@ export function Analyzer() {
         </div>
       )}
 
-      {state.phase === "loading" && <AnalysisProgress onCancel={reset} />}
+      {isBusy(state) && <AnalysisProgress phase={state.phase} onCancel={reset} />}
 
       {state.phase === "error" && <ErrorState error={state.error} onRetry={retry} onEdit={reset} />}
 

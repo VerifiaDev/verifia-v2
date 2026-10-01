@@ -1,16 +1,26 @@
+import type { BusyPhase } from "@/hooks/useAnalysis";
+
 interface Props {
   onCancel: () => void;
   /**
-   * Backend aşama bilgisi verirse (0-3) o adım vurgulanır.
-   * Verilmezse hiçbir adım "şu an burada" diye işaretlenmez: sahte ilerleme gösterilmez.
+   * Hangi aşamada olduğumuz. `submitting` ise (backend aşama bilgisi vermiyor) hiçbir adım
+   * "şu an burada" diye işaretlenmez: sahte ilerleme gösterilmez.
    */
-  activeStep?: number;
+  phase: BusyPhase;
 }
+
+const ACTIVE_STEP: Record<BusyPhase, number | undefined> = {
+  submitting: undefined,
+  extracting_claims: 0,
+  retrieving_evidence: 1,
+  verifying: 2,
+};
 
 const STEPS = ["İddialar çıkarılıyor", "Kaynaklar aranıyor", "Kanıtlar karşılaştırılıyor"];
 
 /** Gerçek bir bekleme durumu. Yüzde ya da uydurma adım ilerlemesi göstermez. */
-export function AnalysisProgress({ onCancel, activeStep }: Props) {
+export function AnalysisProgress({ onCancel, phase }: Props) {
+  const activeStep = ACTIVE_STEP[phase];
   return (
     <div className="state" role="status" aria-live="polite">
       <h2 className="t-h3">İçerik inceleniyor</h2>
@@ -22,7 +32,9 @@ export function AnalysisProgress({ onCancel, activeStep }: Props) {
           </li>
         ))}
       </ol>
-      <p className="muted t-meta">Adımlar, sistemin sırayla yaptığı işleri gösterir; şu anki adım bilgisi alınmıyor.</p>
+      {activeStep === undefined && (
+        <p className="muted t-meta">Adımlar, sistemin sırayla yaptığı işleri gösterir; şu anki adım bilgisi alınmıyor.</p>
+      )}
       <button type="button" className="btn btn-quiet" onClick={onCancel}>
         Vazgeç
       </button>
