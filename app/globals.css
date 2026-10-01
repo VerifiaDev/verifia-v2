@@ -631,6 +631,11 @@ textarea.field {
 }
 .source-name {
   font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.evidence-meta,
+.evidence-body {
+  min-width: 0;
 }
 .source-domain {
   font-family: var(--mono);
