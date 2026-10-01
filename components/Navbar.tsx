@@ -1,4 +1,5 @@
-import { REPO_URL, SITE_NAME } from "@/lib/config";
+import { SiteLinks } from "./SiteLinks";
+import { SITE_NAME } from "@/lib/config";
 
 export function Navbar() {
   return (
@@ -7,21 +8,7 @@ export function Navbar() {
         <a className="brand" href="#main">
           {SITE_NAME}
         </a>
-        <ul className="nav-list">
-          <li>
-            <a href="#nasil">Nasıl çalışır?</a>
-          </li>
-          <li>
-            <a href="#guven">Güven ilkeleri</a>
-          </li>
-          {REPO_URL && (
-            <li>
-              <a href={REPO_URL} target="_blank" rel="noopener noreferrer">
-                GitHub<span className="sr-only"> (yeni sekmede açılır)</span>
-              </a>
-            </li>
-          )}
-        </ul>
+        <SiteLinks className="nav-list" />
       </nav>
     </header>
   );

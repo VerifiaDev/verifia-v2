@@ -36,6 +36,9 @@
   --text-body: 1.0625rem;
   --text-meta: 0.9375rem;
   --text-source: 0.875rem;
+  --text-mono: 0.8125rem;
+  --text-brand: 1.25rem;
+  --text-verdict: 1.125rem;
 
   /* ---- Boşluk ölçeği (4px tabanlı) ---- */
   --space-1: 0.25rem;
@@ -53,6 +56,8 @@
   --gutter: clamp(1rem, 4vw, 2rem);
   --aside: 20rem;
   --radius: 2px;
+  --target: 2.75rem; /* en az dokunma hedefi */
+  --measure: 42rem; /* rahat okuma satır uzunluğu */
 }
 
 *,
@@ -224,9 +229,9 @@ a {
 .brand {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: var(--target);
   font-family: var(--serif);
-  font-size: 1.25rem;
+  font-size: var(--text-brand);
   font-weight: 700;
   color: var(--ink);
   text-decoration: none;
@@ -239,7 +244,7 @@ a {
 .nav-list a {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: var(--target);
   padding-block: var(--space-2);
   color: var(--ink-2);
   font-size: var(--text-meta);
@@ -299,7 +304,7 @@ a {
 }
 .mode span {
   display: block;
-  min-height: 2.75rem;
+  min-height: var(--target);
   padding: var(--space-3) var(--space-5);
   font-weight: 600;
   line-height: 1.4;
@@ -378,7 +383,7 @@ textarea.field {
 }
 
 .btn {
-  min-height: 2.75rem;
+  min-height: var(--target);
   padding: 0 var(--space-5);
   font: inherit;
   font-weight: 600;
@@ -406,7 +411,7 @@ textarea.field {
 }
 
 .link-btn {
-  min-height: 2.75rem;
+  min-height: var(--target);
   padding: 0;
   font: inherit;
   color: var(--accent);
@@ -549,7 +554,7 @@ textarea.field {
   align-items: center;
   gap: var(--space-2);
   font-weight: 700;
-  font-size: 1.125rem;
+  font-size: var(--text-verdict);
   line-height: 1.4;
 }
 .verdict-symbol {
@@ -599,7 +604,7 @@ textarea.field {
   margin-bottom: var(--space-1);
 }
 .explanation {
-  max-width: 42rem;
+  max-width: var(--measure);
   overflow-wrap: anywhere;
 }
 .cite {
@@ -648,7 +653,7 @@ textarea.field {
 }
 .source-domain {
   font-family: var(--mono);
-  font-size: 0.8125rem;
+  font-size: var(--text-mono);
   color: var(--ink-2);
   overflow-wrap: anywhere;
 }
@@ -683,7 +688,7 @@ textarea.field {
   margin-top: var(--space-3);
 }
 .more summary {
-  min-height: 2.75rem;
+  min-height: var(--target);
   display: flex;
   align-items: center;
   font-weight: 600;
@@ -697,7 +702,7 @@ textarea.field {
 .notice {
   padding-left: var(--space-4);
   border-left: 3px solid var(--unknown);
-  max-width: 42rem;
+  max-width: var(--measure);
 }
 .notice > * + * {
   margin-top: var(--space-2);
@@ -823,7 +828,7 @@ textarea.field {
 .footer-links a {
   display: inline-flex;
   align-items: center;
-  min-height: 2.75rem;
+  min-height: var(--target);
 }
 
 /* ---------- Küçük ekran ---------- */
