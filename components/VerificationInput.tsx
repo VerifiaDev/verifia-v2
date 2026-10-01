@@ -6,11 +6,17 @@ import { INPUT_MODES } from "@/lib/format";
 import { validateInput } from "@/lib/input";
 import type { CheckRequest, InputMode } from "@/lib/types";
 
+export interface InputExample {
+  label: string;
+  mode: InputMode;
+  content: string;
+}
+
 interface Props {
   disabled?: boolean;
   onSubmit: (req: CheckRequest) => void;
   /** Örnek kullanım (yalnızca örnek veri modunda). */
-  examples?: { label: string; mode: InputMode; content: string }[];
+  examples?: InputExample[];
 }
 
 /**
@@ -22,7 +28,8 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
   const [mode, setMode] = useState<InputMode>("text");
   const [value, setValue] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const fieldRef = useRef<HTMLTextAreaElement & HTMLInputElement>(null);
+  const textRef = useRef<HTMLTextAreaElement>(null);
+  const urlRef = useRef<HTMLInputElement>(null);
   const uid = useId();
   const fieldId = `${uid}-field`;
   const hintId = `${uid}-hint`;
@@ -32,7 +39,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
     const res = validateInput(m, v);
     if (!res.ok) {
       setError(res.error.message);
-      fieldRef.current?.focus();
+      (m === "url" ? urlRef : textRef).current?.focus();
       return;
     }
     setError(null);
@@ -56,7 +63,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
         submit(mode, value);
       }}
     >
-      <fieldset className="modes-set" disabled={disabled} style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}>
+      <fieldset className="modes-set" disabled={disabled}>
         <legend className="sr-only">Girdi türü</legend>
         <div className="modes" role="radiogroup" aria-label="Girdi türü">
           {INPUT_MODES.map((m) => (
@@ -80,7 +87,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
 
       {isText ? (
         <textarea
-          ref={fieldRef}
+          ref={textRef}
           id={fieldId}
           className="field"
           rows={7}
@@ -93,7 +100,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
         />
       ) : (
         <input
-          ref={fieldRef}
+          ref={urlRef}
           id={fieldId}
           className="field"
           type="url"

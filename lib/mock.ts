@@ -10,6 +10,15 @@ import type { CheckRequest, CheckResult } from "./types";
  * Senaryoyu, girdiye yazdığınız anahtar kelime belirler (bkz. pickScenario).
  */
 
+/** Formun altındaki "Örnek deneyin" bağlantıları. Anahtar kelimeler pickScenario ile eşleşir. */
+export const MOCK_EXAMPLES: { label: string; mode: "text" | "url"; content: string }[] = [
+  { label: "Doğrulanan bir iddia", mode: "text", content: "#dogru Örnek iddia: Bir kentin nüfusu son sayımda arttı." },
+  { label: "Çelişen bir iddia", mode: "text", content: "#yanlis Örnek iddia: Bir ilaç hastalığı tamamen iyileştiriyor." },
+  { label: "Yetersiz kanıt", mode: "text", content: "#yetersiz Örnek iddia: Bir şirket gizli bir anlaşma yaptı." },
+  { label: "Kaynaklar çelişiyor", mode: "text", content: "#celiski Örnek iddia: Bir bölgede yağış rekoru kırıldı." },
+  { label: "Hata: zaman aşımı", mode: "text", content: "#hata-zamanasimi örnek" },
+];
+
 const DELAY_MS = 2500;
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

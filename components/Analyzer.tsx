@@ -7,14 +7,7 @@ import { ErrorState } from "./ErrorState";
 import { ResultView } from "./ResultView";
 import { VerificationInput } from "./VerificationInput";
 import { USING_MOCK } from "@/lib/config";
-
-const EXAMPLES = [
-  { label: "Doğrulanan bir iddia", mode: "text" as const, content: "#dogru Örnek iddia: Bir kentin nüfusu son sayımda arttı." },
-  { label: "Çelişen bir iddia", mode: "text" as const, content: "#yanlis Örnek iddia: Bir ilaç hastalığı tamamen iyileştiriyor." },
-  { label: "Yetersiz kanıt", mode: "text" as const, content: "#yetersiz Örnek iddia: Bir şirket gizli bir anlaşma yaptı." },
-  { label: "Kaynaklar çelişiyor", mode: "text" as const, content: "#celiski Örnek iddia: Bir bölgede yağış rekoru kırıldı." },
-  { label: "Hata: zaman aşımı", mode: "text" as const, content: "#hata-zamanasimi örnek" },
-];
+import { MOCK_EXAMPLES } from "@/lib/mock";
 
 /**
  * Sayfanın etkileşimli kısmı. Durumlar: idle → loading → completed | error.
@@ -47,7 +40,7 @@ export function Analyzer() {
         <VerificationInput
           disabled={state.phase === "loading"}
           onSubmit={start}
-          examples={USING_MOCK ? EXAMPLES : undefined}
+          examples={USING_MOCK ? MOCK_EXAMPLES : undefined}
         />
       </div>
 
