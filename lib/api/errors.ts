@@ -1,4 +1,4 @@
-import type { ApiError, ErrorCode } from "./types";
+import type { ApiError, ErrorCode } from "../types";
 
 /** Arayüzün tek bir hata tipi görmesi için: her başarısızlık bunu fırlatır. */
 export class ApiRequestError extends Error {

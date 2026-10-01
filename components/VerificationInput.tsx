@@ -4,19 +4,14 @@ import { useId, useRef, useState } from "react";
 import { MAX_INPUT_LENGTH } from "@/lib/config";
 import { INPUT_MODES } from "@/lib/format";
 import { validateInput } from "@/lib/input";
+import type { ExampleInput } from "@/lib/api";
 import type { CheckRequest, InputMode } from "@/lib/types";
-
-export interface InputExample {
-  label: string;
-  mode: InputMode;
-  content: string;
-}
 
 interface Props {
   disabled?: boolean;
   onSubmit: (req: CheckRequest) => void;
   /** Örnek kullanım (yalnızca örnek veri modunda). */
-  examples?: InputExample[];
+  examples?: ExampleInput[];
 }
 
 /**

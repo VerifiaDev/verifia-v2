@@ -22,6 +22,7 @@ const claim = (o: Partial<Claim> = {}): Claim => ({
   verdict: "SUPPORTED",
   explanation: "Açıklama [kaynak_1].",
   sources: [source(1)],
+  confidence: null,
   ...o,
 });
 const render = (c: Claim) => renderToStaticMarkup(<ClaimItem claim={c} index={0} total={1} />);
@@ -63,8 +64,19 @@ describe("ClaimItem", () => {
     assert.ok(html.includes("Yayın tarihi belirtilmemiş"));
     assert.ok(html.includes("alıntı gelmedi"));
   });
-  it("güven yüzdesi göstermez", () => {
-    assert.ok(!/%\s?\d|\d\s?%|güven oranı|confidence/i.test(render(claim())));
+  it("güven puanı varsa yüzde olarak ve 'olasılık değildir' notuyla gösterir", () => {
+    const html = render(claim({ confidence: 0.91 }));
+    assert.ok(html.includes("%91"));
+    assert.ok(html.includes("Modelin güven puanı"));
+    assert.ok(html.includes("doğru olma olasılığı değil"));
+  });
+  it("güven puanı yoksa hiçbir yüzde ya da puan metni göstermez (uydurmaz)", () => {
+    const html = render(claim({ confidence: null }));
+    assert.ok(!/güven puanı/i.test(html.replace(/Güven puanı kesinlik/g, "")));
+    assert.ok(!/%\s?\d|\d\s?%/.test(html));
+  });
+  it("0 puanını da doğru gösterir (yok sayılmaz)", () => {
+    assert.ok(render(claim({ confidence: 0 })).includes("%0"));
   });
 });
 

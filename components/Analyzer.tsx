@@ -6,8 +6,7 @@ import { AnalysisProgress } from "./AnalysisProgress";
 import { ErrorState } from "./ErrorState";
 import { ResultView } from "./ResultView";
 import { VerificationInput } from "./VerificationInput";
-import { USING_MOCK } from "@/lib/config";
-import { MOCK_EXAMPLES } from "@/lib/mock";
+import { apiInfo } from "@/lib/api";
 
 /**
  * Sayfanın etkileşimli kısmı. Durumlar: bkz. hooks/useAnalysis.ts.
@@ -30,7 +29,7 @@ export function Analyzer() {
 
   return (
     <div>
-      {USING_MOCK && (
+      {apiInfo.usingMock && (
         <p className="mock-note" role="note">
           Şu an örnek verilerle çalışıyor. Gösterilen kaynaklar uydurmadır; gerçek bir doğrulama değildir.
         </p>
@@ -40,7 +39,7 @@ export function Analyzer() {
         <VerificationInput
           disabled={isBusy(state)}
           onSubmit={start}
-          examples={USING_MOCK ? MOCK_EXAMPLES : undefined}
+          examples={apiInfo.examples}
         />
       </div>
 

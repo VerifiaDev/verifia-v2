@@ -86,6 +86,11 @@ export const INPUT_MODES: { id: InputMode; label: string }[] = [
   { id: "url", label: "Bağlantı" },
 ];
 
+/** 0.91 → "%91" (Türkçe yazım). */
+export function formatPercent(ratio: number): string {
+  return `%${Math.round(ratio * 100)}`;
+}
+
 const dateFmt = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" });
 
 /** "2023-03-14" → "14 Mart 2023". Tarih yoksa ya da bozuksa null. */

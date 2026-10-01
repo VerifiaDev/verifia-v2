@@ -29,6 +29,7 @@ export function AnalysisProgress({ onCancel, phase }: Props) {
         {STEPS.map((s, i) => (
           <li key={s} aria-current={activeStep === i ? "step" : undefined}>
             {s}
+            {activeStep !== undefined && i < activeStep && <span className="muted"> — tamamlandı</span>}
           </li>
         ))}
       </ol>

@@ -5,7 +5,7 @@
 
 ## Çalıştırma
 1. Node.js 20.9 veya üstü kurulu olmalı (`node -v`).
-2. Bu klasörde terminal açın: `npm ci`, bitince `npm run dev`.
+2. Bu klasörde terminal açın: `npm install`, bitince `npm run dev`.
 3. Tarayıcıda http://localhost:3000
 
 Kontrol: `npm run typecheck`, `npm run build`, `npm test` (48 test; ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
@@ -13,36 +13,17 @@ Kontrol: `npm run typecheck`, `npm run build`, `npm test` (48 test; ek paket ola
 ## Örnek veri (mock)
 `NEXT_PUBLIC_API_BASE_URL` boşken mock çalışır; sayfada "örnek veri" uyarısı görünür. Kaynaklar uydurmadır.
 Metne şu anahtarları yazarak durumları deneyin:
-`#dogru` `#yanlis` `#yetersiz` `#celiski` `#gorus` `#hata-zamanasimi` `#hata-sunucu` `#hata-ag`.
+`#dogru` `#yanlis` `#yetersiz` `#celiski` `#gorus` `#asamali` `#hata-zamanasimi` `#hata-sunucu` `#hata-ag`.
+`#asamali`, aşama bildiren bir backend'i taklit eder (arayüzün aşama gösterimini denemek için); diğerlerinde aşama bildirilmez.
 Bağlantı sekmesinde adreste "bozuk" geçerse "bağlantı okunamadı" hatası döner.
 
 ## Gerçek backend'e bağlama
-1. `.env.local` dosyası açın: `NEXT_PUBLIC_API_BASE_URL=https://backend-adresi`
-2. Backend'in cevabı beklenenden farklıysa yalnızca **`lib/adapter.ts`** değişir; bileşenlere dokunulmaz.
+Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter → UI**.
+1. `.env.local` dosyası açın: `NEXT_PUBLIC_API_BASE_URL=https://backend-adresi` (boşsa mock çalışır).
+2. Backend'in cevabı beklenenden farklıysa yalnızca `lib/api/contract.ts` ve `lib/api/adapter.ts` değişir; bileşenlere dokunulmaz.
+3. Sözleşmenin tamamı ve backend sahibine sorular: **[docs/API_CONTRACT.md](docs/API_CONTRACT.md)**.
 
-`NEXT_PUBLIC_` değişkenleri tarayıcı paketine build sırasında eklenir. Gerçek backend adresini production build almadan önce ayarlayın; build aldıktan sonra değiştirirseniz yeniden build gerekir. Bu değişkene API anahtarı veya başka bir gizli bilgi koymayın. Backend, production site adresinden gelen isteklere CORS üzerinden izin vermelidir.
-
-## Production sunucusunda çalıştırma
-
-Temiz bir checkout'ta Node.js 20.9+ ve npm ile:
-
-```sh
-npm ci
-npm run typecheck
-npm test
-npm run build
-npm run start -- -p 3000
-```
-
-Gerçek backend kullanılacaksa `NEXT_PUBLIC_API_BASE_URL` değerini build komutundan önce ayarlayın. Değer boşsa sayfa mock modda kalır ve örnek veriler gösterir; bu veriler gerçek doğrulama değildir. Hosting ortamında uygulamanın Node.js sunucusunu çalıştırmasına izin verilmeli, sadece statik dosya olarak yayınlanmamalıdır.
-
-Varsayılan sözleşme (Kişi 3 ile teyit edilecek):
-- İstek: `POST {BASE}/check` gövde `{ "text": "...", "input_type": "text" | "url" }`
-- Cevap: `{ "claims": [{ "id", "text", "verdict", "explanation", "sources": [{ "id", "url", "source", "text", "published_at" }] }] }`
-- Hata: `{ "error": { "code", "message" } }`
-- `verdict`: SUPPORTED, REFUTED, CONFLICTING, NOT ENOUGH EVIDENCE
-- Açıklamadaki `[kaynak_1]` atıfları kaynak listesindeki `id` ile eşleşir.
-- Güven yüzdesi (confidence) bilerek **gösterilmez**.
+`confidence` (0-1 arası) gelirse sonuçta "Modelin güven puanı: %91" olarak, doğruluk olasılığı olmadığı notuyla gösterilir; gelmezse hiçbir şey gösterilmez. Kanıt başına `score` gösterilmez.
 
 ## Yapı
 | Yer | Görev |
@@ -52,7 +33,8 @@ Varsayılan sözleşme (Kişi 3 ile teyit edilecek):
 | `components/` | Analyzer (durum), VerificationInput, AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Navbar, HowItWorks, TrustNotes, Footer |
 | `hooks/useAnalysis.ts` | idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed \| error. Parantezdeki aşamalar yalnızca backend gerçek aşama bilgisi verirse kullanılır; vermezse `submitting`'de kalınır, sahte ilerleme gösterilmez |
 | `tests/` | adapter, atıflar, girdi doğrulama, state, API (hata/zaman aşımı/bozuk cevap), uç durum görünümleri |
-| `lib/` | adapter, api, mock, citations, format, input, config, types |
+| `lib/api/` | `index.ts` (tek kapı), `contract.ts` (ham şekiller), `adapter.ts`, `http.ts` (FastAPI), `mock/` (sahte servis ve veriler), `errors.ts`, `service.ts` |
+| `lib/` | citations, format, input, config, types |
 
 ## Tasarım ilkeleri
 Sakin, editoryal, kanıt odaklı. Gradyan/gölge/parlama yok; sonuç rengi her zaman simge + yazıyla birlikte

@@ -37,6 +37,8 @@ export interface Claim {
   explanation: string;
   /** Yalnızca açıklamanın dayandığı kaynaklar */
   sources: Source[];
+  /** Modelin kendi güven puanı, 0 ile 1 arasında. Backend vermezse ya da geçersizse null (uydurulmaz). */
+  confidence: number | null;
 }
 
 export interface CheckResult {
@@ -44,6 +46,9 @@ export interface CheckResult {
   /** Doğrulanamaz bulunan ifadeler (görüş, tahmin vb.) */
   unverifiable: string[];
 }
+
+/** Backend'in bildirebileceği gerçek işlem aşamaları. Bildirmezse hiçbiri kullanılmaz. */
+export type AnalysisStage = "extracting_claims" | "retrieving_evidence" | "verifying";
 
 export interface CheckRequest {
   mode: InputMode;

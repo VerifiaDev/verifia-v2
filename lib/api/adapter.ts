@@ -11,10 +11,11 @@
  *  B) Tek iddia (proje dokümanındaki örnek):
  *     { claim, verdict, explanation, confidence, evidence: [ {text, source, url, score, published_at} ] }
  *
- * `confidence` ve `score` bilerek okunmaz: arayüz sahte kesinlik hissi vermemek için göstermez.
- * Bu dosya bilerek başka dosyalardan YALNIZCA tip alır (kolay test için).
+ * `confidence` (0-1 arası sayı) okunur ve "modelin güven puanı" olarak gösterilir; geçersizse (sayı değil,
+ * 0-1 dışında) yok sayılır, tahmin edilmez. `score` (kanıt başına) okunmaz.
+ * Ham şekiller için bkz. contract.ts. Bu dosya bilerek başka dosyalardan YALNIZCA tip alır (kolay test için).
  */
-import type { CheckResult, Claim, Source, Verdict } from "./types";
+import type { CheckResult, Claim, Source, Verdict } from "../types";
 
 export class InvalidResponseError extends Error {}
 
@@ -39,6 +40,11 @@ function isRecord(v: unknown): v is Record<string, unknown> {
 
 function str(v: unknown): string | null {
   return typeof v === "string" && v.trim() !== "" ? v.trim() : null;
+}
+
+/** Yalnızca 0 ile 1 arasındaki gerçek sayılar. "91" ya da 91 gibi belirsiz değerler yüzde mi oran mı bilinmez; yok sayılır. */
+function parseConfidence(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
 }
 
 function parseSource(raw: unknown, index: number): Source | null {
@@ -74,6 +80,7 @@ function parseClaim(raw: unknown, index: number): Claim | { unverifiableText: st
     verdict,
     explanation: str(raw.explanation) ?? "",
     sources,
+    confidence: parseConfidence(raw.confidence),
   };
 }
 

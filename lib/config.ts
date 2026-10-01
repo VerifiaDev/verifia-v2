@@ -11,8 +11,7 @@ export const MAX_INPUT_LENGTH = 5000;
 /** Tek istek bu süreden uzun sürerse vazgeçilir (ms). Çok iddialı metinlerde uzun sürebilir. */
 export const REQUEST_TIMEOUT_MS = 90_000;
 
-export const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL ?? "").trim().replace(/\/+$/, "");
-export const USING_MOCK = API_BASE_URL === "";
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
 /** Navbar ve footer'daki sayfa içi bağlantılar. Tek yerden yönetilir. */
 export const SITE_LINKS = [

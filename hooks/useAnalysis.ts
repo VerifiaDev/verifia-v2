@@ -1,9 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { ApiRequestError } from "@/lib/errors";
-import { checkInput } from "@/lib/api";
-import type { ApiError, CheckRequest, CheckResult } from "@/lib/types";
+import { ApiRequestError, checkInput } from "@/lib/api";
+import type { AnalysisStage, ApiError, CheckRequest, CheckResult } from "@/lib/types";
 
 /**
  * Arayüzün durum makinesi. Bir anda yalnızca bir durumdayız.
@@ -13,7 +12,7 @@ import type { ApiError, CheckRequest, CheckResult } from "@/lib/types";
  * Parantez içindeki üç aşama YALNIZCA backend gerçekten aşama bilgisi verirse kullanılır
  * (`onStage` ile). Bilgi gelmezse `submitting` içinde kalırız; sahte ilerleme gösterilmez.
  */
-export type BusyPhase = "submitting" | "extracting_claims" | "retrieving_evidence" | "verifying";
+export type BusyPhase = "submitting" | AnalysisStage;
 
 export type AnalysisState =
   | { phase: "idle" }
@@ -23,7 +22,7 @@ export type AnalysisState =
 
 export type AnalysisAction =
   | { type: "start" }
-  | { type: "stage"; phase: Exclude<BusyPhase, "submitting"> }
+  | { type: "stage"; phase: AnalysisStage }
   | { type: "done"; result: CheckResult; input: string }
   | { type: "fail"; error: ApiError }
   | { type: "reset" };

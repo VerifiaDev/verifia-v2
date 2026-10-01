@@ -39,7 +39,7 @@ export function ClaimItem({ claim, index, total }: Props) {
         {claim.text}
       </h3>
 
-      <VerdictSummary verdict={claim.verdict} />
+      <VerdictSummary verdict={claim.verdict} confidence={claim.confidence} />
 
       <div className="block">
         <h4 className="t-h4">Neden?</h4>

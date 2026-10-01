@@ -573,6 +573,15 @@ textarea.field {
   color: var(--ink);
   font-size: var(--text-meta);
 }
+.verdict-confidence {
+  margin-top: var(--space-2);
+  color: var(--ink-2);
+  font-size: var(--text-source);
+  line-height: 1.45;
+}
+.verdict-confidence strong {
+  color: var(--ink);
+}
 .tone-ok {
   color: var(--ok);
 }

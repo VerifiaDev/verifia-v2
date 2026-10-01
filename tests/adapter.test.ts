@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { InvalidResponseError, normalizeVerdict, parseCheckResponse } from "@/lib/adapter";
+import { InvalidResponseError, normalizeVerdict, parseCheckResponse } from "@/lib/api/adapter";
 
 describe("normalizeVerdict", () => {
   it("farklı yazımları tek biçime çevirir", () => {
@@ -37,10 +37,18 @@ describe("parseCheckResponse", () => {
     assert.equal(s.excerpt, "pasaj");
   });
 
-  it("güven/skor alanlarını bilerek yok sayar", () => {
+  it("güven puanını (0-1) taşır; kanıt skorunu taşımaz", () => {
     const r = parseCheckResponse({ claim: "T", verdict: "SUPPORTED", explanation: "e", confidence: 0.99, evidence: [{ id: "k", url: "https://b.example", text: "m", score: 0.9 }] });
-    assert.equal("confidence" in r.claims[0], false);
+    assert.equal(r.claims[0].confidence, 0.99);
     assert.equal("score" in r.claims[0].sources[0], false);
+  });
+
+  it("güven puanı yoksa null; geçersiz değerleri uydurmaz", () => {
+    const conf = (c: unknown) => parseCheckResponse({ claim: "T", verdict: "SUPPORTED", confidence: c }).claims[0].confidence;
+    assert.equal(conf(undefined), null);
+    assert.equal(conf(0), 0);
+    assert.equal(conf(1), 1);
+    for (const bad of [91, -0.1, 1.01, NaN, Infinity, "0.9", null, true]) assert.equal(conf(bad), null, String(bad));
   });
 
   it("tek iddia + evidence anahtarını kabul eder", () => {
@@ -72,4 +80,23 @@ describe("parseCheckResponse", () => {
       assert.throws(() => parseCheckResponse(bad), InvalidResponseError);
     });
   }
+});
+
+describe("proje dokümanındaki örnek cevap", () => {
+  it("aynen kabul edilir; confidence okunur, evidence.score okunmaz", () => {
+    const r = parseCheckResponse({
+      claim: "Örnek iddia",
+      verdict: "REFUTED",
+      explanation: "Kaynaklar bu iddia ile çelişiyor.",
+      confidence: 0.91,
+      evidence: [{ text: "Kısa kanıt pasajı", source: "Reuters", url: "https://example.com", score: 0.87, published_at: "2026-05-12" }],
+    });
+    assert.equal(r.claims.length, 1);
+    assert.equal(r.claims[0].text, "Örnek iddia");
+    assert.equal(r.claims[0].verdict, "REFUTED");
+    assert.equal(r.claims[0].confidence, 0.91);
+    assert.equal(r.claims[0].sources[0].name, "Reuters");
+    assert.equal(r.claims[0].sources[0].publishedAt, "2026-05-12");
+    assert.equal(r.claims[0].sources[0].excerpt, "Kısa kanıt pasajı");
+  });
 });
