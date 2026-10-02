@@ -1161,6 +1161,30 @@ textarea.field {
   }
 }
 
+/* Kısa telefon ekranları (≈667px ve altı): yazı alanı üç satıra iner, ana buton ilk ekrana yaklaşır.
+   Alan yine de elle büyütülebilir. */
+@media (max-width: 30rem) and (max-height: 45rem) {
+  textarea.field {
+    height: 4.25rem;
+    min-height: 4.25rem;
+  }
+  .hero {
+    margin-bottom: var(--space-3);
+  }
+  .analyzer {
+    padding: var(--space-3) var(--space-4);
+  }
+  .masthead {
+    padding-block: var(--space-2);
+  }
+  .layout {
+    padding-top: var(--space-4);
+  }
+  .analyzer-title {
+    margin-bottom: var(--space-1, 0.25rem);
+  }
+}
+
 /* 1024–1152px arası: yan sütun daralır, başlık tek satırda kalır (ana buton ilk ekranda kalsın). */
 @media (min-width: 64rem) and (max-width: 72rem) {
   .layout {
