@@ -100,3 +100,23 @@ describe("checkInput (gerçek API yolu)", () => {
     await assert.rejects(p, (e: unknown) => !(e instanceof ApiRequestError));
   });
 });
+
+describe("httpService adresi", () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+  });
+
+  it("adresin sonundaki eğik çizgiyi atar (//verify oluşmaz)", async () => {
+    const { httpService } = await import("@/lib/api/http");
+    const urls: string[] = [];
+    globalThis.fetch = (async (url: string) => {
+      urls.push(url);
+      return json(200, okBody);
+    }) as typeof fetch;
+    for (const base of ["http://backend.test/", "http://backend.test//", "http://backend.test"]) {
+      await httpService(base).check({ text: "iddia", input_type: "text" }, { signal: new AbortController().signal });
+    }
+    assert.deepEqual(urls, ["http://backend.test/verify", "http://backend.test/verify", "http://backend.test/verify"]);
+  });
+});

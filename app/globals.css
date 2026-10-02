@@ -23,9 +23,9 @@
   --mixed: #85560a;
   --mixed-tint: #f8f1e1;
 
-  /* ---- Yazı tipleri (sistem yazı tipleri: ek indirme yok) ---- */
-  --serif: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
-  --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* ---- Yazı tipleri: proje içinden sunulur (app/layout.tsx, app/fonts). Yüklenemezse sistem yazı tipine düşer. ---- */
+  --serif: var(--font-serif), "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif;
+  --sans: var(--font-sans), system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
   /* ---- Tip ölçeği ---- */
@@ -180,6 +180,10 @@ a {
   color: var(--ink-2);
 }
 
+header {
+  border-bottom: 1px solid var(--rule);
+}
+
 /* ---------- Ortak container ve düzen ---------- */
 
 .container {
@@ -224,53 +228,115 @@ a {
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
-  min-height: 3.5rem;
+  min-height: 4rem;
 }
 .brand {
   display: inline-flex;
   align-items: center;
+  gap: var(--space-2);
   min-height: var(--target);
   font-family: var(--serif);
   font-size: var(--text-brand);
   font-weight: 700;
   color: var(--ink);
   text-decoration: none;
+  letter-spacing: -0.035em;
+}
+.brand-mark {
+  display: block;
+  width: 2.125rem;
+  height: 2.125rem;
+  padding: 0.28rem;
+  overflow: visible;
+  color: var(--surface);
+  background: var(--accent);
+  border-radius: 5px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.65;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: 0 0 auto;
+}
+.brand-mark circle {
+  fill: var(--mixed-tint);
+  stroke: var(--mixed-tint);
 }
 .nav-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 0 var(--space-5);
+  align-items: center;
+  gap: 0 var(--space-3);
 }
 .nav-list a {
   display: inline-flex;
   align-items: center;
   min-height: var(--target);
-  padding-block: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   color: var(--ink-2);
   font-size: var(--text-meta);
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 4px;
 }
 .nav-list a:hover {
   color: var(--ink);
+  background: var(--accent-tint);
+}
+.nav-list li:first-child a {
+  color: #fff;
+  background: var(--accent);
+}
+.nav-list li:first-child a:hover {
+  color: #fff;
+  background: var(--accent-hover);
 }
 
 /* ---------- Hero ---------- */
 
 .hero {
-  padding-block: var(--space-7) var(--space-8);
+  padding-block: clamp(2.5rem, 5vw, 4rem) var(--space-5);
+}
+.hero-kicker {
+  margin-bottom: var(--space-2);
+  color: var(--accent);
+  font-size: var(--text-source);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 .hero-lead {
-  margin-top: var(--space-4);
-  margin-bottom: var(--space-6);
-  max-width: 38rem;
+  margin-top: var(--space-3);
+  margin-bottom: var(--space-4);
+  max-width: 44rem;
   color: var(--ink-2);
+}
+
+.analyzer-title {
+  margin-bottom: var(--space-3);
 }
 
 .mock-note {
   margin-bottom: var(--space-5);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
   padding: var(--space-3) var(--space-4);
   background: var(--mixed-tint);
   border-left: 3px solid var(--mixed);
   font-size: var(--text-meta);
+  border-radius: 0 4px 4px 0;
+}
+.mock-label {
+  padding: 0.1rem 0.4rem;
+  color: #fff;
+  background: var(--mixed);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  line-height: 1.6;
+  text-transform: uppercase;
 }
 
 /* ---------- Giriş ---------- */
@@ -285,7 +351,7 @@ a {
   display: inline-flex;
   margin-bottom: var(--space-4);
   border: 1.5px solid var(--rule-strong);
-  border-radius: var(--radius);
+  border-radius: 4px;
   background: var(--surface);
 }
 .mode {
@@ -336,7 +402,7 @@ a {
   color: var(--ink);
   background: var(--surface);
   border: 1.5px solid var(--rule-strong);
-  border-radius: var(--radius);
+  border-radius: 4px;
 }
 textarea.field {
   min-height: 9rem;
@@ -379,7 +445,7 @@ textarea.field {
   flex-wrap: wrap;
   align-items: center;
   gap: var(--space-3) var(--space-4);
-  margin-top: var(--space-5);
+  margin-top: var(--space-4); /* ana buton 1280×800 ekranda ilk görünümde kalsın */
 }
 
 .btn {
@@ -390,7 +456,7 @@ textarea.field {
   color: #fff;
   background: var(--accent);
   border: 2px solid var(--accent);
-  border-radius: var(--radius);
+  border-radius: 4px;
   cursor: pointer;
 }
 .btn:hover:not(:disabled) {
@@ -482,7 +548,8 @@ textarea.field {
 .result {
   margin-top: var(--space-6);
 }
-.result-title:focus {
+.result-title:focus,
+.focus-target:focus {
   outline: none;
 }
 .input-echo {
@@ -542,6 +609,22 @@ textarea.field {
   margin-bottom: var(--space-1);
   color: var(--ink-2);
   font-size: var(--text-meta);
+}
+/* Örnek sonuç: her iddia kesik çizgili çerçeve içinde ve etiketli; ekran görüntüsünde de ayırt edilir. */
+.claim-item--sample {
+  padding: var(--space-4);
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: 4px;
+}
+.sample-tag {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1.5px dashed var(--rule-strong);
+  color: var(--ink-2);
+  font-size: var(--text-source);
+}
+.sample-tag strong {
+  color: var(--ink);
 }
 
 .verdict {
@@ -809,6 +892,7 @@ textarea.field {
 }
 .trust-list p {
   margin-top: var(--space-1);
+  max-width: var(--measure);
   color: var(--ink-2);
 }
 
@@ -837,6 +921,8 @@ textarea.field {
 .footer-links a {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
+  min-width: var(--target); /* kısa bağlantılar ("İncele") da en az dokunma hedefi kadar geniş */
   min-height: var(--target);
 }
 
@@ -847,10 +933,61 @@ textarea.field {
     font-size: 1rem;
   }
   .hero {
-    padding-block: var(--space-6) var(--space-7);
+    padding-block: 1.125rem 0.75rem;
+  }
+  .hero-kicker {
+    font-size: 0.75rem;
+    margin-bottom: var(--space-1);
+  }
+  .hero .t-display {
+    font-size: clamp(1.9rem, 8vw, 2.25rem);
+    line-height: 1.08;
+  }
+  .hero-lead {
+    margin-top: var(--space-2);
+    margin-bottom: var(--space-3);
+    font-size: 0.95rem;
+    line-height: 1.45;
+  }
+  .nav {
+    min-height: 3.25rem;
+    gap: var(--space-1);
+  }
+  .brand {
+    gap: 0.35rem;
+    font-size: 1.05rem;
+  }
+  .brand-mark {
+    width: 1.625rem;
+    height: 1.625rem;
+    padding: 0.2rem;
+  }
+  .nav-list {
+    gap: 0 0.15rem;
+  }
+  .nav-list a {
+    min-height: 2.5rem;
+    padding-inline: 0.35rem;
+    font-size: 0.75rem;
+  }
+  .analyzer-title {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-2);
+  }
+  .mock-note {
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    font-size: 0.875rem;
+  }
+  .mock-label {
+    font-size: 0.6875rem;
+  }
+  textarea.field {
+    min-height: 7rem;
   }
   .section {
-    padding-block: var(--space-7);
+    padding-block: var(--space-6);
   }
   .modes {
     display: flex;
@@ -868,8 +1005,21 @@ textarea.field {
   .claim-item {
     padding-top: var(--space-4);
   }
+  .claim-item--sample {
+    padding: var(--space-3);
+  }
   .claims > * + * {
     margin-top: var(--space-7);
+  }
+}
+
+@media (max-width: 22.5rem) {
+  .nav-list li:not(:first-child) {
+    display: none;
+  }
+  textarea.field {
+    height: 7.5rem;
+    min-height: 7rem;
   }
 }
 

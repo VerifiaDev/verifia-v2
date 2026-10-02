@@ -11,7 +11,7 @@
 `POST {NEXT_PUBLIC_API_BASE_URL}/check` — `Content-Type: application/json`
 
 ```json
-{ "text": "Doğrulanacak metin ya da bağlantı", "input_type": "text" }
+{ "text": "İncelenecek metin ya da bağlantı", "input_type": "text" }
 ```
 
 - `input_type`: `"text"` ya da `"url"`. `"url"` ise `text` alanında bağlantı gelir.
@@ -55,7 +55,7 @@ Alanlar:
 | `evidence[].source` (ya da `title`) | hayır | Kaynak adı; yoksa alan adı gösterilir |
 | `evidence[].text` | hayır | Kısa alıntı |
 | `evidence[].published_at` | hayır | ISO tarih; yoksa "Yayın tarihi belirtilmemiş" |
-| `is_verifiable` | hayır | `false` ise iddia ayrı bir "doğrulanmayan ifadeler" bölümünde gösterilir |
+| `is_verifiable` | hayır | `false` ise iddia ayrı bir "incelenmeyen ifadeler" bölümünde gösterilir |
 | `confidence` | hayır | 0 ile 1 arası sayı (örn. `0.91`). Arayüz **"Modelin güven puanı: %91"** diye gösterir ve bunun doğruluk olasılığı olmadığını belirtir. Yoksa ya da 0-1 dışındaysa (örn. `91`) hiçbir şey gösterilmez, tahmin edilmez |
 | `evidence[].score` | hayır | Arayüz göstermez |
 

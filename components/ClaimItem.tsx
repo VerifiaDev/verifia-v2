@@ -9,6 +9,8 @@ interface Props {
   claim: Claim;
   index: number;
   total: number;
+  /** Örnek (mock) veri: sonuç gerçek bir inceleme değildir; her iddiada açıkça belirtilir. */
+  sample?: boolean;
 }
 
 const FALLBACK_KEY_COUNT = 2;
@@ -17,7 +19,7 @@ const FALLBACK_KEY_COUNT = 2;
  * Bir iddia ve sırasıyla: iddia → sonuç → açıklama → öne çıkan kanıtlar → diğer kaynaklar.
  * "Öne çıkan" kanıt, açıklamanın atıf yaptığı kaynaklardır; atıf yoksa ilk ikisi.
  */
-export function ClaimItem({ claim, index, total }: Props) {
+export function ClaimItem({ claim, index, total, sample = false }: Props) {
   const { sources } = claim;
   const cited = citedNumbers(claim.explanation, sources);
   const keyNumbers = cited.length > 0 ? cited : sources.slice(0, FALLBACK_KEY_COUNT).map((_, i) => i + 1);
@@ -29,7 +31,16 @@ export function ClaimItem({ claim, index, total }: Props) {
   );
 
   return (
-    <article id={claimAnchor(claim.id)} className="claim-item" aria-labelledby={titleId}>
+    <article
+      id={claimAnchor(claim.id)}
+      className={sample ? "claim-item claim-item--sample" : "claim-item"}
+      aria-labelledby={titleId}
+    >
+      {sample && (
+        <p className="sample-tag">
+          <strong>Örnek veri.</strong> Gönderdiğiniz içerikle ilgisi yok; gerçek bir inceleme değil.
+        </p>
+      )}
       {total > 1 && (
         <p className="claim-kicker">
           İddia {index + 1} / {total}
@@ -39,7 +50,8 @@ export function ClaimItem({ claim, index, total }: Props) {
         {claim.text}
       </h3>
 
-      <VerdictSummary verdict={claim.verdict} confidence={claim.confidence} />
+      {/* Örnek veride güven puanı gösterilmez: uydurma bir yüzde, ekran görüntüsünde en kolay gerçek sanılan öğedir. */}
+      <VerdictSummary verdict={claim.verdict} confidence={sample ? null : claim.confidence} />
 
       <div className="block">
         <h4 className="t-h4">Neden?</h4>

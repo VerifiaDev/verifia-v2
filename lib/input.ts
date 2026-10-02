@@ -22,7 +22,7 @@ export function validateInput(
       ok: false,
       error: {
         code: "INVALID_INPUT",
-        message: mode === "url" ? "Doğrulanacak bir bağlantı girin." : "Doğrulanacak bir metin girin.",
+        message: mode === "url" ? "İncelenecek bir bağlantı girin." : "İncelenecek bir metin girin.",
       },
     };
   }

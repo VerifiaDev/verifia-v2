@@ -30,6 +30,8 @@ function errorFromBody(body: unknown): ApiRequestError {
  * Backend aşama bilgisi vermediği için `onStage` çağrılmaz.
  */
 export function httpService(baseUrl: string): VerificationService {
+  // Sondaki "/" karakterleri atılır: ".../" + "/check" çift eğik çizgiye ("//check") dönüşmesin.
+  const base = baseUrl.replace(/\/+$/, "");
   return {
     async check(req: RawCheckRequest, { signal }): Promise<RawCheckResponse> {
       if (req.input_type === "url") {
@@ -45,7 +47,7 @@ export function httpService(baseUrl: string): VerificationService {
       }, REQUEST_TIMEOUT_MS);
 
       try {
-        const res = await fetch(`${baseUrl}/verify`, {
+        const res = await fetch(`${base}/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ text: req.text }),
