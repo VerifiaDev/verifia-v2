@@ -41,10 +41,15 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   colorScheme: "light dark",
+  /** Telefon tarayıcısının üst çubuğu temayla aynı renkte olsun (değerler globals.css'teki --paper). Elle seçimde ThemeToggle günceller. */
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f6f7f5" },
+    { media: "(prefers-color-scheme: dark)", color: "#11151a" },
+  ],
 };
 
 /** Kayıtlı gece/gündüz tercihini ilk boyamadan önce uygular (yanıp sönmeyi önler). Anahtar: components/ThemeToggle.tsx */
-const THEME_SCRIPT = `try{var t=localStorage.getItem("verify-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}`;
+const THEME_SCRIPT = `try{var t=localStorage.getItem("verify-theme");if(t==="dark"||t==="light"){document.documentElement.dataset.theme=t;var c=t==="dark"?"#11151a":"#f6f7f5";document.querySelectorAll('meta[name="theme-color"]').forEach(function(m){m.removeAttribute("media");m.setAttribute("content",c)})}}catch(e){}`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (

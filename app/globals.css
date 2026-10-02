@@ -654,6 +654,9 @@ textarea.field {
   font-size: var(--text-meta);
 }
 .input-echo summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--target);
   cursor: pointer;
 }
 .input-echo p {
@@ -680,6 +683,14 @@ textarea.field {
   font-weight: 700;
   color: var(--ink);
   overflow-wrap: anywhere;
+}
+/* Dokunmatik ekranda iddia özeti bağlantısı en az 44px yüksekliğinde olsun. */
+@media (pointer: coarse) {
+  .ci-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--target);
+  }
 }
 .ci-meta {
   display: flex;
@@ -860,6 +871,10 @@ textarea.field {
   color: var(--ink);
 }
 .evidence-link a {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35em;
+  min-height: var(--target);
   font-weight: 600;
   font-size: var(--text-meta);
 }

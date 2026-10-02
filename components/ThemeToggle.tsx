@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 
 const KEY = "verify-theme";
+/** globals.css'teki --paper değerleri; telefon tarayıcısının üst çubuk rengi için. */
+const BAR_COLOR = { light: "#f6f7f5", dark: "#11151a" } as const;
 
 /** Geçerli görünüm: elle seçilmişse o, değilse sistem tercihi. */
 function currentIsDark(): boolean {
@@ -31,6 +33,11 @@ export function ThemeToggle() {
   function toggle() {
     const next = currentIsDark() ? "light" : "dark";
     document.documentElement.dataset.theme = next;
+    // Elle seçimde sistem tercihine bağlı (media'lı) etiketler yanlış renk verir; hepsi seçilen renge sabitlenir.
+    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
+      m.removeAttribute("media");
+      m.setAttribute("content", BAR_COLOR[next]);
+    });
     try {
       localStorage.setItem(KEY, next);
     } catch {
