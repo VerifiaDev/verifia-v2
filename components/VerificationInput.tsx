@@ -114,7 +114,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
           ref={textRef}
           id={fieldId}
           className="field"
-          rows={7}
+          rows={5}
           value={value}
           disabled={disabled}
           onChange={(e) => setValue(e.target.value)}
