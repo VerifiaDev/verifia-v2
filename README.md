@@ -10,6 +10,9 @@
 
 Kontrol: `npm run typecheck`, `npm run build`, `npm test` (72 test; ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
 
+## Gece modu
+Sistem tercihi (`prefers-color-scheme`) izlenir; üstteki "Gece modu" düğmesi tercihi elle değiştirir ve tarayıcıda (`localStorage`, anahtar `verify-theme`) saklar. Renkler `app/globals.css` başındaki jetonlardır; koyu palet iki yerde tanımlıdır (`[data-theme="dark"]` ve sistem koyuyken `:root:not([data-theme="light"])`), biri değişirse diğeri de güncellenmelidir. Kayıtlı tercih, `app/layout.tsx` içindeki satır içi betikle ilk boyamadan önce uygulanır (yanıp sönme olmaz).
+
 ## Örnek veri (mock)
 `NEXT_PUBLIC_API_BASE_URL` boşken yalnızca `npm run dev` sırasında mock çalışır; sayfada "Geliştirme" uyarısı görünür ve her iddia "Örnek veri" etiketi taşır. Kaynaklar uydurmadır; sonuç, yazdığınız içerikle değil yalnızca aşağıdaki anahtarlarla seçilir.
 Metne şu anahtarları yazarak durumları deneyin:

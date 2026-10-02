@@ -5,6 +5,8 @@
    ========================================================================== */
 
 :root {
+  color-scheme: light;
+
   /* ---- Renk (nötr kâğıt, koyu mürekkep, tek vurgu) ---- */
   --paper: #f6f7f5;
   --surface: #ffffff;
@@ -15,6 +17,8 @@
   --accent: #173f5f;
   --accent-hover: #0f2e47;
   --accent-tint: #e6edf2;
+  --on-accent: #ffffff; /* düğme ve rozet yazısı (vurgu zemininde) */
+  --placeholder: #6b7480;
 
   /* ---- Sonuç renkleri (yalnızca bilgi) ---- */
   --ok: #1a6a43;
@@ -58,6 +62,50 @@
   --radius: 2px;
   --target: 2.75rem; /* en az dokunma hedefi */
   --measure: 42rem; /* rahat okuma satır uzunluğu */
+}
+
+/* ---------- Gece modu ----------
+   Sistem tercihi izlenir; üstteki düğme tercihi `data-theme` ile ezer (app/layout.tsx, components/ThemeToggle.tsx).
+   Tüm renk çiftleri en az 4,5:1 (metin) ve 3:1 (form kenarı) kontrastına göre seçildi. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #11151a;
+  --surface: #181e25;
+  --ink: #e8ecf0;
+  --ink-2: #a7b1bc;
+  --rule: #2b333c;
+  --rule-strong: #6c7885;
+  --accent: #8dbbe0;
+  --accent-hover: #b3d3ec;
+  --accent-tint: #1e2c39;
+  --on-accent: #0c1620;
+  --placeholder: #8a95a1;
+  --ok: #5fc28f;
+  --bad: #f08a8a;
+  --unknown: #a3adb8;
+  --mixed: #e0b45e;
+  --mixed-tint: #2a2417;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #11151a;
+    --surface: #181e25;
+    --ink: #e8ecf0;
+    --ink-2: #a7b1bc;
+    --rule: #2b333c;
+    --rule-strong: #6c7885;
+    --accent: #8dbbe0;
+    --accent-hover: #b3d3ec;
+    --accent-tint: #1e2c39;
+    --on-accent: #0c1620;
+    --placeholder: #8a95a1;
+    --ok: #5fc28f;
+    --bad: #f08a8a;
+    --unknown: #a3adb8;
+    --mixed: #e0b45e;
+    --mixed-tint: #2a2417;
+  }
 }
 
 *,
@@ -133,7 +181,7 @@ a {
   z-index: 10;
   padding: var(--space-3) var(--space-4);
   background: var(--ink);
-  color: #fff;
+  color: var(--paper);
   border-radius: var(--radius);
 }
 .skip-link:focus {
@@ -289,6 +337,7 @@ header {
 .nav-list a {
   display: inline-flex;
   align-items: center;
+  min-width: var(--target); /* kısa bağlantı ("İncele") de en az dokunma hedefi kadar geniş */
   min-height: var(--target);
   color: var(--ink);
   font-size: 1rem;
@@ -297,6 +346,45 @@ header {
 .nav-list a:hover {
   color: var(--accent);
   text-decoration: underline;
+}
+
+.masthead-end {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--space-5);
+}
+.theme-toggle {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-height: var(--target);
+  padding: 0 var(--space-3);
+  font: inherit;
+  font-size: 1rem;
+  color: var(--ink);
+  background: transparent;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.theme-toggle:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+.theme-toggle[aria-pressed="true"] {
+  background: var(--accent-tint);
+  border-color: var(--accent);
+}
+.theme-toggle svg {
+  width: 1.125rem;
+  height: 1.125rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 /* ---------- Hero ---------- */
@@ -338,7 +426,7 @@ header {
 }
 .mock-label {
   padding: 0.1rem 0.4rem;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--mixed);
   border-radius: 3px;
   font-size: 0.8125rem;
@@ -386,7 +474,7 @@ header {
 }
 .mode input:checked + span {
   background: var(--ink);
-  color: #fff;
+  color: var(--paper);
 }
 .mode input:focus-visible + span {
   outline: 3px solid var(--accent);
@@ -417,7 +505,7 @@ textarea.field {
   resize: vertical;
 }
 .field::placeholder {
-  color: #6b7480;
+  color: var(--placeholder);
   opacity: 1;
 }
 .field:focus-visible {
@@ -461,7 +549,7 @@ textarea.field {
   padding: 0 var(--space-5);
   font: inherit;
   font-weight: 600;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent);
   border: 2px solid var(--accent);
   border-radius: 4px;
@@ -981,6 +1069,26 @@ textarea.field {
   }
   .nav-list {
     gap: 0 var(--space-4);
+  }
+  .masthead-end {
+    flex-wrap: nowrap;
+    justify-content: space-between;
+    width: 100%;
+    gap: var(--space-3);
+  }
+  /* Dar ekranda düğme yalnızca simge olur; ad ekran okuyucuya okunmaya devam eder. */
+  .theme-toggle {
+    width: var(--target);
+    padding: 0;
+    justify-content: center;
+  }
+  .theme-toggle-text {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
   }
   .nav-list a {
     font-size: 0.9375rem;

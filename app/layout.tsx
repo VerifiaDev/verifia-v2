@@ -40,12 +40,17 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
+  colorScheme: "light dark",
 };
+
+/** Kayıtlı gece/gündüz tercihini ilk boyamadan önce uygular (yanıp sönmeyi önler). Anahtar: components/ThemeToggle.tsx */
+const THEME_SCRIPT = `try{var t=localStorage.getItem("verify-theme");if(t==="dark"||t==="light")document.documentElement.dataset.theme=t}catch(e){}`;
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="tr" className={`${fontSerif.variable} ${fontSans.variable}`}>
+    <html lang="tr" className={`${fontSerif.variable} ${fontSans.variable}`} suppressHydrationWarning>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
         <a className="skip-link" href="#main">
           İçeriğe geç
         </a>
