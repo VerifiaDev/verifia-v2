@@ -6,6 +6,14 @@ const KEY = "verify-theme";
 /** globals.css'teki --paper değerleri; telefon tarayıcısının üst çubuk rengi için. */
 const BAR_COLOR = { light: "#f6f7f5", dark: "#11151a" } as const;
 
+/** Elle seçilmiş tema varsa tüm theme-color etiketlerini ona sabitler (sistem tercihine bağlı olanlar yanlış renk verir). */
+function applyBarColor(theme: "light" | "dark") {
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
+    m.removeAttribute("media");
+    m.setAttribute("content", BAR_COLOR[theme]);
+  });
+}
+
 /** Geçerli görünüm: elle seçilmişse o, değilse sistem tercihi. */
 function currentIsDark(): boolean {
   const set = document.documentElement.dataset.theme;
@@ -24,6 +32,9 @@ export function ThemeToggle() {
 
   useEffect(() => {
     setDark(currentIsDark());
+    // Etiketlerin bir kısmı ilk boyama betiğinden sonra eklenebilir; kayıtlı seçim varsa burada yeniden uygulanır.
+    const chosen = document.documentElement.dataset.theme;
+    if (chosen === "dark" || chosen === "light") applyBarColor(chosen);
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const onChange = () => setDark(currentIsDark());
     mq.addEventListener("change", onChange);
@@ -33,11 +44,7 @@ export function ThemeToggle() {
   function toggle() {
     const next = currentIsDark() ? "light" : "dark";
     document.documentElement.dataset.theme = next;
-    // Elle seçimde sistem tercihine bağlı (media'lı) etiketler yanlış renk verir; hepsi seçilen renge sabitlenir.
-    document.querySelectorAll('meta[name="theme-color"]').forEach((m) => {
-      m.removeAttribute("media");
-      m.setAttribute("content", BAR_COLOR[next]);
-    });
+    applyBarColor(next);
     try {
       localStorage.setItem(KEY, next);
     } catch {
