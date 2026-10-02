@@ -8,7 +8,7 @@
 2. Bu klasörde terminal açın: `npm install`, bitince `npm run dev`.
 3. Tarayıcıda http://localhost:3000
 
-Kontrol: `npm run typecheck`, `npm run build`, `npm test` (48 test; ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
+Kontrol: `npm run typecheck`, `npm run build`, `npm test` (62 test; ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
 
 ## Örnek veri (mock)
 `NEXT_PUBLIC_API_BASE_URL` boşken mock çalışır; sayfada "örnek veri" uyarısı görünür. Kaynaklar uydurmadır.
@@ -42,5 +42,5 @@ Sakin, editoryal, kanıt odaklı. Gradyan/gölge/parlama yok; sonuç rengi her z
 diğer kaynaklar → kaynak bağlantıları. Ek bağımlılık yok.
 
 ## Açık sorular (backend sahibine)
-`POST /check` şekli, URL için `input_type`, kaynakların nesne olarak dönmesi, metin sınırı (şimdilik 5000), azami süre (şimdilik 90 sn).
+`POST /verify` şekli (backend ile geldi), URL için `input_type`, kaynakların nesne olarak dönmesi, metin sınırı (şimdilik 5000), azami süre (şimdilik 90 sn).
 GitHub bağlantısı için `lib/config.ts` içindeki `REPO_URL` doldurulur.

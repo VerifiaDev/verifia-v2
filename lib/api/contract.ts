@@ -29,6 +29,10 @@ export interface RawEvidence {
 
 export interface RawClaim {
   id?: string;
+  /** Gerçek backend iddia kimliğini `claim_id` olarak verir. */
+  claim_id?: string;
+  /** Gerçek backend: açıklamada gerçekten kullanılan kaynak kimlikleri (arayüz şimdilik atıflardan okur). */
+  used_sources?: string[];
   /** İddia metni; bazı biçimlerde `text` */
   claim?: string;
   text?: string;
@@ -46,7 +50,7 @@ export interface RawClaim {
 }
 
 /** İki biçim de kabul edilir: iddia listesi ya da tek iddia. */
-export type RawCheckResponse = { claims: RawClaim[] } | RawClaim;
+export type RawCheckResponse = { results: RawClaim[] } | { claims: RawClaim[] } | RawClaim;
 
 /** Hata cevabının gövdesi (HTTP 4xx/5xx). */
 export interface RawErrorBody {

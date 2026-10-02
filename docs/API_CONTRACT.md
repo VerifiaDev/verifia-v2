@@ -1,5 +1,8 @@
 # API sözleşmesi (frontend'in anladığı hâli)
 
+> **GÜNCEL DURUM (2 Ekim):** Backend `backend/main.py` ile geldi. Gerçek sözleşme: `POST /verify`, gövde yalnızca `{ "text": "..." }`, cevap `{ "results": [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id: "source_1", url, text} ] } ] }`. Güven puanı, kaynak adı, tarih, hata gövdesi, CORS ve bağlantı (URL) desteği henüz yok. Aşağıdaki "/check" ve `input_type` anlatımı eski öneridir; arayüz artık `/verify` kullanır.
+
+
 > **Durum: geçici öneri.** Backend sahibi (Kişi 3) ile teyit edilene kadar geçerlidir.
 > Kodda karşılığı: `lib/api/contract.ts` (şekiller), `lib/api/adapter.ts` (çeviri), `lib/api/http.ts` (istek).
 

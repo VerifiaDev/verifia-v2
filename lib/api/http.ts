@@ -23,14 +23,18 @@ function errorFromBody(body: unknown): ApiRequestError {
 }
 
 /**
- * Gerçek servis: `POST {baseUrl}/check`  →  tek istek, tek cevap.
+ * Gerçek servis: `POST {baseUrl}/verify` (backend/main.py)  →  tek istek, tek cevap.
  *
- * VARSAYIM: backend README'si yalnızca { text } tanımlıyor; `input_type` bizim eklememiz ve
- * backend ekibiyle teyit edilmeli. Backend aşama bilgisi vermediği için `onStage` çağrılmaz.
+ * Backend yalnızca `{ text }` kabul eder. Bağlantı (URL) desteği henüz yok: bağlantıyı iddia gibi
+ * göndermek anlamsız sonuç verirdi, bu yüzden "url" modu açık bir hata olarak döner.
+ * Backend aşama bilgisi vermediği için `onStage` çağrılmaz.
  */
 export function httpService(baseUrl: string): VerificationService {
   return {
     async check(req: RawCheckRequest, { signal }): Promise<RawCheckResponse> {
+      if (req.input_type === "url") {
+        throw new ApiRequestError("URL_UNREADABLE", "Bağlantı ile doğrulama henüz desteklenmiyor.");
+      }
       const controller = new AbortController();
       let timedOut = false;
       const onAbort = () => controller.abort();
@@ -41,10 +45,10 @@ export function httpService(baseUrl: string): VerificationService {
       }, REQUEST_TIMEOUT_MS);
 
       try {
-        const res = await fetch(`${baseUrl}/check`, {
+        const res = await fetch(`${baseUrl}/verify`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(req),
+          body: JSON.stringify({ text: req.text }),
           signal: controller.signal,
         });
         const body: unknown = await res.json().catch(() => null);

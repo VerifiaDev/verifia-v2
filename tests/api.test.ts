@@ -40,8 +40,19 @@ describe("checkInput (gerçek API yolu)", () => {
     }) as typeof fetch;
     const r = await checkInput(REQ, new AbortController().signal);
     assert.equal(r.claims[0].sources.length, 1);
-    assert.equal(sent?.url, "http://backend.test/check");
-    assert.deepEqual(JSON.parse(sent!.body), { text: "iddia", input_type: "text" });
+    assert.equal(sent?.url, "http://backend.test/verify");
+    assert.deepEqual(JSON.parse(sent!.body), { text: "iddia" });
+  });
+
+  it("bağlantı (url) modunu sunucuya göndermeden açık hata olarak reddeder", async () => {
+    let called = false;
+    globalThis.fetch = (async () => {
+      called = true;
+      return json(200, okBody);
+    }) as typeof fetch;
+    const code = await codeOf(checkInput({ ...REQ, mode: "url", content: "https://a.example" }, new AbortController().signal));
+    assert.equal(code, "URL_UNREADABLE");
+    assert.equal(called, false);
   });
 
   it("backend hata kodunu korur", async () => {
