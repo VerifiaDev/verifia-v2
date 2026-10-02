@@ -5,6 +5,7 @@ import { AnalysisProgress } from "@/components/AnalysisProgress";
 import { ClaimItem } from "@/components/ClaimItem";
 import { ErrorState } from "@/components/ErrorState";
 import { ResultView } from "@/components/ResultView";
+import { VerificationInput } from "@/components/VerificationInput";
 import { ERROR_COPY, VERDICT_META } from "@/lib/format";
 import type { Claim, ErrorCode, Source, Verdict } from "@/lib/types";
 
@@ -78,13 +79,30 @@ describe("ClaimItem", () => {
   it("0 puanını da doğru gösterir (yok sayılmaz)", () => {
     assert.ok(render(claim({ confidence: 0 })).includes("%0"));
   });
+  it("örnek veri modunda her iddiada 'Örnek veri' etiketi gösterir; gerçek modda göstermez", () => {
+    const sample = renderToStaticMarkup(<ClaimItem claim={claim()} index={0} total={1} sample />);
+    assert.ok(sample.includes("Örnek veri"));
+    assert.ok(sample.includes("gerçek bir inceleme değil"));
+    assert.ok(!render(claim()).includes("Örnek veri"));
+  });
+  it("örnek veri modunda güven puanını göstermez (uydurma yüzde gerçek sanılmasın)", () => {
+    const sample = renderToStaticMarkup(<ClaimItem claim={claim({ confidence: 0.91 })} index={0} total={1} sample />);
+    assert.ok(!sample.includes("%91"));
+    assert.ok(!sample.includes("Modelin güven puanı"));
+    assert.ok(sample.includes("claim-item--sample"));
+  });
+  it("sonuç etiketleri birbirinden ayırt edilebilir (çürütülen ≠ kaynaklar birbiriyle çelişiyor)", () => {
+    const labels = Object.values(VERDICT_META).map((m) => m.label);
+    assert.equal(new Set(labels).size, labels.length);
+    assert.ok(VERDICT_META.REFUTED.label.includes("iddiayla"));
+  });
 });
 
 describe("ResultView", () => {
   const noop = () => {};
   it("iddia yoksa boş durumu gösterir", () => {
     const html = renderToStaticMarkup(<ResultView result={{ claims: [], unverifiable: [] }} input="x" onReset={noop} />);
-    assert.ok(html.includes("Doğrulanabilir iddia bulunamadı"));
+    assert.ok(html.includes("İncelenebilir iddia bulunamadı"));
   });
   it("birden fazla iddiada özet listesi ve doğrulanmayan ifadeleri gösterir", () => {
     const html = renderToStaticMarkup(
@@ -97,6 +115,25 @@ describe("ResultView", () => {
   it("kullanıcı girdisini HTML olarak yorumlamaz", () => {
     const html = renderToStaticMarkup(<ResultView result={{ claims: [], unverifiable: [] }} input="<script>alert(1)</script>" onReset={noop} />);
     assert.ok(!html.includes("<script>alert(1)"));
+  });
+  it("örnek veri bayrağını iddialara iletir", () => {
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} input="x" onReset={noop} sample />);
+    assert.ok(html.includes("Örnek veri"));
+  });
+});
+
+describe("VerificationInput örnekleri", () => {
+  const ex = (label: string, dev?: boolean) => ({ label, mode: "text" as const, content: label, dev });
+  it("geliştirici senaryolarını ayrı ve etiketli bir grupta gösterir", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} examples={[ex("Sonuç örneği"), ex("Hata denemesi", true)]} />);
+    assert.ok(html.includes("Geliştirici senaryoları"));
+    assert.ok(html.indexOf("Sonuç örneği") < html.indexOf("Geliştirici senaryoları"));
+    assert.ok(html.indexOf("Hata denemesi") > html.indexOf("Geliştirici senaryoları"));
+  });
+  it("geliştirici senaryosu yoksa o grubu hiç göstermez; alan etiketi 'incele' dilini kullanır", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} examples={[ex("Sonuç örneği")]} />);
+    assert.ok(!html.includes("Geliştirici senaryoları"));
+    assert.ok(html.includes("İncelenecek metin"));
   });
 });
 
@@ -117,5 +154,15 @@ describe("ErrorState ve AnalysisProgress", () => {
   it("backend aşama verirse yalnızca o adım işaretlenir", () => {
     const html = renderToStaticMarkup(<AnalysisProgress phase="retrieving_evidence" onCancel={() => {}} />);
     assert.equal((html.match(/aria-current="step"/g) ?? []).length, 1);
+  });
+  it("hata ve bekleme başlıkları odaklanabilir (odak sayfa başına düşmesin)", () => {
+    const err = renderToStaticMarkup(<ErrorState error={{ code: "TIMEOUT", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.ok(/<h2[^>]*tabindex="-1"/.test(err));
+    const busy = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
+    assert.ok(/<h2[^>]*tabindex="-1"/.test(busy));
+  });
+  it("bekleme metni belirsiz bir süre vaat etmez", () => {
+    const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
+    assert.ok(!/dakika|saniye/.test(html));
   });
 });

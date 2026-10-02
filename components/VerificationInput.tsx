@@ -18,10 +18,12 @@ interface Props {
  * Giriş alanı: Metin / Bağlantı seçimi, doğrulama ve gönder.
  * Hata mesajı alanın hemen altında, alana `aria-describedby` ile bağlı gösterilir.
  * Değerler bu bileşende tutulur; hata ya da yeniden deneme sırasında kaybolmaz.
+ * Metin ve Bağlantı sekmelerinin değerleri ayrı tutulur (metin, bağlantı alanına taşınmaz).
  */
 export function VerificationInput({ disabled = false, onSubmit, examples }: Props) {
   const [mode, setMode] = useState<InputMode>("text");
-  const [value, setValue] = useState("");
+  const [values, setValues] = useState<Record<InputMode, string>>({ text: "", url: "" });
+  const value = values[mode];
   const [error, setError] = useState<string | null>(null);
   const textRef = useRef<HTMLTextAreaElement>(null);
   const urlRef = useRef<HTMLInputElement>(null);
@@ -45,6 +47,33 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
     setMode(next);
     setError(null);
   }
+
+  /** Yazılan değeri o sekmeye kaydeder; yazmaya başlayınca eski hata mesajı kalkar. */
+  function setValue(next: string, m: InputMode = mode) {
+    setValues((prev) => ({ ...prev, [m]: next }));
+    if (error) setError(null);
+  }
+
+  // Örnekler iki grupta gösterilir: sonuç türleri (herkes için) ve geliştirici senaryoları (yalnızca geliştirmede gelir).
+  const userExamples = (examples ?? []).filter((ex) => !ex.dev);
+  const devExamples = (examples ?? []).filter((ex) => ex.dev);
+  const exampleItem = (ex: ExampleInput) => (
+    <li key={ex.label}>
+      <button
+        type="button"
+        className="link-btn"
+        disabled={disabled}
+        onClick={() => {
+          setMode(ex.mode);
+          setValue(ex.content, ex.mode);
+          setError(null);
+          submit(ex.mode, ex.content);
+        }}
+      >
+        {ex.label}
+      </button>
+    </li>
+  );
 
   const isText = mode === "text";
   const length = value.trim().length;
@@ -77,7 +106,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
       </fieldset>
 
       <label htmlFor={fieldId} className="field-label t-h4">
-        {isText ? "Doğrulanacak metin" : "Doğrulanacak haberin bağlantısı"}
+        {isText ? "İncelenecek metin" : "İncelenecek haberin bağlantısı"}
       </label>
 
       {isText ? (
@@ -114,7 +143,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
       <div className="field-foot">
         <p id={hintId} className="field-hint">
           {isText
-            ? `Uzun metinlerde birden fazla iddia ayrı ayrı incelenir. En fazla ${MAX_INPUT_LENGTH.toLocaleString("tr-TR")} karakter.`
+            ? `En fazla ${MAX_INPUT_LENGTH.toLocaleString("tr-TR")} karakter. İddialar ayrı ayrı incelenir.`
             : "Haberin tam adresini girin. Sayfa açılamazsa metni kopyalayıp “Metin” sekmesinden gönderebilirsiniz."}
           {isText && length > 0 && (
             <>
@@ -132,32 +161,20 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
 
       <div className="actions">
         <button type="submit" className="btn" disabled={disabled}>
-          Kanıtlara bak
+          İncelemeyi başlat
         </button>
       </div>
 
-      {examples && examples.length > 0 && (
+      {userExamples.length > 0 && (
         <div className="examples">
           <p className="t-meta muted">Örnek deneyin (örnek veri):</p>
-          <ul className="examples-list">
-            {examples.map((ex) => (
-              <li key={ex.label}>
-                <button
-                  type="button"
-                  className="link-btn"
-                  disabled={disabled}
-                  onClick={() => {
-                    setMode(ex.mode);
-                    setValue(ex.content);
-                    setError(null);
-                    submit(ex.mode, ex.content);
-                  }}
-                >
-                  {ex.label}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <ul className="examples-list">{userExamples.map(exampleItem)}</ul>
+        </div>
+      )}
+      {devExamples.length > 0 && (
+        <div className="examples examples--dev">
+          <p className="t-meta muted">Geliştirici senaryoları (yayındaki sitede görünmez):</p>
+          <ul className="examples-list">{devExamples.map(exampleItem)}</ul>
         </div>
       )}
     </form>

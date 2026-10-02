@@ -6,8 +6,7 @@ export function Footer() {
     <footer className="site-footer">
       <div className="container footer-row">
         <p>
-          <strong>{SITE_NAME}</strong> — {SITE_TAGLINE} Sonuçlar otomatik üretilir ve hata içerebilir; son karar her
-          zaman sizindir.
+          <strong>{SITE_NAME}</strong> — {SITE_TAGLINE} Sonuçlar otomatik bir ön değerlendirmedir; önemli kararlar için kaynakları kendiniz de inceleyin.
         </p>
         <nav aria-label="Alt menü">
           <SiteLinks className="footer-links" />

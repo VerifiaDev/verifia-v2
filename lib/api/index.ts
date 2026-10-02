@@ -24,12 +24,17 @@ export interface ExampleInput {
   label: string;
   mode: InputMode;
   content: string;
+  /** Geliştirici senaryosu (aşama taklidi, hata denemesi). Yayındaki sitede listelenmez. */
+  dev?: boolean;
 }
+
+/** Yayın derlemesinde (`next build`) geliştirici senaryoları listeden çıkar; anahtar kelimeler yine çalışır. */
+const showDevExamples = process.env.NODE_ENV !== "production";
 
 /** Arayüz için servis bilgisi. Mock'un kendisini değil, yalnızca bunları bilir. */
 export const apiInfo: { usingMock: boolean; examples: ExampleInput[] } = {
   usingMock,
-  examples: usingMock ? MOCK_EXAMPLES : [],
+  examples: usingMock ? MOCK_EXAMPLES.filter((ex) => showDevExamples || !ex.dev) : [],
 };
 
 export async function checkInput(

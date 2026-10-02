@@ -28,10 +28,12 @@ export function Analyzer() {
   const showForm = state.phase !== "completed";
 
   return (
-    <div>
+    <section className="analyzer" id="analyzer" aria-labelledby="analyzer-title">
+      <h2 className="t-h2 analyzer-title" id="analyzer-title">İçeriği inceleyin</h2>
       {apiInfo.usingMock && (
         <p className="mock-note" role="note">
-          Şu an örnek verilerle çalışıyor. Gösterilen kaynaklar uydurmadır; gerçek bir doğrulama değildir.
+          <strong className="mock-label">Demo</strong>
+          <span>Örnek kaynaklar uydurmadır; gerçek analiz yapılmıyor.</span>
         </p>
       )}
 
@@ -43,20 +45,13 @@ export function Analyzer() {
         />
       </div>
 
-      {state.phase === "idle" && (
-        <div className="state">
-          <h2 className="t-h4">Henüz bir içerik göndermediniz</h2>
-          <p className="muted">
-            Bir metin ya da bağlantı gönderin. Sonuç burada, iddia iddia ve kaynaklarıyla birlikte görünecek.
-          </p>
-        </div>
-      )}
-
       {isBusy(state) && <AnalysisProgress phase={state.phase} onCancel={reset} />}
 
       {state.phase === "error" && <ErrorState error={state.error} onRetry={retry} onEdit={reset} />}
 
-      {state.phase === "completed" && <ResultView result={state.result} input={state.input} onReset={reset} />}
-    </div>
+      {state.phase === "completed" && (
+        <ResultView result={state.result} input={state.input} onReset={reset} sample={apiInfo.usingMock} />
+      )}
+    </section>
   );
 }
