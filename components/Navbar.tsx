@@ -1,26 +1,21 @@
 import { SiteLinks } from "./SiteLinks";
-import { SITE_NAME } from "@/lib/config";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 
-function BrandMark() {
-  return (
-    <svg className="brand-mark" viewBox="0 0 36 36" aria-hidden="true" focusable="false">
-      <path d="M11 8.5h10l5 5v14H11z" />
-      <path d="M21 8.5v5h5M15 18h7M15 22h5" />
-      <circle cx="25" cy="25" r="3.25" />
-    </svg>
-  );
-}
-
+/** Logo yalnızca yazıdır (sözcük işareti): simge yok, ad başlık yazı tipiyle yazılır. */
 export function Navbar() {
   return (
     <header>
-      <nav className="nav container" aria-label="Ana menü">
-        <a className="brand" href="#main">
-          <BrandMark />
-          <span>{SITE_NAME}</span>
-        </a>
-        <SiteLinks className="nav-list" />
-      </nav>
+      <div className="masthead container">
+        <div className="masthead-brand">
+          <a className="brand" href="#main">
+            {SITE_NAME}
+          </a>
+          <p className="brand-tagline">{SITE_TAGLINE}</p>
+        </div>
+        <nav aria-label="Ana menü">
+          <SiteLinks className="nav-list" />
+        </nav>
+      </div>
     </header>
   );
 }

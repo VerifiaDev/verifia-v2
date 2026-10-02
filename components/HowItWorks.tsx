@@ -13,9 +13,14 @@ export function HowItWorks() {
       <ol className="how-list">
         {STEPS.map((s, i) => (
           <li key={s.t}>
-            <span className="how-num">Adım {i + 1}</span>
-            <h3 className="t-h4">{s.t}</h3>
-            <p>{s.d}</p>
+            {/* Sıra bilgisi <ol> ile zaten duyurulur; rakam yalnızca görseldir. */}
+            <span className="how-num" aria-hidden="true">
+              {i + 1}
+            </span>
+            <div>
+              <h3 className="t-h4">{s.t}</h3>
+              <p>{s.d}</p>
+            </div>
           </li>
         ))}
       </ol>

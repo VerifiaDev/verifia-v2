@@ -32,8 +32,7 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 |---|---|
 | `app/globals.css` | Tasarım sistemi (renk, yazı, boşluk, bileşen stilleri) |
 | `app/layout.tsx`, `app/fonts/` | Yazı tipleri proje içinden sunulur (`next/font/local`): başlık ve alıntılar Literata, arayüz Atkinson Hyperlegible Next. Dosyalar Latin + Türkçe harflerle sınırlandırılmıştır; lisans SIL OFL (aynı klasörde) |
-| `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png` | Sekme simgesi seti. `favicon.ico` (16/32/48) ve `apple-icon.png` (180) doğrudan `icon.svg`'den üretilmiştir; simge değişirse ikisi de yeniden üretilmeli |
-| `public/brand/` | ALTERNATİF logo önerisi ("Logo A: Atıf", sitede kullanılmıyor): `verify-logo.svg`, `verify-logo-koyu-zemin.svg`, `verify-logo-tek-renk.svg`, `verify-isaret.svg`. Bileşen karşılığı: `components/BrandMark.tsx` |
+| `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png` | Logo yalnızca yazıdır ("verify" sözcük işareti, `components/Navbar.tsx`); ayrı bir simge yok. Sekme simgesi, aynı yazı tipindeki "v" harfidir. `favicon.ico` (16/32/48) ve `apple-icon.png` (180) doğrudan `icon.svg`'den üretilmiştir; simge değişirse ikisi de yeniden üretilmeli |
 | `app/page.tsx` | Sayfa: navbar, hero, giriş, nasıl çalışır, güven ilkeleri, footer |
 | `components/` | Analyzer (durum), VerificationInput, AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Navbar, HowItWorks, TrustNotes, Footer |
 | `hooks/useAnalysis.ts` | idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed \| error. Parantezdeki aşamalar yalnızca backend gerçek aşama bilgisi verirse kullanılır; vermezse `submitting`'de kalınır, sahte ilerleme gösterilmez |

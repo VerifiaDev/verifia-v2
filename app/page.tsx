@@ -11,21 +11,19 @@ export default function HomePage() {
     <>
       <Navbar />
       <main id="main">
-        <div className="container hero">
-          <p className="hero-kicker">Kaynak temelli iddia incelemesi</p>
-          <h1 className="t-display">İddiaları kanıtlarla inceleyin</h1>
-          <p className="hero-lead">
-            Metin veya bağlantı ekleyin; kaynakları ve belirsizlikleri birlikte inceleyin.
-          </p>
-        </div>
-
         <div className="container layout">
           <div className="layout-main">
+            <div className="hero">
+              <h1 className="t-display">İddiaları kanıtlarla inceleyin</h1>
+              <p className="hero-lead">
+                Metin veya bağlantı ekleyin; kaynakları ve belirsizlikleri birlikte inceleyin.
+              </p>
+            </div>
             <Analyzer />
           </div>
           <aside className="aside" aria-labelledby="legend-title">
-            <h2 id="legend-title" className="t-h4 legend-title">
-              Sonuçlar ne anlama gelir?
+            <h2 id="legend-title" className="legend-title">
+              Sonuç türleri
             </h2>
             <dl className="legend">
               {VERDICT_ORDER.map((v) => (
@@ -38,6 +36,9 @@ export default function HomePage() {
                 </div>
               ))}
             </dl>
+            <p className="legend-note">
+              Bir sonuç kesin hüküm değildir. Kaynağı, bağlamı ve kanıtın sınırlarını birlikte okuyun.
+            </p>
           </aside>
         </div>
 
