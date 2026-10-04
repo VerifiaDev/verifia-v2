@@ -13,6 +13,11 @@ interface Props {
   readOnly?: boolean;
   onEdit?: () => void;
   onSubmit: (req: CheckRequest) => void;
+  /**
+   * Formun neden kullanılamadığını anlatan notun kimliği (servis bağlı değilken).
+   * Devre dışı alan ve düğme bu nota bağlanır; ekran okuyucu "kullanılamıyor" derken nedenini de okur.
+   */
+  noticeId?: string;
   /** Örnek kullanım (yalnızca örnek veri modunda). */
   examples?: ExampleInput[];
 }
@@ -23,7 +28,7 @@ interface Props {
  * Değerler bu bileşende tutulur; hata ya da yeniden deneme sırasında kaybolmaz.
  * Metin ve Bağlantı sekmelerinin değerleri ayrı tutulur (metin, bağlantı alanına taşınmaz).
  */
-export function VerificationInput({ disabled = false, busy = false, readOnly = false, onEdit, onSubmit, examples }: Props) {
+export function VerificationInput({ disabled = false, busy = false, readOnly = false, onEdit, onSubmit, noticeId, examples }: Props) {
   const [mode, setMode] = useState<InputMode>("text");
   const [values, setValues] = useState<Record<InputMode, string>>({ text: "", url: "" });
   const value = values[mode];
@@ -81,7 +86,7 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
 
   const isText = mode === "text";
   const length = value.trim().length;
-  const describedBy = error ? `${hintId} ${errId}` : hintId;
+  const describedBy = [hintId, error ? errId : null, noticeId].filter(Boolean).join(" ");
 
   return (
     <form
@@ -175,7 +180,7 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
             onEdit?.();
           }}>İçeriği düzenle</button>
         ) : (
-          <button key="submit" type="submit" className="btn" disabled={disabled || busy}>
+          <button key="submit" type="submit" className="btn" disabled={disabled || busy} aria-describedby={noticeId}>
             {busy && <span className="activity-indicator" aria-hidden="true" />}
             {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
             {!busy && <span aria-hidden="true">→</span>}

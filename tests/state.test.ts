@@ -9,7 +9,7 @@ describe("analysisReducer", () => {
   it("idle → submitting → completed", () => {
     const a = analysisReducer(idle, { type: "start" });
     assert.equal(a.phase, "submitting");
-    const b = analysisReducer(a, { type: "done", result, input: "x" });
+    const b = analysisReducer(a, { type: "done", result });
     assert.equal(b.phase, "completed");
   });
   it("aşama bilgisi yalnızca devam eden istekte işlenir", () => {
@@ -17,7 +17,7 @@ describe("analysisReducer", () => {
     assert.equal(analysisReducer(busy, { type: "stage", phase: "verifying" }).phase, "verifying");
     // iptal edilmiş (idle) ya da bitmiş durumda gelen geç bilgi yok sayılır
     assert.equal(analysisReducer(idle, { type: "stage", phase: "verifying" }).phase, "idle");
-    const done = analysisReducer(busy, { type: "done", result, input: "x" });
+    const done = analysisReducer(busy, { type: "done", result });
     assert.equal(analysisReducer(done, { type: "stage", phase: "verifying" }).phase, "completed");
   });
   it("hata ve sıfırlama", () => {

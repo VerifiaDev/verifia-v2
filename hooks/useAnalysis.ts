@@ -17,13 +17,13 @@ export type BusyPhase = "submitting" | AnalysisStage;
 export type AnalysisState =
   | { phase: "idle" }
   | { phase: BusyPhase }
-  | { phase: "completed"; result: CheckResult; input: string }
+  | { phase: "completed"; result: CheckResult }
   | { phase: "error"; error: ApiError };
 
 export type AnalysisAction =
   | { type: "start" }
   | { type: "stage"; phase: AnalysisStage }
-  | { type: "done"; result: CheckResult; input: string }
+  | { type: "done"; result: CheckResult }
   | { type: "fail"; error: ApiError }
   | { type: "reset" };
 
@@ -44,7 +44,7 @@ export function analysisReducer(state: AnalysisState, action: AnalysisAction): A
       // Aşama bilgisi yalnızca devam eden bir istekte anlamlıdır; geç gelen bilgi yok sayılır.
       return isBusy(state) ? { phase: action.phase } : state;
     case "done":
-      return { phase: "completed", result: action.result, input: action.input };
+      return { phase: "completed", result: action.result };
     case "fail":
       return { phase: "error", error: action.error };
     case "reset":
@@ -80,7 +80,7 @@ export function useAnalysis() {
         if (runId.current === myRun) dispatch({ type: "stage", phase });
       });
       if (runId.current !== myRun) return;
-      dispatch({ type: "done", result, input: req.content });
+      dispatch({ type: "done", result });
     } catch (err) {
       if (runId.current !== myRun) return;
       const apiErr =

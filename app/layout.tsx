@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
+import { SITE_ORIGIN } from "@/lib/site";
 import "./globals.css";
 
 /**
@@ -29,12 +30,21 @@ const fontSans = localFont({
 const TITLE = `${SITE_NAME} — kanıt temelli iddia incelemesi`;
 const DESCRIPTION = `${SITE_TAGLINE} Bir metin ya da haber bağlantısı ekleyin; iddiaları ve ilgili kaynakları birlikte inceleyin.`;
 
-// Not: canonical/metadataBase ve paylaşım görseli (og:image) için yayın adresi gerekir; adres kesinleşince eklenir.
+// Paylaşım görseli: app/opengraph-image.png ve app/twitter-image.png (dosya adı kuralıyla kendiliğinden eklenir).
+// Yayın adresi (metadataBase) için bkz. lib/site.ts. Canonical yalnızca ana sayfada yazılır (app/page.tsx).
 export const metadata: Metadata = {
+  ...(SITE_ORIGIN ? { metadataBase: new URL(SITE_ORIGIN) } : {}),
   title: TITLE,
   description: DESCRIPTION,
-  openGraph: { title: TITLE, description: DESCRIPTION, type: "website", locale: "tr_TR", siteName: SITE_NAME },
-  twitter: { card: "summary", title: TITLE, description: DESCRIPTION },
+  openGraph: {
+    title: TITLE,
+    description: DESCRIPTION,
+    type: "website",
+    locale: "tr_TR",
+    siteName: SITE_NAME,
+    ...(SITE_ORIGIN ? { url: "/" } : {}),
+  },
+  twitter: { card: "summary_large_image", title: TITLE, description: DESCRIPTION },
 };
 
 export const viewport: Viewport = {

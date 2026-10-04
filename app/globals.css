@@ -701,22 +701,6 @@ textarea.field {
 .focus-target:focus {
   outline: none;
 }
-.input-echo {
-  margin-top: var(--space-3);
-  color: var(--ink-2);
-  font-size: var(--text-meta);
-}
-.input-echo summary {
-  display: flex;
-  align-items: center;
-  min-height: var(--target);
-  cursor: pointer;
-}
-.input-echo p {
-  margin-top: var(--space-2);
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-}
 
 .claim-index {
   margin-top: var(--space-5);
@@ -883,13 +867,23 @@ textarea.field {
 .evidence-list {
   border-bottom: 1px solid var(--rule);
 }
+/* Satır, üzerine gelince ya da atıfla hedeflenince zemin alır; bu yüzden metinden biraz geniştir ve köşeleri
+   yuvarlaktır. Ayraç çizgisi ise metin sütunuyla hizalı ve düz kalsın diye ayrı çizilir. */
 .evidence {
+  position: relative;
   margin-inline: calc(-1 * var(--space-3));
   padding: var(--space-4) var(--space-3);
-  border-top: 1px solid var(--rule);
   scroll-margin-top: var(--space-4);
   border-radius: var(--radius);
   transition: background-color 160ms var(--ease);
+}
+.evidence::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: var(--space-3);
+  right: var(--space-3);
+  border-top: 1px solid var(--rule);
 }
 .evidence:hover { background: var(--paper); }
 .evidence:target {
@@ -1086,12 +1080,12 @@ textarea.field {
   color: var(--ink-2);
 }
 
-/* ---------- Bulunamayan sayfa (app/not-found.tsx) ---------- */
+/* ---------- Düz sayfa: bulunamayan adres ve beklenmeyen hata (components/PlainPage.tsx) ---------- */
 
-.not-found {
+.plain-page {
   padding-block: var(--space-7) var(--space-9);
 }
-.not-found > * + * {
+.plain-page > * + * {
   margin-top: var(--space-5);
 }
 a.btn {
@@ -1315,8 +1309,7 @@ html {
 .nav-list a,
 .footer-links a,
 .link-btn,
-.more summary,
-.input-echo summary {
+.more summary {
   transition: color var(--motion-fast), background-color var(--motion-fast),
     border-color var(--motion-fast), box-shadow var(--motion-fast),
     transform var(--motion-fast) var(--ease-out);
@@ -1352,13 +1345,11 @@ html {
 .nav-list a:hover {
   text-decoration-color: currentColor;
 }
-.more summary,
-.input-echo summary {
+.more summary {
   justify-content: space-between;
   gap: var(--space-3);
 }
-.more summary::after,
-.input-echo summary::after {
+.more summary::after {
   content: "";
   flex: none;
   width: 0.45rem;
@@ -1369,8 +1360,7 @@ html {
   transform: rotate(45deg);
   transition: transform var(--motion-fast) var(--ease-out);
 }
-.more[open] > summary::after,
-.input-echo[open] > summary::after {
+.more[open] > summary::after {
   transform: rotate(225deg);
 }
 .evidence {
@@ -1398,8 +1388,7 @@ html {
   .mode:has(input:not(:checked):not(:disabled)):hover span {
     background: var(--accent-tint);
   }
-  .more summary:hover,
-  .input-echo summary:hover {
+  .more summary:hover {
     color: var(--accent);
   }
   .evidence:hover {

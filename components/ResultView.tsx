@@ -7,13 +7,13 @@ import type { CheckResult } from "@/lib/types";
 
 interface Props {
   result: CheckResult;
-  input: string;
   onReset: () => void;
   /** Örnek (mock) veri modunda true: her iddiada "örnek veri" etiketi gösterilir. */
   sample?: boolean;
 }
 
-export function ResultView({ result, input, onReset, sample = false }: Props) {
+/** Gönderilen içerik burada yinelenmez: yukarıdaki alanda salt okunur olarak durur. */
+export function ResultView({ result, onReset, sample = false }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const { claims, unverifiable } = result;
 
@@ -29,11 +29,6 @@ export function ResultView({ result, input, onReset, sample = false }: Props) {
         <h2 id="result-title" ref={headingRef} tabIndex={-1} className="t-h2 result-title">
           {claims.length === 0 ? "İncelenebilir iddia bulunamadı" : `${claims.length} iddia incelendi`}
         </h2>
-
-        <details className="input-echo">
-          <summary>Gönderdiğiniz içerik</summary>
-          <p>{input}</p>
-        </details>
 
         {claims.length > 1 && <ClaimList claims={claims} />}
       </div>

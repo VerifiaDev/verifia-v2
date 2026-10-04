@@ -21,7 +21,11 @@ const ACTIVE_STEP: Record<BusyPhase, number | undefined> = {
 
 const STEPS = ["İddialar çıkarılıyor", "Kaynaklar aranıyor", "Kanıtlar karşılaştırılıyor"];
 
-/** Gerçek bir bekleme durumu. Yüzde ya da uydurma adım ilerlemesi göstermez. */
+/**
+ * Gerçek bir bekleme durumu. Yüzde ya da uydurma adım ilerlemesi göstermez.
+ * Başlangıç odakla duyurulur (odak başlığa taşınır). Backend aşama bildirirse yalnızca o aşamanın adı
+ * kısa bir durum satırıyla okunur; panelin tamamı her değişimde yeniden okunmaz.
+ */
 export function AnalysisProgress({ onCancel, phase }: Props) {
   const activeStep = ACTIVE_STEP[phase];
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -33,7 +37,7 @@ export function AnalysisProgress({ onCancel, phase }: Props) {
   }, []);
 
   return (
-    <div className="state analysis-progress" role="status" aria-live="polite">
+    <div className="state analysis-progress">
       <h2 ref={headingRef} tabIndex={-1} className="t-h3 focus-target">
         İçerik inceleniyor
       </h2>
@@ -46,6 +50,9 @@ export function AnalysisProgress({ onCancel, phase }: Props) {
           </li>
         ))}
       </ol>
+      <p className="sr-only" role="status">
+        {activeStep !== undefined ? `${STEPS[activeStep]} (adım ${activeStep + 1} / ${STEPS.length})` : ""}
+      </p>
       {activeStep === undefined && (
         <p className="muted t-meta">Adımlar, sistemin sırayla yaptığı işleri gösterir; şu anki adım bilgisi alınmıyor.</p>
       )}

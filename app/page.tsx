@@ -5,6 +5,11 @@ import { Navbar } from "@/components/Navbar";
 import { TrustNotes } from "@/components/TrustNotes";
 import { VerdictSummary } from "@/components/VerdictSummary";
 import { VERDICT_META, VERDICT_ORDER } from "@/lib/format";
+import { SITE_ORIGIN } from "@/lib/site";
+import type { Metadata } from "next";
+
+// Aynı içerik birden çok adresten sunulduğu için ana sayfa tek bir asıl adrese (canonical) işaret eder.
+export const metadata: Metadata = SITE_ORIGIN ? { alternates: { canonical: "/" } } : {};
 
 export default function HomePage() {
   return (

@@ -112,23 +112,30 @@ describe("ClaimItem", () => {
 describe("ResultView", () => {
   const noop = () => {};
   it("iddia yoksa boş durumu gösterir", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [], unverifiable: [] }} input="x" onReset={noop} />);
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [], unverifiable: [] }} onReset={noop} />);
     assert.ok(html.includes("İncelenebilir iddia bulunamadı"));
   });
   it("birden fazla iddiada özet listesi ve doğrulanmayan ifadeleri gösterir", () => {
     const html = renderToStaticMarkup(
-      <ResultView result={{ claims: [claim({ id: "a" }), claim({ id: "b", verdict: "CONFLICTING" })], unverifiable: ["Bence harika."] }} input="x" onReset={noop} />,
+      <ResultView result={{ claims: [claim({ id: "a" }), claim({ id: "b", verdict: "CONFLICTING" })], unverifiable: ["Bence harika."] }} onReset={noop} />,
     );
     assert.ok(html.includes("2 iddia incelendi"));
     assert.ok(html.includes('aria-label="İncelenen iddialar"'));
     assert.ok(html.includes("Bence harika."));
   });
-  it("kullanıcı girdisini HTML olarak yorumlamaz", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [], unverifiable: [] }} input="<script>alert(1)</script>" onReset={noop} />);
+  it("backend'den gelen metni HTML olarak yorumlamaz", () => {
+    const evil = "<script>alert(1)</script>";
+    const html = renderToStaticMarkup(
+      <ResultView result={{ claims: [claim({ text: evil, explanation: evil })], unverifiable: [evil] }} onReset={noop} />,
+    );
     assert.ok(!html.includes("<script>alert(1)"));
   });
+  it("gönderilen içeriği yinelemez (içerik yukarıdaki salt okunur alanda zaten görünür)", () => {
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} />);
+    assert.ok(!html.includes("Gönderdiğiniz içerik"));
+  });
   it("örnek veri bayrağını iddialara iletir", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} input="x" onReset={noop} sample />);
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} sample />);
     assert.ok(html.includes("Örnek veri"));
   });
 });
@@ -151,6 +158,13 @@ describe("VerificationInput örnekleri", () => {
     assert.equal((html.match(/Girdi türü/g) ?? []).length, 1);
     assert.ok(/<legend[^>]*>Girdi türü<\/legend>/.test(html));
     assert.ok(!html.includes('role="radiogroup"'));
+  });
+  it("servis bağlı değilken devre dışı alan ve düğme, nedenini anlatan nota bağlanır", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} disabled noticeId="not" />);
+    assert.match(html, /<textarea[^>]*aria-describedby="[^"]*\bnot\b[^"]*"/);
+    assert.match(html, /<button[^>]*type="submit"[^>]*aria-describedby="not"/);
+    const plain = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
+    assert.ok(!/<button[^>]*aria-describedby/.test(plain));
   });
   const ex = (label: string, dev?: boolean) => ({ label, mode: "text" as const, content: label, dev });
   it("geliştirici senaryolarını ayrı ve etiketli bir grupta gösterir", () => {
@@ -196,6 +210,20 @@ describe("ErrorState ve AnalysisProgress", () => {
     assert.ok(/<h2[^>]*tabindex="-1"/.test(err));
     const busy = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
     assert.ok(/<h2[^>]*tabindex="-1"/.test(busy));
+  });
+  it("odak başlığa taşındığı için panelin tamamı ayrıca canlı bölge olarak okunmaz (çift duyuru yok)", () => {
+    const err = renderToStaticMarkup(<ErrorState error={{ code: "TIMEOUT", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.ok(!err.includes('role="alert"'));
+    const busy = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
+    assert.ok(!/class="state analysis-progress"[^>]*role=/.test(busy));
+    assert.ok(!busy.includes("aria-live"));
+  });
+  it("aşama değişimi yalnızca kısa bir durum satırıyla duyurulur; aşama yokken satır boştur", () => {
+    const idle = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
+    assert.equal((idle.match(/role="status"/g) ?? []).length, 1);
+    assert.match(idle, /<p class="sr-only" role="status"><\/p>/);
+    const staged = renderToStaticMarkup(<AnalysisProgress phase="retrieving_evidence" onCancel={() => {}} />);
+    assert.match(staged, /<p class="sr-only" role="status">Kaynaklar aranıyor \(adım 2 \/ 3\)<\/p>/);
   });
   it("bekleme metni belirsiz bir süre vaat etmez", () => {
     const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);

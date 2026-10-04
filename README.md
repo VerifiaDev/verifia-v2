@@ -38,8 +38,10 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 | `app/layout.tsx`, `app/fonts/` | Yazı tipleri proje içinden sunulur (`next/font/local`): başlık ve alıntılar Literata, arayüz Atkinson Hyperlegible Next. Dosyalar Latin + Türkçe harflerle sınırlandırılmıştır; lisans SIL OFL (aynı klasörde) |
 | `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png` | Logo yalnızca yazıdır ("verify" sözcük işareti, `components/Navbar.tsx`); ayrı bir simge yok. Sekme simgesi, aynı yazı tipindeki "v" harfidir. `favicon.ico` (16/32/48) ve `apple-icon.png` (180) doğrudan `icon.svg`'den üretilmiştir; simge değişirse ikisi de yeniden üretilmeli |
 | `app/page.tsx` | Sayfa: navbar, hero, giriş, nasıl çalışır, güven ilkeleri, footer |
-| `app/not-found.tsx` | Sitede olmayan adresler için Türkçe "Sayfa bulunamadı" sayfası |
-| `components/` | Analyzer (durum), VerificationInput, AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Navbar, HowItWorks, TrustNotes, Footer |
+| `app/not-found.tsx`, `app/error.tsx` | Sitede olmayan adres ve beklenmeyen çizim hatası için Türkçe sayfalar (ortak iskelet: `components/PlainPage.tsx`) |
+| `app/opengraph-image.png`, `app/twitter-image.png` | Bağlantı paylaşılınca görünen görsel (1200×630, yazı logo). Slogan ya da renk değişirse yeniden üretilmeli; `.alt.txt` dosyaları görselin metin karşılığıdır |
+| `lib/site.ts` | Yayın adresi. Elle yazılmaz: Vercel'in bildirdiği üretim alan adından (`VERCEL_PROJECT_PRODUCTION_URL`) okunur; canonical ve paylaşım bağlantıları buna göre kurulur. Yerelde boştur |
+| `components/` | Analyzer (durum), VerificationInput, AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Navbar, HowItWorks, TrustNotes, Footer, PlainPage |
 | `hooks/useAnalysis.ts` | idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed \| error. Parantezdeki aşamalar yalnızca backend gerçek aşama bilgisi verirse kullanılır; vermezse `submitting`'de kalınır, sahte ilerleme gösterilmez |
 | `tests/` | adapter, atıflar, girdi doğrulama, state, API (hata/zaman aşımı/bozuk cevap), uç durum görünümleri |
 | `lib/api/` | `index.ts` (tek kapı), `contract.ts` (ham şekiller), `adapter.ts`, `http.ts` (FastAPI), `mock/` (sahte servis ve veriler), `errors.ts`, `service.ts` |
@@ -50,6 +52,8 @@ Sakin, editoryal, kanıt odaklı. Gradyan/gölge/parlama yok; sonuç rengi her z
 (✓ ✕ ≠ ?). Sahte ilerleme çubuğu yok. Sonuç sırası: iddia → sonuç → kısa açıklama → öne çıkan kanıt →
 diğer kaynaklar → kaynak bağlantıları. "Dayandığımız kanıtlar" yalnızca açıklamanın atıf yaptığı kaynaklar için
 söylenir; atıf yoksa başlık "Bulunan kaynaklar" olur. Ek bağımlılık yok.
+Bekleme, hata ve sonuç durumları odakla duyurulur (odak ilgili başlığa taşınır); panelin tamamı ayrıca canlı bölge
+olarak okunmaz. Yalnızca backend'in bildirdiği aşama değişimi kısa bir durum satırıyla okunur.
 
 ## Açık sorular (backend sahibine)
 Teyit edilmemiş varsayımlar: URL desteği, metin sınırı (şimdilik 5000), azami süre (şimdilik 90 sn), atıf biçimi, hata gövdesi ve durum kodları, CORS. Tam liste ve sorular: [docs/API_CONTRACT.md](docs/API_CONTRACT.md).

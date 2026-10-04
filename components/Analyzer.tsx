@@ -8,6 +8,8 @@ import { ResultView } from "./ResultView";
 import { VerificationInput } from "./VerificationInput";
 import { apiInfo } from "@/lib/api";
 
+const SERVICE_NOTE_ID = "service-note";
+
 /**
  * Sayfanın etkileşimli kısmı. Durumlar: bkz. hooks/useAnalysis.ts.
  * Form, bekleme ve sonuç aynı yüzeyde kalır; yazılan içerik hata, vazgeçme ve düzenlemede kaybolmaz.
@@ -46,7 +48,7 @@ export function Analyzer() {
         </p>
       )}
       {apiInfo.unavailable && (
-        <p className="mock-note" role="note">
+        <p className="mock-note" role="note" id={SERVICE_NOTE_ID}>
           <strong className="mock-label">Bilgi</strong>
           <span>İnceleme servisi henüz bağlı değil; şu an içerik incelenemiyor.</span>
         </p>
@@ -60,6 +62,7 @@ export function Analyzer() {
           readOnly={completed}
           onEdit={reset}
           onSubmit={start}
+          noticeId={apiInfo.unavailable ? SERVICE_NOTE_ID : undefined}
           examples={apiInfo.examples}
         />
       </div>
@@ -69,7 +72,7 @@ export function Analyzer() {
       {state.phase === "error" && <ErrorState error={state.error} onRetry={retry} onEdit={reset} />}
 
       {state.phase === "completed" && (
-        <ResultView result={state.result} input={state.input} onReset={startOver} sample={apiInfo.usingMock} />
+        <ResultView result={state.result} onReset={startOver} sample={apiInfo.usingMock} />
       )}
     </section>
   );
