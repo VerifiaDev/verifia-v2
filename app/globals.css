@@ -33,7 +33,7 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
   /* ---- Tip ölçeği ---- */
-  --text-display: clamp(2.125rem, 1.55rem + 2.4vw, 3.25rem);
+  --text-display: clamp(2.125rem, 1.55rem + 2vw, 3rem);
   --text-h2: 1.5rem;
   --text-h3: 1.375rem;
   --text-h4: 1rem;
@@ -59,7 +59,11 @@
   --container: 72rem;
   --gutter: clamp(1rem, 4vw, 2rem);
   --aside: 18rem;
-  --radius: 6px;
+  --radius: 8px;
+  --radius-control: 6px;
+  --motion-fast: 160ms;
+  --motion-enter: 240ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
   --target: 2.75rem; /* en az dokunma hedefi */
   --measure: 42rem; /* rahat okuma satır uzunluğu */
@@ -396,7 +400,7 @@ header {
   margin-bottom: var(--space-5);
 }
 .hero-lead {
-  margin-top: var(--space-4);
+  margin-top: var(--space-3);
   max-width: 34em;
   color: var(--ink-2);
   font-size: 1.125rem;
@@ -656,8 +660,6 @@ textarea.field {
   color: var(--accent);
 }
 .progress-steps li[data-complete="true"] { color: var(--ink); }
-.analysis-progress, .result, .error-state { animation: state-enter 220ms var(--ease); }
-@keyframes state-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .progress-steps li::marker {
   color: var(--ink-2);
 }
@@ -753,7 +755,7 @@ textarea.field {
 }
 
 .claims > * + * {
-  margin-top: var(--space-7);
+  margin-top: var(--space-6);
 }
 .claim-item {
   padding-top: var(--space-5);
@@ -1213,7 +1215,7 @@ textarea.field {
     padding: var(--space-3);
   }
   .claims > * + * {
-    margin-top: var(--space-7);
+    margin-top: var(--space-5);
   }
 }
 
@@ -1270,6 +1272,194 @@ textarea.field {
   .hero {
     margin-bottom: var(--space-4);
   }
+}
+
+/* ---------- Rafine yüzeyler ve kontrollü mikro etkileşimler ---------- */
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--space-5);
+}
+.hero-lead,
+.legend dd,
+.how-list p,
+.trust-list p {
+  text-wrap: pretty;
+}
+.analyzer {
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.035);
+  transition: border-color var(--motion-fast);
+}
+.analyzer:focus-within {
+  border-color: var(--rule-strong);
+}
+.field,
+.btn,
+.theme-toggle,
+.nav-list a,
+.footer-links a,
+.link-btn,
+.more summary,
+.input-echo summary {
+  transition: color var(--motion-fast), background-color var(--motion-fast),
+    border-color var(--motion-fast), box-shadow var(--motion-fast),
+    transform var(--motion-fast) var(--ease-out);
+}
+.field {
+  border-width: 1px;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.025);
+}
+.field:focus-visible {
+  outline-width: 2px;
+  outline-offset: 3px;
+  box-shadow: 0 0 0 4px var(--accent-tint);
+}
+.mode input:disabled + span {
+  cursor: not-allowed;
+}
+.btn {
+  border-width: 1px;
+}
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
+}
+.link-btn:disabled {
+  color: var(--ink-2);
+  cursor: not-allowed;
+}
+.nav-list a {
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 0.35em;
+}
+.nav-list a:hover {
+  text-decoration-color: currentColor;
+}
+.more summary,
+.input-echo summary {
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+.more summary::after,
+.input-echo summary::after {
+  content: "";
+  flex: none;
+  width: 0.45rem;
+  height: 0.45rem;
+  margin-right: var(--space-1);
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  transform: rotate(45deg);
+  transition: transform var(--motion-fast) var(--ease-out);
+}
+.more[open] > summary::after,
+.input-echo[open] > summary::after {
+  transform: rotate(225deg);
+}
+.evidence {
+  transition: background-color var(--motion-fast);
+}
+.evidence-body {
+  margin-top: var(--space-3);
+}
+@media (min-width: 48rem) {
+  .evidence-body {
+    margin-top: 0;
+  }
+}
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgb(0 0 0 / 0.08);
+  }
+  .btn:active:not(:disabled) {
+    transform: translateY(0);
+  }
+  .field:hover:not(:disabled) {
+    border-color: var(--accent);
+  }
+  .mode:has(input:not(:checked):not(:disabled)):hover span {
+    background: var(--accent-tint);
+  }
+  .more summary:hover,
+  .input-echo summary:hover {
+    color: var(--accent);
+  }
+  .evidence:hover {
+    background: var(--paper);
+  }
+  .evidence:target:hover {
+    background: var(--accent-tint);
+  }
+}
+/* Giriş, bekleme ve sonuç aynı yüzeyde kısa bir geçişle görünür. */
+@keyframes content-enter {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.result-head,
+.analysis-progress,
+.error-state {
+  animation: content-enter var(--motion-enter) var(--ease-out) both;
+}
+.claim-item > .verdict,
+.claim-item > .block,
+.claim-item > .evidence-area {
+  animation: content-enter var(--motion-enter) var(--ease-out) both;
+}
+.claim-item > .verdict { animation-delay: 40ms; }
+.claim-item > .block { animation-delay: 80ms; }
+.claim-item > .evidence-area { animation-delay: 120ms; }
+.evidence { animation: content-enter var(--motion-enter) var(--ease-out) both; }
+.evidence:nth-child(2) { animation-delay: 40ms; }
+.evidence:nth-child(n + 3) { animation-delay: 80ms; }
+.analysis-progress .focus-target {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+.analysis-progress .focus-target::before {
+  content: "";
+  flex: none;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid var(--rule);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: waiting-spin 900ms linear infinite;
+}
+@keyframes waiting-spin { to { transform: rotate(360deg); } }
+.progress-steps li {
+  padding-block: var(--space-1);
+  color: var(--ink-2);
+  transition: color var(--motion-fast);
+}
+.progress-steps li[aria-current="step"] {
+  color: var(--accent);
+}
+@media (max-width: 63.99rem) {
+  .layout-main { max-width: none; }
+  .layout { gap: var(--space-6); }
+  .legend {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4) var(--space-5);
+  }
+  .legend dt { margin-top: 0; }
+  .section { padding-block: var(--space-6); }
+}
+@media (max-width: 30rem) {
+  .legend { grid-template-columns: minmax(0, 1fr); }
+  .layout { padding-bottom: var(--space-6); gap: var(--space-5); }
+  .how-list { gap: var(--space-5); }
+  .trust-list > li { padding-block: var(--space-4); }
+  .state,
+  .result,
+  .error-state { margin-top: var(--space-5); }
+  .evidence-area { margin-top: var(--space-5); }
+  .result-foot,
+  .unverifiable { margin-top: var(--space-5); padding-top: var(--space-4); }
 }
 
 @media (prefers-reduced-motion: reduce) {
