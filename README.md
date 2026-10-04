@@ -31,10 +31,13 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 
 `confidence` (0-1 arası) gelirse sonuçta "Modelin güven puanı: %91" olarak, doğruluk olasılığı olmadığı notuyla gösterilir; gelmezse hiçbir şey gösterilmez. Kanıt başına `score` gösterilmez.
 
+## Güvenlik başlıkları
+`next.config.ts` tüm sayfalara içerik güvenlik politikası (CSP) ve temel başlıkları ekler. Sayfa yalnızca siteye ve `NEXT_PUBLIC_API_BASE_URL`'deki backend'in köküne istek gönderebilir; betik, yazı tipi ve görsel yalnızca siteden yüklenir. Backend adresi değişirse yeniden derlemek yeterlidir. Siteye dış kaynaklı bir betik (analitik vb.) eklenirse politika da güncellenmelidir; aksi hâlde tarayıcı onu engeller. Vercel'in önizleme dağıtımlarındaki yorum araç çubuğu bu yüzden yüklenmez (yayındaki siteyi etkilemez).
+
 ## Yapı
 | Yer | Görev |
 |---|---|
-| `app/globals.css` | Tasarım sistemi (renk, yazı, boşluk, bileşen stilleri) |
+| `app/globals.css` | Tasarım sistemi (renk, yazı, boşluk, bileşen stilleri). Her kural kendi bölümünde bir kez tanımlıdır; üzerine gelme durumları ve hareket dosyanın sonunda toplanmıştır |
 | `app/layout.tsx`, `app/fonts/` | Yazı tipleri proje içinden sunulur (`next/font/local`): başlık ve alıntılar Literata, arayüz Atkinson Hyperlegible Next. Dosyalar Latin + Türkçe harflerle sınırlandırılmıştır; lisans SIL OFL (aynı klasörde) |
 | `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png` | Logo yalnızca yazıdır ("verify" sözcük işareti, `components/Navbar.tsx`); ayrı bir simge yok. Sekme simgesi, aynı yazı tipindeki "v" harfidir. `favicon.ico` (16/32/48) ve `apple-icon.png` (180) doğrudan `icon.svg`'den üretilmiştir; simge değişirse ikisi de yeniden üretilmeli |
 | `app/page.tsx` | Sayfa: navbar, hero, giriş, nasıl çalışır, güven ilkeleri, footer |
