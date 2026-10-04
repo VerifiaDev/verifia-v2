@@ -40,6 +40,16 @@ export function Analyzer() {
   }, [state.phase]);
 
   const busy = isBusy(state);
+
+  // İnceleme sürerken sekme kapatılır ya da yenilenirse istek boşa gider (sonuç saklanmıyor);
+  // tarayıcının kendi "ayrılmak istiyor musunuz?" sorusu yalnızca bu sırada açılır.
+  useEffect(() => {
+    if (!busy) return;
+    const warn = (e: BeforeUnloadEvent) => e.preventDefault();
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [busy]);
+
   const completed = state.phase === "completed";
   /** Sabit örnek sonuç gösteriliyor (kullanıcı bir şey göndermedi). */
   const showcase = state.phase === "completed" && state.sample === true;
@@ -63,6 +73,14 @@ export function Analyzer() {
             <span>İnceleme servisi henüz bağlı değil; şu an içerik incelenemiyor.</span>
           </p>
         )}
+
+        {/* JavaScript kapalıysa form çalışmaz; sessizce hiçbir şey yapmayan bir düğme yerine nedenini söyleriz. */}
+        <noscript>
+          <p className="note note--warn" role="note">
+            <strong className="note-label">Uyarı</strong>
+            <span>Bu sayfa JavaScript ile çalışır. İnceleme başlatmak için tarayıcınızda JavaScript&apos;i açın.</span>
+          </p>
+        </noscript>
 
         <div ref={formWrap} className="analyzer-input">
           <VerificationInput

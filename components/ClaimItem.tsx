@@ -3,7 +3,7 @@ import { Explanation } from "./Explanation";
 import { Icon } from "./Icon";
 import { VerdictSummary } from "./VerdictSummary";
 import { citedNumbers } from "@/lib/citations";
-import { claimAnchor } from "@/lib/format";
+import { CLAIM_LIST_ID, claimAnchor } from "@/lib/format";
 import type { Claim } from "@/lib/types";
 
 interface Props {
@@ -51,7 +51,13 @@ export function ClaimItem({ claim, index, total, sample = false, showcase = fals
       )}
       {total > 1 && (
         <p className="claim-kicker">
-          İddia {index + 1} / {total}
+          <span>
+            İddia {index + 1} / {total}
+          </span>
+          {/* Uzun sonuçta (çok iddia, çok kaynak) okuyan listeye geri dönebilsin. */}
+          <a className="claim-back" href={`#${CLAIM_LIST_ID}`}>
+            İddia listesine dön
+          </a>
         </p>
       )}
       <h3 id={titleId} className="t-h3">

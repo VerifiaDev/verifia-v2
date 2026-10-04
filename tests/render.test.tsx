@@ -2,11 +2,13 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 import { AnalysisProgress } from "@/components/AnalysisProgress";
+import { Brand } from "@/components/Brand";
 import { ClaimItem } from "@/components/ClaimItem";
 import { ErrorState } from "@/components/ErrorState";
 import { ResultView } from "@/components/ResultView";
 import { VerificationInput } from "@/components/VerificationInput";
-import { ERROR_COPY, VERDICT_META } from "@/lib/format";
+import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
+import { CLAIM_LIST_ID, ERROR_COPY, VERDICT_META } from "@/lib/format";
 import type { Claim, ErrorCode, Source, Verdict } from "@/lib/types";
 
 const source = (n: number, o: Partial<Source> = {}): Source => ({
@@ -168,6 +170,25 @@ describe("ResultView", () => {
   it("örnek veri bayrağını iddialara iletir", () => {
     const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} sample />);
     assert.ok(html.includes("Örnek veri"));
+  });
+});
+
+describe("uzun sonuçta gezinme ve marka", () => {
+  it("birden fazla iddiada her iddia listeye geri bağlanır; tek iddiada bağlantı yoktur", () => {
+    const many = renderToStaticMarkup(
+      <ResultView result={{ claims: [claim({ id: "a" }), claim({ id: "b" })], unverifiable: [] }} onReset={() => {}} />,
+    );
+    assert.ok(many.includes(`id="${CLAIM_LIST_ID}"`));
+    assert.equal(many.split(`href="#${CLAIM_LIST_ID}"`).length - 1, 2);
+    const one = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={() => {}} />);
+    assert.ok(!one.includes(`#${CLAIM_LIST_ID}`));
+  });
+  it("marka adı ve slogan tek kaynaktan gelir; alt bilgide bağlantı değildir", () => {
+    const top = renderToStaticMarkup(<Brand href="#main" tagline />);
+    assert.ok(top.includes(`<a class="brand" href="#main">${SITE_NAME}</a>`));
+    assert.ok(top.includes(SITE_TAGLINE));
+    const foot = renderToStaticMarkup(<Brand small />);
+    assert.equal(foot, `<span class="brand brand--small">${SITE_NAME}</span>`);
   });
 });
 

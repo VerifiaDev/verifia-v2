@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
+import { Brand } from "./Brand";
 
 /**
  * Ana sayfa dışındaki iki durum için sade iskelet: bulunamayan adres (app/not-found.tsx) ve
@@ -12,12 +12,7 @@ export function PlainPage({ title, children }: { title: string; children: ReactN
     <>
       <header>
         <div className="masthead container">
-          <div className="masthead-brand">
-            <a className="brand" href="/">
-              {SITE_NAME}
-            </a>
-            <p className="brand-tagline">{SITE_TAGLINE}</p>
-          </div>
+          <Brand href="/" tagline />
         </div>
       </header>
       <main id="main">

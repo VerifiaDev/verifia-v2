@@ -478,6 +478,24 @@ header {
     font-size: var(--text-3xl);
   }
 }
+/* Çok dar ekran (360px'in altı; masaüstünde %400 yakınlaştırma da buraya düşer): üç bağlantı ile düğme
+   tek satıra sığmaz ve menü iki satıra bölünürdü. Düğme logonun hizasına, sağ üste çıkar; menü tek satır kalır. */
+@media (max-width: 22.49rem) {
+  .masthead {
+    position: relative;
+  }
+  .masthead-brand {
+    padding-right: var(--target); /* slogan düğmenin altına girmesin; sığmazsa alt satıra iner */
+  }
+  .masthead-end {
+    display: block;
+  }
+  .theme-toggle {
+    position: absolute;
+    top: var(--space-2);
+    right: var(--gutter);
+  }
+}
 
 /* ---------- Hero ---------- */
 
@@ -557,7 +575,8 @@ header {
 .note--info .note-label {
   background: var(--ink-2);
 }
-.analyzer > .note {
+.analyzer > .note,
+.analyzer > noscript > .note {
   margin-bottom: var(--space-5);
 }
 @media (max-width: 30rem) {
@@ -565,7 +584,8 @@ header {
     gap: var(--space-2);
     padding: var(--space-2) var(--space-3);
   }
-  .analyzer > .note {
+  .analyzer > .note,
+  .analyzer > noscript > .note {
     margin-bottom: var(--space-4);
   }
 }
@@ -624,6 +644,14 @@ header {
 .mode input:focus-visible + span {
   outline: 3px solid var(--accent);
   outline-offset: 2px;
+}
+/* Yüksek karşıtlık (zorlanmış renkler): arka plan renkleri silinir; seçili sekme sistemin vurgu rengiyle belli olur. */
+@media (forced-colors: active) {
+  .mode input:checked + span {
+    forced-color-adjust: none;
+    background: Highlight;
+    color: HighlightText;
+  }
 }
 /* Devre dışı: seçili sekme de soluk görünür; form yarı etkin sanılmasın. */
 .mode input:disabled,
@@ -921,11 +949,22 @@ a.btn {
 .ci-num {
   color: var(--ink-2);
 }
+.claim-nav {
+  scroll-margin-top: var(--space-4);
+}
 .ci-link {
   font-family: var(--serif);
   font-weight: 700;
   color: var(--ink);
   overflow-wrap: anywhere;
+}
+/* Uzun iddia listede üç satırda kesilir; tam metin aşağıda, iddianın kendi başlığındadır. */
+.ci-text {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  overflow: hidden;
 }
 .ci-meta {
   display: flex;
@@ -949,6 +988,11 @@ a.btn {
   scroll-margin-top: var(--space-4);
 }
 .claim-kicker {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0 var(--space-4);
   margin-bottom: var(--space-1);
   color: var(--ink-2);
   font-size: var(--text-sm);
@@ -1113,6 +1157,7 @@ a.btn {
   margin-top: var(--space-3);
 }
 .evidence-excerpt {
+  max-width: var(--measure);
   font-family: var(--serif);
   overflow-wrap: anywhere;
 }
@@ -1439,6 +1484,10 @@ a.btn {
   .cite {
     padding: var(--space-3) var(--space-2);
     margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-1));
+  }
+  .claim-back {
+    padding-block: var(--space-3);
+    margin-block: calc(-1 * var(--space-3));
   }
 }
 

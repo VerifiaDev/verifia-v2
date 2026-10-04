@@ -153,6 +153,9 @@ export function sourceAnchor(claimId: string, number: number): string {
   return `src-${claimId.replace(/[^A-Za-z0-9_-]/g, "_")}-${number}`;
 }
 
+/** İddia listesinin (sonucun başındaki özet) sayfa içi adresi; her iddiadaki "listeye dön" bağlantısı buraya gider. */
+export const CLAIM_LIST_ID = "iddia-listesi";
+
 export function claimAnchor(claimId: string): string {
   return `claim-${claimId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
 }
