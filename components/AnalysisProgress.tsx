@@ -33,14 +33,14 @@ export function AnalysisProgress({ onCancel, phase }: Props) {
   }, []);
 
   return (
-    <div className="state" role="status" aria-live="polite">
+    <div className="state analysis-progress" role="status" aria-live="polite">
       <h2 ref={headingRef} tabIndex={-1} className="t-h3 focus-target">
         İçerik inceleniyor
       </h2>
       <p>Bu işlem iddia sayısına göre zaman alabilir. Sayfayı kapatmadan bekleyin.</p>
       <ol className="progress-steps">
         {STEPS.map((s, i) => (
-          <li key={s} aria-current={activeStep === i ? "step" : undefined}>
+          <li key={s} aria-current={activeStep === i ? "step" : undefined} data-complete={activeStep !== undefined && i < activeStep}>
             {s}
             {activeStep !== undefined && i < activeStep && <span className="muted"> — tamamlandı</span>}
           </li>

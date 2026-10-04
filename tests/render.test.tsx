@@ -123,6 +123,18 @@ describe("ResultView", () => {
 });
 
 describe("VerificationInput örnekleri", () => {
+  it("bekleme sırasında gönder düğmesi durumu bildirir ve ikinci gönderimi engeller", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} busy disabled />);
+    assert.ok(html.includes('aria-busy="true"'));
+    assert.match(html, /<button[^>]*type="submit"[^>]*disabled/);
+    assert.ok(html.includes("İnceleniyor…"));
+  });
+  it("sonuç sırasında formu okunabilir tutar ve yeni gönderim yerine düzenleme sunar", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} readOnly onEdit={() => {}} />);
+    assert.match(html, /<textarea[^>]*readOnly/i);
+    assert.ok(html.includes("İçeriği düzenle"));
+    assert.ok(!html.includes('type="submit"'));
+  });
   const ex = (label: string, dev?: boolean) => ({ label, mode: "text" as const, content: label, dev });
   it("geliştirici senaryolarını ayrı ve etiketli bir grupta gösterir", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} examples={[ex("Sonuç örneği"), ex("Hata denemesi", true)]} />);

@@ -25,6 +25,7 @@ export function ResultView({ result, input, onReset, sample = false }: Props) {
   return (
     <section aria-labelledby="result-title" className="result">
       <div className="result-head">
+        <p className="result-kicker">İnceleme sonucu</p>
         <h2 id="result-title" ref={headingRef} tabIndex={-1} className="t-h2 result-title">
           {claims.length === 0 ? "İncelenebilir iddia bulunamadı" : `${claims.length} iddia incelendi`}
         </h2>

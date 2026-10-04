@@ -10,7 +10,7 @@ import { apiInfo } from "@/lib/api";
 
 /**
  * Sayfanın etkileşimli kısmı. Durumlar: bkz. hooks/useAnalysis.ts.
- * Form yalnızca sonuç görünürken gizlenir; ama her zaman bağlı kalır (yazılan içerik kaybolmaz).
+ * Form, bekleme ve sonuç aynı yüzeyde kalır; yazılan içerik hiçbir aşamada kaybolmaz.
  */
 export function Analyzer() {
   const { state, start, retry, reset } = useAnalysis();
@@ -25,10 +25,11 @@ export function Analyzer() {
     prevPhase.current = state.phase;
   }, [state.phase]);
 
-  const showForm = state.phase !== "completed";
+  const busy = isBusy(state);
+  const completed = state.phase === "completed";
 
   return (
-    <section className="analyzer" id="analyzer" aria-labelledby="analyzer-title">
+    <section className="analyzer" id="analyzer" aria-labelledby="analyzer-title" data-phase={state.phase}>
       <h2 className="t-h2 analyzer-title" id="analyzer-title">İçeriği inceleyin</h2>
       {apiInfo.usingMock && (
         <p className="mock-note" role="note">
@@ -43,15 +44,18 @@ export function Analyzer() {
         </p>
       )}
 
-      <div ref={formWrap} hidden={!showForm}>
+      <div ref={formWrap} className="analyzer-input">
         <VerificationInput
-          disabled={isBusy(state) || apiInfo.unavailable}
+          disabled={busy || apiInfo.unavailable}
+          busy={busy}
+          readOnly={completed}
+          onEdit={reset}
           onSubmit={start}
           examples={apiInfo.examples}
         />
       </div>
 
-      {isBusy(state) && <AnalysisProgress phase={state.phase} onCancel={reset} />}
+      {busy && <AnalysisProgress phase={state.phase} onCancel={reset} />}
 
       {state.phase === "error" && <ErrorState error={state.error} onRetry={retry} onEdit={reset} />}
 

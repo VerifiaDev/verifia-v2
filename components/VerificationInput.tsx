@@ -9,6 +9,9 @@ import type { CheckRequest, InputMode } from "@/lib/types";
 
 interface Props {
   disabled?: boolean;
+  busy?: boolean;
+  readOnly?: boolean;
+  onEdit?: () => void;
   onSubmit: (req: CheckRequest) => void;
   /** Örnek kullanım (yalnızca örnek veri modunda). */
   examples?: ExampleInput[];
@@ -20,7 +23,7 @@ interface Props {
  * Değerler bu bileşende tutulur; hata ya da yeniden deneme sırasında kaybolmaz.
  * Metin ve Bağlantı sekmelerinin değerleri ayrı tutulur (metin, bağlantı alanına taşınmaz).
  */
-export function VerificationInput({ disabled = false, onSubmit, examples }: Props) {
+export function VerificationInput({ disabled = false, busy = false, readOnly = false, onEdit, onSubmit, examples }: Props) {
   const [mode, setMode] = useState<InputMode>("text");
   const [values, setValues] = useState<Record<InputMode, string>>({ text: "", url: "" });
   const value = values[mode];
@@ -33,6 +36,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
   const errId = `${uid}-err`;
 
   function submit(m: InputMode, v: string) {
+    if (disabled || busy || readOnly) return;
     const res = validateInput(m, v);
     if (!res.ok) {
       setError(res.error.message);
@@ -81,13 +85,15 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
 
   return (
     <form
+      className="verification-form"
+      aria-busy={busy}
       noValidate
       onSubmit={(e) => {
         e.preventDefault();
         submit(mode, value);
       }}
     >
-      <fieldset className="modes-set" disabled={disabled}>
+      <fieldset className="modes-set" disabled={disabled || readOnly}>
         <legend className="sr-only">Girdi türü</legend>
         <div className="modes" role="radiogroup" aria-label="Girdi türü">
           {INPUT_MODES.map((m) => (
@@ -117,6 +123,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
           rows={5}
           value={value}
           disabled={disabled}
+          readOnly={readOnly}
           onChange={(e) => setValue(e.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
@@ -133,6 +140,7 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
           spellCheck={false}
           value={value}
           disabled={disabled}
+          readOnly={readOnly}
           onChange={(e) => setValue(e.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
@@ -160,18 +168,27 @@ export function VerificationInput({ disabled = false, onSubmit, examples }: Prop
       </div>
 
       <div className="actions">
-        <button type="submit" className="btn" disabled={disabled}>
-          İncelemeyi başlat
-        </button>
+        {readOnly ? (
+          <button key="edit" type="button" className="btn btn-quiet" onClick={(event) => {
+            event.preventDefault();
+            onEdit?.();
+          }}>İçeriği düzenle</button>
+        ) : (
+          <button key="submit" type="submit" className="btn" disabled={disabled || busy}>
+            {busy && <span className="activity-indicator" aria-hidden="true" />}
+            {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
+            {!busy && <span aria-hidden="true">→</span>}
+          </button>
+        )}
       </div>
 
-      {userExamples.length > 0 && (
+      {!readOnly && userExamples.length > 0 && (
         <div className="examples">
           <p className="t-meta muted">Örnek deneyin (örnek veri):</p>
           <ul className="examples-list">{userExamples.map(exampleItem)}</ul>
         </div>
       )}
-      {devExamples.length > 0 && (
+      {!readOnly && devExamples.length > 0 && (
         <div className="examples examples--dev">
           <p className="t-meta muted">Geliştirici senaryoları (yayındaki sitede görünmez):</p>
           <ul className="examples-list">{devExamples.map(exampleItem)}</ul>
