@@ -17,19 +17,42 @@ import type { AnalysisStage, CheckRequest, CheckResult, InputMode } from "../typ
 
 export { ApiRequestError } from "./errors";
 
-const usingMock = API_BASE_URL === "";
-const service: VerificationService = usingMock ? mockService : httpService(API_BASE_URL);
+const isProduction = process.env.NODE_ENV === "production";
+const hasBackend = API_BASE_URL !== "";
+
+/** Adres yokken yalnızca geliştirmede örnek servis çalışır; yayında uydurma sonuç üretilmez. */
+const usingMock = !hasBackend && !isProduction;
+/** Yayın derlemesinde adres tanımlı değilse inceleme yapılamaz; bunu açıkça söyleriz. */
+const unavailable = !hasBackend && isProduction;
+
+const unavailableService: VerificationService = {
+  async check() {
+    throw new ApiRequestError("NETWORK", "İnceleme servisi şu an bağlı değil.");
+  },
+};
+
+const service: VerificationService = hasBackend
+  ? httpService(API_BASE_URL)
+  : usingMock
+    ? mockService
+    : unavailableService;
 
 export interface ExampleInput {
   label: string;
   mode: InputMode;
   content: string;
+  /** Geliştirici senaryosu (aşama taklidi, hata denemesi). Yayındaki sitede listelenmez. */
+  dev?: boolean;
 }
 
+/** Yayın derlemesinde (`next build`) geliştirici senaryoları listeden çıkar; anahtar kelimeler yine çalışır. */
+const showDevExamples = process.env.NODE_ENV !== "production";
+
 /** Arayüz için servis bilgisi. Mock'un kendisini değil, yalnızca bunları bilir. */
-export const apiInfo: { usingMock: boolean; examples: ExampleInput[] } = {
+export const apiInfo: { usingMock: boolean; unavailable: boolean; examples: ExampleInput[] } = {
   usingMock,
-  examples: usingMock ? MOCK_EXAMPLES : [],
+  unavailable,
+  examples: usingMock ? MOCK_EXAMPLES.filter((ex) => showDevExamples || !ex.dev) : [],
 };
 
 export async function checkInput(

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, describe, it, mock } from "node:test";
 import { parseCheckResponse } from "@/lib/api/adapter";
-import { mockService } from "@/lib/api/mock";
+import { MOCK_EXAMPLES, mockService } from "@/lib/api/mock";
 import type { RawCheckRequest } from "@/lib/api/contract";
 import type { AnalysisStage } from "@/lib/types";
 
@@ -43,6 +43,13 @@ describe("mockService", () => {
 
   it("hata senaryoları ApiRequestError fırlatır", async () => {
     await assert.rejects(run("#hata-ag x"), (e: { code?: string }) => e.code === "NETWORK");
+  });
+
+  it("teknik senaryolar geliştirici örneği olarak işaretlidir; sonuç türü örnekleri değildir", () => {
+    const dev = MOCK_EXAMPLES.filter((ex) => ex.dev).map((ex) => ex.content);
+    assert.equal(dev.length, 2);
+    assert.ok(dev.every((c) => c.includes("#asamali") || c.includes("#hata-")));
+    assert.equal(MOCK_EXAMPLES.filter((ex) => !ex.dev).length, 4);
   });
 
   it("kullanıcı vazgeçince bekleme hemen durur", async () => {

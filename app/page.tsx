@@ -3,6 +3,7 @@ import { Footer } from "@/components/Footer";
 import { HowItWorks } from "@/components/HowItWorks";
 import { Navbar } from "@/components/Navbar";
 import { TrustNotes } from "@/components/TrustNotes";
+import { VerdictSummary } from "@/components/VerdictSummary";
 import { VERDICT_META, VERDICT_ORDER } from "@/lib/format";
 
 export default function HomePage() {
@@ -10,33 +11,34 @@ export default function HomePage() {
     <>
       <Navbar />
       <main id="main">
-        <div className="container hero">
-          <h1 className="t-display">Şüpheli içeriği kanıtlarla doğrulayın</h1>
-          <p className="hero-lead">
-            Bir metin ya da haber bağlantısı gönderin. İçindeki iddiaları ayrı ayrı inceler, hangi kaynağın ne dediğini
-            gösteririz. Karar sizin.
-          </p>
-        </div>
-
         <div className="container layout">
           <div className="layout-main">
+            <div className="hero">
+              <h1 className="t-display">İddiaları kanıtlarla inceleyin</h1>
+              <p className="hero-lead">
+                Metin veya bağlantı ekleyin; kaynakları ve belirsizlikleri birlikte inceleyin.
+              </p>
+            </div>
             <Analyzer />
           </div>
           <aside className="aside" aria-labelledby="legend-title">
-            <h2 id="legend-title" className="t-h4 legend-title">
-              Sonuçlar ne anlama gelir?
+            <h2 id="legend-title" className="legend-title">
+              Sonuç türleri
             </h2>
             <dl className="legend">
               {VERDICT_ORDER.map((v) => (
                 <div key={v}>
-                  <dt className={`tone-${VERDICT_META[v].tone}`}>
-                    <span aria-hidden="true">{VERDICT_META[v].symbol} </span>
-                    <strong>{VERDICT_META[v].label}</strong>
+                  {/* Sonuçlardaki halkalı simgenin aynısı: açıklama ile sonuç aynı görünsün. */}
+                  <dt>
+                    <VerdictSummary verdict={v} variant="inline" />
                   </dt>
                   <dd>{VERDICT_META[v].meaning}</dd>
                 </div>
               ))}
             </dl>
+            <p className="legend-note">
+              Bir sonuç kesin hüküm değildir. Kaynağı, bağlamı ve kanıtın sınırlarını birlikte okuyun.
+            </p>
           </aside>
         </div>
 

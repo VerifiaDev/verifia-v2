@@ -8,12 +8,12 @@ export const VERDICT_META: Record<
 > = {
   SUPPORTED: {
     label: "Kanıtlar destekliyor",
-    meaning: "Bulunan kaynaklar bu iddiayı doğruluyor.",
+    meaning: "Bulunan kaynaklar bu iddiayı destekliyor.",
     symbol: "✓",
     tone: "ok",
   },
   REFUTED: {
-    label: "Kanıtlar çelişiyor",
+    label: "Kanıtlar iddiayla çelişiyor",
     meaning: "Bulunan kaynaklar bu iddiayla çelişiyor.",
     symbol: "✕",
     tone: "bad",
@@ -43,7 +43,7 @@ export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: 
   INPUT_TOO_LONG: {
     title: "Metin çok uzun",
     what: "Gönderdiğiniz metin, bir seferde incelenebilecek uzunluğu aşıyor.",
-    todo: ["Yalnızca doğrulamak istediğiniz bölümü yapıştırın.", "Uzun metinleri birkaç parçada gönderin."],
+    todo: ["Yalnızca incelenmesini istediğiniz bölümü yapıştırın.", "Uzun metinleri birkaç parçada gönderin."],
     retry: false,
   },
   URL_UNREADABLE: {

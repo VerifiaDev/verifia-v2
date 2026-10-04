@@ -40,8 +40,19 @@ describe("checkInput (gerçek API yolu)", () => {
     }) as typeof fetch;
     const r = await checkInput(REQ, new AbortController().signal);
     assert.equal(r.claims[0].sources.length, 1);
-    assert.equal(sent?.url, "http://backend.test/check");
-    assert.deepEqual(JSON.parse(sent!.body), { text: "iddia", input_type: "text" });
+    assert.equal(sent?.url, "http://backend.test/verify");
+    assert.deepEqual(JSON.parse(sent!.body), { text: "iddia" });
+  });
+
+  it("bağlantı (url) modunu sunucuya göndermeden açık hata olarak reddeder", async () => {
+    let called = false;
+    globalThis.fetch = (async () => {
+      called = true;
+      return json(200, okBody);
+    }) as typeof fetch;
+    const code = await codeOf(checkInput({ ...REQ, mode: "url", content: "https://a.example" }, new AbortController().signal));
+    assert.equal(code, "URL_UNREADABLE");
+    assert.equal(called, false);
   });
 
   it("backend hata kodunu korur", async () => {
@@ -87,5 +98,25 @@ describe("checkInput (gerçek API yolu)", () => {
     const p = checkInput(REQ, user.signal);
     user.abort();
     await assert.rejects(p, (e: unknown) => !(e instanceof ApiRequestError));
+  });
+});
+
+describe("httpService adresi", () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+  });
+
+  it("adresin sonundaki eğik çizgiyi atar (//verify oluşmaz)", async () => {
+    const { httpService } = await import("@/lib/api/http");
+    const urls: string[] = [];
+    globalThis.fetch = (async (url: string) => {
+      urls.push(url);
+      return json(200, okBody);
+    }) as typeof fetch;
+    for (const base of ["http://backend.test/", "http://backend.test//", "http://backend.test"]) {
+      await httpService(base).check({ text: "iddia", input_type: "text" }, { signal: new AbortController().signal });
+    }
+    assert.deepEqual(urls, ["http://backend.test/verify", "http://backend.test/verify", "http://backend.test/verify"]);
   });
 });

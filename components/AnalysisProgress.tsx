@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useRef } from "react";
 import type { BusyPhase } from "@/hooks/useAnalysis";
 
 interface Props {
@@ -21,10 +24,25 @@ const STEPS = ["İddialar çıkarılıyor", "Kaynaklar aranıyor", "Kanıtlar ka
 /** Gerçek bir bekleme durumu. Yüzde ya da uydurma adım ilerlemesi göstermez. */
 export function AnalysisProgress({ onCancel, phase }: Props) {
   const activeStep = ACTIVE_STEP[phase];
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Gönder düğmesi devre dışı kalınca odak sayfa başına düşer; bekleme durumunu görünür alana
+  // getirmek ve odağı korumak için odağı başlığa taşırız. (Aşama değişince yeniden çalışmaz.)
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
+
   return (
     <div className="state" role="status" aria-live="polite">
-      <h2 className="t-h3">İçerik inceleniyor</h2>
-      <p>Bu işlem, iddia sayısına göre bir dakikaya kadar sürebilir. Sayfayı kapatmadan bekleyin.</p>
+      <h2 ref={headingRef} tabIndex={-1} className="t-h3 focus-target">
+        İçerik inceleniyor
+      </h2>
+      <p>Bu işlem iddia sayısına göre zaman alabilir. Sayfayı kapatmadan bekleyin.</p>
+      <div className="analysis-skeleton" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
       <ol className="progress-steps">
         {STEPS.map((s, i) => (
           <li key={s} aria-current={activeStep === i ? "step" : undefined}>

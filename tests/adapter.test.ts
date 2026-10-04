@@ -37,6 +37,30 @@ describe("parseCheckResponse", () => {
     assert.equal(s.excerpt, "pasaj");
   });
 
+  it("gerçek backend şeklini (results, claim_id, source_N, used_sources) çevirir", () => {
+    const r = parseCheckResponse({
+      results: [
+        {
+          claim_id: "claim_1",
+          claim: "A oldu.",
+          is_verifiable: true,
+          verdict: "NOT ENOUGH EVIDENCE",
+          explanation: "Bkz. [source_1].",
+          used_sources: ["source_1"],
+          sources: [{ id: "source_1", url: "https://www.a.example/x", text: "pasaj" }],
+        },
+        { claim_id: "claim_2", claim: "Yarın yağmur yağacak.", is_verifiable: false },
+      ],
+    });
+    assert.equal(r.claims.length, 1);
+    assert.equal(r.claims[0].id, "claim_1");
+    assert.equal(r.claims[0].verdict, "NOT_ENOUGH_EVIDENCE");
+    assert.equal(r.claims[0].confidence, null);
+    assert.equal(r.claims[0].sources[0].id, "source_1");
+    assert.equal(r.claims[0].sources[0].name, null);
+    assert.deepEqual(r.unverifiable, ["Yarın yağmur yağacak."]);
+  });
+
   it("güven puanını (0-1) taşır; kanıt skorunu taşımaz", () => {
     const r = parseCheckResponse({ claim: "T", verdict: "SUPPORTED", explanation: "e", confidence: 0.99, evidence: [{ id: "k", url: "https://b.example", text: "m", score: 0.9 }] });
     assert.equal(r.claims[0].confidence, 0.99);

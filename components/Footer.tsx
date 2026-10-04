@@ -5,10 +5,13 @@ export function Footer() {
   return (
     <footer className="site-footer">
       <div className="container footer-row">
-        <p>
-          <strong>{SITE_NAME}</strong> — {SITE_TAGLINE} Sonuçlar otomatik üretilir ve hata içerebilir; son karar her
-          zaman sizindir.
-        </p>
+        <div className="footer-about">
+          <span className="brand brand--small">{SITE_NAME}</span>
+          <p>
+            {SITE_TAGLINE} Sonuçlar otomatik bir ön değerlendirmedir; önemli kararlar için kaynakları kendiniz de
+            inceleyin.
+          </p>
+        </div>
         <nav aria-label="Alt menü">
           <SiteLinks className="footer-links" />
         </nav>

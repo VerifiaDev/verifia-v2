@@ -1,5 +1,8 @@
 # API sözleşmesi (frontend'in anladığı hâli)
 
+> **GÜNCEL DURUM (2 Ekim):** Backend `backend/main.py` ile geldi. Gerçek sözleşme: `POST /verify`, gövde yalnızca `{ "text": "..." }`, cevap `{ "results": [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id: "source_1", url, text} ] } ] }`. Güven puanı, kaynak adı, tarih, hata gövdesi, CORS ve bağlantı (URL) desteği henüz yok. Aşağıdaki "/check" ve `input_type` anlatımı eski öneridir; arayüz artık `/verify` kullanır.
+
+
 > **Durum: geçici öneri.** Backend sahibi (Kişi 3) ile teyit edilene kadar geçerlidir.
 > Kodda karşılığı: `lib/api/contract.ts` (şekiller), `lib/api/adapter.ts` (çeviri), `lib/api/http.ts` (istek).
 
@@ -8,7 +11,7 @@
 `POST {NEXT_PUBLIC_API_BASE_URL}/check` — `Content-Type: application/json`
 
 ```json
-{ "text": "Doğrulanacak metin ya da bağlantı", "input_type": "text" }
+{ "text": "İncelenecek metin ya da bağlantı", "input_type": "text" }
 ```
 
 - `input_type`: `"text"` ya da `"url"`. `"url"` ise `text` alanında bağlantı gelir.
@@ -52,7 +55,7 @@ Alanlar:
 | `evidence[].source` (ya da `title`) | hayır | Kaynak adı; yoksa alan adı gösterilir |
 | `evidence[].text` | hayır | Kısa alıntı |
 | `evidence[].published_at` | hayır | ISO tarih; yoksa "Yayın tarihi belirtilmemiş" |
-| `is_verifiable` | hayır | `false` ise iddia ayrı bir "doğrulanmayan ifadeler" bölümünde gösterilir |
+| `is_verifiable` | hayır | `false` ise iddia ayrı bir "incelenmeyen ifadeler" bölümünde gösterilir |
 | `confidence` | hayır | 0 ile 1 arası sayı (örn. `0.91`). Arayüz **"Modelin güven puanı: %91"** diye gösterir ve bunun doğruluk olasılığı olmadığını belirtir. Yoksa ya da 0-1 dışındaysa (örn. `91`) hiçbir şey gösterilmez, tahmin edilmez |
 | `evidence[].score` | hayır | Arayüz göstermez |
 

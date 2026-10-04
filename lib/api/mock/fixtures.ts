@@ -6,14 +6,18 @@ import type { RawClaim, RawEvidence } from "../contract";
  * Bilerek iki farklı biçim kullanılır (`sources` ve `evidence`) ki adapter her ikisiyle denensin.
  */
 
-/** Formun altındaki "Örnek deneyin" bağlantıları. Anahtar kelimeler pickScenario ile eşleşir. */
-export const MOCK_EXAMPLES: { label: string; mode: "text" | "url"; content: string }[] = [
-  { label: "Doğrulanan bir iddia", mode: "text", content: "#dogru Örnek iddia: Bir kentin nüfusu son sayımda arttı." },
-  { label: "Çelişen bir iddia", mode: "text", content: "#yanlis Örnek iddia: Bir ilaç hastalığı tamamen iyileştiriyor." },
-  { label: "Yetersiz kanıt", mode: "text", content: "#yetersiz Örnek iddia: Bir şirket gizli bir anlaşma yaptı." },
-  { label: "Kaynaklar çelişiyor", mode: "text", content: "#celiski Örnek iddia: Bir bölgede yağış rekoru kırıldı." },
-  { label: "Aşama bildiren backend (taklit)", mode: "text", content: "#asamali Örnek iddia: Bir kentin nüfusu son sayımda arttı." },
-  { label: "Hata: zaman aşımı", mode: "text", content: "#hata-zamanasimi örnek" },
+/**
+ * Formun altındaki "Örnek deneyin" bağlantıları. Anahtar kelimeler pickScenario ile eşleşir.
+ * Etiketler sonuç adlarıyla aynı dili kullanır (bkz. lib/format.ts). `dev: true` olanlar arayüzün
+ * teknik durumlarını denemek içindir; yayındaki sitede gösterilmez (bkz. lib/api/index.ts).
+ */
+export const MOCK_EXAMPLES: { label: string; mode: "text" | "url"; content: string; dev?: boolean }[] = [
+  { label: "Kanıtların desteklediği iddia", mode: "text", content: "#dogru Örnek iddia: Bir kentin nüfusu son sayımda arttı." },
+  { label: "Kanıtların çeliştiği iddia", mode: "text", content: "#yanlis Örnek iddia: Bir ilaç hastalığı tamamen iyileştiriyor." },
+  { label: "Kaynakların birbiriyle çeliştiği iddia", mode: "text", content: "#celiski Örnek iddia: Bir bölgede yağış rekoru kırıldı." },
+  { label: "Yeterli kanıt bulunmayan iddia", mode: "text", content: "#yetersiz Örnek iddia: Bir şirket gizli bir anlaşma yaptı." },
+  { label: "Aşama bildiren backend (taklit)", mode: "text", content: "#asamali Örnek iddia: Bir kentin nüfusu son sayımda arttı.", dev: true },
+  { label: "Hata: zaman aşımı", mode: "text", content: "#hata-zamanasimi örnek", dev: true },
 ];
 
 

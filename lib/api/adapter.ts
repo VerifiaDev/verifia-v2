@@ -3,6 +3,10 @@
  *
  * Backend henüz yazılmadığı için kabul edilen şekiller GEÇİCİDİR. İki biçim de desteklenir:
  *
+ *  Gerçek backend (backend/main.py, POST /verify):
+ *     { results: [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id:"source_1", url, text} ] } ] }
+ *     (güven puanı, kaynak adı ve tarih yoktur; arayüz bunları göstermez/uydurmaz)
+ *
  *  A) { claims: [ {
  *        id, text | claim, verdict, explanation, is_verifiable?,
  *        sources | evidence: [ { id?, url, source? | title?, text?, published_at?, score? } ]
@@ -75,7 +79,7 @@ function parseClaim(raw: unknown, index: number): Claim | { unverifiableText: st
   const sources = rawSources.map(parseSource).filter((s): s is Source => s !== null);
 
   return {
-    id: str(raw.id) ?? `claim_${index + 1}`,
+    id: str(raw.id) ?? str(raw.claim_id) ?? `claim_${index + 1}`,
     text,
     verdict,
     explanation: str(raw.explanation) ?? "",
@@ -88,10 +92,12 @@ export function parseCheckResponse(body: unknown): CheckResult {
   let list: unknown[];
   if (isRecord(body) && Array.isArray(body.claims)) {
     list = body.claims;
+  } else if (isRecord(body) && Array.isArray(body.results)) {
+    list = body.results; // gerçek backend (POST /verify): { results: [...] }
   } else if (isRecord(body) && "verdict" in body && (body.claim !== undefined || body.text !== undefined)) {
     list = [body]; // tek iddialı biçim
   } else {
-    throw new InvalidResponseError("Cevapta 'claims' listesi yok");
+    throw new InvalidResponseError("Cevapta 'results' ya da 'claims' listesi yok");
   }
 
   const claims: Claim[] = [];
