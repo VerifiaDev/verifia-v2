@@ -95,7 +95,8 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
     >
       <fieldset className="modes-set" disabled={disabled || readOnly}>
         <legend className="sr-only">Girdi türü</legend>
-        <div className="modes" role="radiogroup" aria-label="Girdi türü">
+        {/* Grup adı fieldset + legend ile verilir; ikinci bir radiogroup etiketi aynı adı iki kez okuturdu. */}
+        <div className="modes">
           {INPUT_MODES.map((m) => (
             <label key={m.id} className="mode">
               <input
@@ -127,7 +128,7 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
           onChange={(e) => setValue(e.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
-          placeholder="Bir haber metnini, sosyal medya paylaşımını ya da tek bir iddiayı yapıştırın."
+          placeholder="Haber metni, paylaşım ya da tek bir iddia yapıştırın."
         />
       ) : (
         <input

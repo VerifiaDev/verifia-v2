@@ -51,7 +51,8 @@ describe("checkInput (gerçek API yolu)", () => {
       return json(200, okBody);
     }) as typeof fetch;
     const code = await codeOf(checkInput({ ...REQ, mode: "url", content: "https://a.example" }, new AbortController().signal));
-    assert.equal(code, "URL_UNREADABLE");
+    // "Sayfa açılamadı" (URL_UNREADABLE) demek yanlış olurdu: sayfa hiç denenmedi, özellik desteklenmiyor.
+    assert.equal(code, "URL_UNSUPPORTED");
     assert.equal(called, false);
   });
 
@@ -65,6 +66,23 @@ describe("checkInput (gerçek API yolu)", () => {
     assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "INTERNAL_ERROR");
     globalThis.fetch = (async () => new Response("<html>boom</html>", { status: 500 })) as typeof fetch;
     assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "INTERNAL_ERROR");
+  });
+
+  it("hata gövdesi sözleşmeye uymuyorsa HTTP durum koduna göre anlamlı hata seçer", async () => {
+    // FastAPI'nin varsayılan doğrulama hatası: 422 + { detail: [...] }. "Sorun girdinizde değil" demek yanlış olurdu.
+    const cases: [number, unknown, string][] = [
+      [422, { detail: [{ loc: ["body", "text"], msg: "field required" }] }, "INVALID_INPUT"],
+      [400, { detail: "bad request" }, "INVALID_INPUT"],
+      [413, null, "INPUT_TOO_LONG"],
+      [504, null, "TIMEOUT"],
+      [408, null, "TIMEOUT"],
+      [503, null, "INTERNAL_ERROR"],
+      [404, { detail: "Not Found" }, "INTERNAL_ERROR"],
+    ];
+    for (const [status, body, expected] of cases) {
+      globalThis.fetch = (async () => json(status, body)) as typeof fetch;
+      assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), expected, String(status));
+    }
   });
 
   it("bozuk 200 cevabında çökmez, INTERNAL_ERROR verir", async () => {

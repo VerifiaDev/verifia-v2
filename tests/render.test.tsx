@@ -91,6 +91,17 @@ describe("ClaimItem", () => {
     assert.ok(!sample.includes("Modelin güven puanı"));
     assert.ok(sample.includes("claim-item--sample"));
   });
+  it("açıklama kaynağa atıf yapıyorsa 'Dayandığımız kanıtlar' der", () => {
+    const html = render(claim({ explanation: "Açıklama [kaynak_1].", sources: [source(1), source(2)] }));
+    assert.ok(html.includes("Dayandığımız kanıtlar (1)"));
+    assert.ok(html.includes("Diğer kaynaklar (1)"));
+  });
+  it("atıf yoksa kaynaklara 'dayandık' demez; yalnızca bulunan kaynakları listeler", () => {
+    const html = render(claim({ explanation: "Atıfsız açıklama.", sources: [source(1), source(2), source(3)] }));
+    assert.ok(!html.includes("Dayandığımız kanıtlar"));
+    assert.ok(html.includes("Bulunan kaynaklar (3)"));
+    assert.ok(html.includes("hangi kaynaklara dayandığı belirtilmedi"));
+  });
   it("sonuç etiketleri birbirinden ayırt edilebilir (çürütülen ≠ kaynaklar birbiriyle çelişiyor)", () => {
     const labels = Object.values(VERDICT_META).map((m) => m.label);
     assert.equal(new Set(labels).size, labels.length);
@@ -135,6 +146,12 @@ describe("VerificationInput örnekleri", () => {
     assert.ok(html.includes("İçeriği düzenle"));
     assert.ok(!html.includes('type="submit"'));
   });
+  it("girdi türü grubunu tek kez adlandırır (fieldset + legend; ikinci bir radiogroup etiketi yok)", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
+    assert.equal((html.match(/Girdi türü/g) ?? []).length, 1);
+    assert.ok(/<legend[^>]*>Girdi türü<\/legend>/.test(html));
+    assert.ok(!html.includes('role="radiogroup"'));
+  });
   const ex = (label: string, dev?: boolean) => ({ label, mode: "text" as const, content: label, dev });
   it("geliştirici senaryolarını ayrı ve etiketli bir grupta gösterir", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} examples={[ex("Sonuç örneği"), ex("Hata denemesi", true)]} />);
@@ -156,6 +173,13 @@ describe("ErrorState ve AnalysisProgress", () => {
       assert.ok(html.includes("Ne oldu?") && html.includes("Şimdi ne yapabilirsiniz?"), code);
       assert.equal(html.includes("Yeniden dene"), ERROR_COPY[code].retry, code);
     }
+  });
+  it("desteklenmeyen bağlantı hatası 'sayfa açılamadı' demez; metin sekmesine yönlendirir", () => {
+    const html = renderToStaticMarkup(<ErrorState error={{ code: "URL_UNSUPPORTED", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.ok(html.includes("henüz desteklenmiyor"));
+    assert.ok(!html.includes("açılamadı"));
+    assert.ok(html.includes("“Metin” sekmesinden"));
+    assert.ok(!html.includes("Yeniden dene"));
   });
   it("aşama bilgisi yokken hiçbir adımı 'şu an' diye işaretlemez; yüzde göstermez", () => {
     const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);

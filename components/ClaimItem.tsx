@@ -17,12 +17,14 @@ const FALLBACK_KEY_COUNT = 2;
 
 /**
  * Bir iddia ve sırasıyla: iddia → sonuç → açıklama → öne çıkan kanıtlar → diğer kaynaklar.
- * "Öne çıkan" kanıt, açıklamanın atıf yaptığı kaynaklardır; atıf yoksa ilk ikisi.
+ * "Dayandığımız kanıtlar" yalnızca açıklamanın atıf yaptığı kaynaklar için söylenir. Atıf yoksa hangi
+ * kaynağa dayanıldığı bilinmez: ilk ikisi yine açık gösterilir ama başlık yalnızca "Bulunan kaynaklar" der.
  */
 export function ClaimItem({ claim, index, total, sample = false }: Props) {
   const { sources } = claim;
   const cited = citedNumbers(claim.explanation, sources);
-  const keyNumbers = cited.length > 0 ? cited : sources.slice(0, FALLBACK_KEY_COUNT).map((_, i) => i + 1);
+  const hasCitations = cited.length > 0;
+  const keyNumbers = hasCitations ? cited : sources.slice(0, FALLBACK_KEY_COUNT).map((_, i) => i + 1);
   const restNumbers = sources.map((_, i) => i + 1).filter((n) => !keyNumbers.includes(n));
   const titleId = `${claimAnchor(claim.id)}-title`;
 
@@ -76,7 +78,14 @@ export function ClaimItem({ claim, index, total, sample = false }: Props) {
           </div>
         ) : (
           <>
-            <h4 className="t-h4">Dayandığımız kanıtlar ({keyNumbers.length})</h4>
+            <h4 className="t-h4">
+              {hasCitations ? `Dayandığımız kanıtlar (${keyNumbers.length})` : `Bulunan kaynaklar (${sources.length})`}
+            </h4>
+            {!hasCitations && (
+              <p className="evidence-note muted t-meta">
+                Açıklamanın hangi kaynaklara dayandığı belirtilmedi; aşağıdakiler bu iddia için bulunan kaynaklardır.
+              </p>
+            )}
             <ol className="evidence-list">{keyNumbers.map(card)}</ol>
 
             {restNumbers.length > 0 && (

@@ -55,6 +55,12 @@ export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: 
     ],
     retry: false,
   },
+  URL_UNSUPPORTED: {
+    title: "Bağlantıyla inceleme henüz desteklenmiyor",
+    what: "İnceleme servisi şu an yalnızca metin kabul ediyor. Gönderdiğiniz bağlantıdaki sayfa okunmadı ve incelenmedi.",
+    todo: ["Haberin metnini kopyalayıp “Metin” sekmesinden gönderin."],
+    retry: false,
+  },
   IMAGE_UNREADABLE: {
     title: "Görsel işlenemedi",
     what: "Görseldeki yazı okunamadı.",
@@ -91,13 +97,21 @@ export function formatPercent(ratio: number): string {
   return `%${Math.round(ratio * 100)}`;
 }
 
-const dateFmt = new Intl.DateTimeFormat("tr-TR", { day: "numeric", month: "long", year: "numeric" });
+const DATE_PARTS = { day: "numeric", month: "long", year: "numeric" } as const;
+const dateFmt = new Intl.DateTimeFormat("tr-TR", DATE_PARTS);
+const dateFmtUtc = new Intl.DateTimeFormat("tr-TR", { ...DATE_PARTS, timeZone: "UTC" });
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
 
-/** "2023-03-14" → "14 Mart 2023". Tarih yoksa ya da bozuksa null. */
+/**
+ * "2023-03-14" → "14 Mart 2023". Tarih yoksa ya da bozuksa null.
+ * Yalnızca tarih içeren değer (saat yok) UTC gece yarısı sayılır; okuyanın saat diliminde gösterilirse
+ * UTC'nin batısında bir gün geri kayar. Bu yüzden o biçim UTC'de yazılır.
+ */
 export function formatDate(iso: string | null): string | null {
   if (!iso) return null;
   const d = new Date(iso);
-  return Number.isNaN(d.getTime()) ? null : dateFmt.format(d);
+  if (Number.isNaN(d.getTime())) return null;
+  return (DATE_ONLY.test(iso.trim()) ? dateFmtUtc : dateFmt).format(d);
 }
 
 /** Kaynağın alan adı; kaynak adıyla birlikte, onun yerine değil. */

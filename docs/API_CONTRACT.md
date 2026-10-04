@@ -1,89 +1,89 @@
 # API sözleşmesi (frontend'in anladığı hâli)
 
-> **GÜNCEL DURUM (2 Ekim):** Backend `backend/main.py` ile geldi. Gerçek sözleşme: `POST /verify`, gövde yalnızca `{ "text": "..." }`, cevap `{ "results": [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id: "source_1", url, text} ] } ] }`. Güven puanı, kaynak adı, tarih, hata gövdesi, CORS ve bağlantı (URL) desteği henüz yok. Aşağıdaki "/check" ve `input_type` anlatımı eski öneridir; arayüz artık `/verify` kullanır.
-
-
-> **Durum: geçici öneri.** Backend sahibi (Kişi 3) ile teyit edilene kadar geçerlidir.
+> **Durum: kısmen teyitli.** Yol ve cevabın genel şekli backend'den (`backend/main.py`, 2 Ekim) alındı.
+> Aşağıda "teyit edilmemiş" diye işaretlenen her şey frontend'in varsayımıdır; backend sahibi doğrulayana kadar öyle kalır.
 > Kodda karşılığı: `lib/api/contract.ts` (şekiller), `lib/api/adapter.ts` (çeviri), `lib/api/http.ts` (istek).
 
 ## İstek
 
-`POST {NEXT_PUBLIC_API_BASE_URL}/check` — `Content-Type: application/json`
+`POST {NEXT_PUBLIC_API_BASE_URL}/verify` — `Content-Type: application/json`
 
 ```json
-{ "text": "İncelenecek metin ya da bağlantı", "input_type": "text" }
+{ "text": "İncelenecek metin" }
 ```
 
-- `input_type`: `"text"` ya da `"url"`. `"url"` ise `text` alanında bağlantı gelir.
-- Backend şu an yalnızca `{ "text": ... }` tanımlıyor; **`input_type` bizim önerimiz**.
-- Frontend metin sınırı: 5000 karakter (backend farklı bir sınır söylerse `lib/config.ts` değişir).
+- Frontend yalnızca `text` gönderir. Adresin sonundaki `/` atılır.
+- **Bağlantı (URL) ile inceleme backend'de yok.** Arayüzdeki "Bağlantı" sekmesi gerçek servise istek göndermez;
+  kullanıcıya "bağlantıyla inceleme henüz desteklenmiyor" hatası (`URL_UNSUPPORTED`, arayüzün kendi kodu) gösterilir.
+  Eski öneri `input_type: "text" | "url"` alanıydı; backend bunu kabul edene kadar gönderilmez.
 
 ## Başarılı cevap (HTTP 200)
 
-İki biçim de kabul edilir.
-
-**Tek iddia** (proje dokümanındaki örnek):
+Backend'in bildirdiği şekil:
 
 ```json
-{
-  "claim": "Örnek iddia",
-  "verdict": "REFUTED",
-  "explanation": "Kaynaklar bu iddia ile çelişiyor [kaynak_1].",
-  "confidence": 0.91,
-  "evidence": [
-    { "id": "kaynak_1", "text": "Kısa kanıt pasajı", "source": "Reuters",
-      "url": "https://example.com", "score": 0.87, "published_at": "2026-05-12" }
-  ]
-}
+{ "results": [ {
+    "claim_id": "…", "claim": "…", "is_verifiable": true, "verdict": "SUPPORTED",
+    "explanation": "…", "used_sources": [ … ],
+    "sources": [ { "id": "source_1", "url": "https://…", "text": "…" } ]
+} ] }
 ```
 
-**Birden çok iddia** (önerilen; bir metinde birden çok iddia olabilir):
+Güven puanı, kaynak adı ve yayın tarihi bu cevapta yoktur; arayüz bunları göstermez ve uydurmaz.
 
-```json
-{ "claims": [ { "id": "claim_1", "text": "...", "verdict": "SUPPORTED", "explanation": "...", "sources": [ ... ] } ] }
-```
+Adapter ayrıca iki eski biçimi de kabul eder (mock bunları kullanır): `{ "claims": [ … ] }` ve tek iddialı
+`{ "claim", "verdict", "explanation", "confidence", "evidence": [ … ] }`.
 
-Alanlar:
-
-| Alan | Zorunlu | Not |
+| Alan | Zorunlu | Arayüzün davranışı |
 |---|---|---|
-| `claim` ya da `text` | evet | İddia metni |
-| `verdict` | evet | `SUPPORTED`, `REFUTED`, `CONFLICTING` (ya da `CONFLICTING_EVIDENCE`), `NOT ENOUGH EVIDENCE` (ya da `NOT_ENOUGH_EVIDENCE`). Tanınmayan değer hata sayılır |
-| `explanation` | hayır | Atıflar `[kaynak_1]` biçiminde; `id`'si kaynak listesindekiyle eşleşmeli. Listede olmayan atıf bağlantıya çevrilmez |
-| `evidence` ya da `sources` | hayır | Kaynak listesi. Kaynağı olmayan iddia "kaynak bulunamadı" gösterilir |
-| `evidence[].url` | evet | Yoksa o kaynak atılır |
-| `evidence[].source` (ya da `title`) | hayır | Kaynak adı; yoksa alan adı gösterilir |
-| `evidence[].text` | hayır | Kısa alıntı |
-| `evidence[].published_at` | hayır | ISO tarih; yoksa "Yayın tarihi belirtilmemiş" |
-| `is_verifiable` | hayır | `false` ise iddia ayrı bir "incelenmeyen ifadeler" bölümünde gösterilir |
-| `confidence` | hayır | 0 ile 1 arası sayı (örn. `0.91`). Arayüz **"Modelin güven puanı: %91"** diye gösterir ve bunun doğruluk olasılığı olmadığını belirtir. Yoksa ya da 0-1 dışındaysa (örn. `91`) hiçbir şey gösterilmez, tahmin edilmez |
-| `evidence[].score` | hayır | Arayüz göstermez |
+| `claim` ya da `text` | evet | İddia metni. Yoksa cevap geçersiz sayılır |
+| `verdict` | evet (`is_verifiable: false` değilse) | `SUPPORTED`, `REFUTED`, `CONFLICTING` (ya da `CONFLICTING_EVIDENCE`), `NOT ENOUGH EVIDENCE` (ya da `NOT_ENOUGH_EVIDENCE`). Tanınmayan değer hata sayılır |
+| `is_verifiable` | hayır | `false` ise iddia "İncelenmeyen ifadeler" bölümünde gösterilir |
+| `explanation` | hayır | Köşeli parantezli atıflar (`[source_1]`) kaynak listesindeki `id` ile eşleşirse numaralı bağlantıya çevrilir. Eşleşmeyen atıf düz metin kalır |
+| `sources` ya da `evidence` | hayır | Kaynak listesi. Boşsa "Kaynak bulunamadı" gösterilir |
+| `sources[].url` | evet | Yoksa o kaynak atılır. `http`/`https` dışındaki adresler tıklanabilir yapılmaz |
+| `sources[].source` / `title` / `name` | hayır | Kaynak adı; yoksa alan adı gösterilir |
+| `sources[].text` | hayır | Kısa alıntı (360 karakterden uzunsa kesilir) |
+| `sources[].published_at` | hayır | ISO tarih; yoksa "Yayın tarihi belirtilmemiş" |
+| `confidence` | hayır | 0 ile 1 arası sayı. "Modelin güven puanı: %91" diye, doğruluk olasılığı olmadığı notuyla gösterilir. Yoksa ya da 0-1 dışındaysa hiçbir şey gösterilmez |
+| `used_sources` | hayır | **Şu an okunmuyor** (aşağıdaki soru 3) |
+| `sources[].score` | hayır | Gösterilmez |
+
+Açıklamada hiç atıf yoksa arayüz kaynaklara "dayandığımız kanıtlar" demez; "Bulunan kaynaklar" başlığıyla listeler.
 
 ## Hata cevabı (HTTP 4xx / 5xx)
 
-```json
-{ "error": { "code": "URL_UNREADABLE", "message": "..." } }
-```
+Backend şu an bir hata gövdesi tanımlamıyor. Arayüz iki adımda karar verir:
 
-`code`: `INVALID_INPUT`, `INPUT_TOO_LONG`, `URL_UNREADABLE`, `IMAGE_UNREADABLE`, `INTERNAL_ERROR`.
-Tanınmayan kod ya da JSON olmayan gövde `INTERNAL_ERROR` sayılır. Kullanıcıya her kod için
-"ne oldu / ne yapabilirsiniz" metni gösterilir (`lib/format.ts`). `message` kullanıcıya gösterilmez.
+1. Gövde `{ "error": { "code": "…" } }` ise ve kod tanınıyorsa o kullanılır:
+   `INVALID_INPUT`, `INPUT_TOO_LONG`, `URL_UNREADABLE`, `IMAGE_UNREADABLE`, `TIMEOUT`, `NETWORK`, `INTERNAL_ERROR`.
+2. Değilse HTTP durum kodunun standart anlamına bakılır:
+   `400`/`422` → `INVALID_INPUT`, `413` → `INPUT_TOO_LONG`, `408`/`504` → `TIMEOUT`, diğerleri → `INTERNAL_ERROR`.
+
+Her kod için kullanıcıya "ne oldu / ne yapabilirsiniz" metni gösterilir (`lib/format.ts`). Sunucunun `message` metni gösterilmez.
+İstek hiç ulaşmazsa (ağ, CORS) `NETWORK` gösterilir; tarayıcı bu ikisini ayırt etmeye izin vermez.
 
 ## Süre ve aşamalar
 
-- İstek **90 saniyeden** uzun sürerse arayüz vazgeçer ve "zaman aşımı" gösterir.
-- Aşama bilgisi (`extracting_claims`, `retrieving_evidence`, `verifying`) şu an **beklenmiyor**.
-  Backend gerçek aşama bilgisi verirse (durum sorgulama ya da akış) arayüz hazır; yalnızca `lib/api/http.ts` değişir.
-  Aşama bilgisi yoksa arayüz sahte ilerleme **göstermez**.
+- Aşama bilgisi (`extracting_claims`, `retrieving_evidence`, `verifying`) **beklenmiyor**. Backend gerçek aşama
+  bilgisi verirse arayüz hazır (yalnızca `lib/api/http.ts` değişir); vermezse sahte ilerleme gösterilmez.
 
-## CORS
+## Teyit edilmemiş varsayımlar
 
-Site ile backend farklı adreslerde olacağı için backend, sitenin adresine `POST` ve `Content-Type` başlığı için izin vermelidir.
+| Varsayım | Kodda | Yanlışsa ne olur |
+|---|---|---|
+| Metin sınırı 5.000 karakter | `lib/config.ts` → `MAX_INPUT_LENGTH` | Sınır daha yüksekse kullanıcı gereksiz engellenir; daha düşükse backend hatası gösterilir |
+| İstek en fazla 90 saniye sürer | `lib/config.ts` → `REQUEST_TIMEOUT_MS` | Daha uzun süren incelemeler "zaman aşımı" olarak görünür |
+| Atıflar `[source_1]` biçiminde ve `sources[].id` ile aynı | `lib/citations.ts` | Atıflar bağlantıya çevrilmez; kaynaklar "Bulunan kaynaklar" olarak listelenir |
+| Doğrulama hatası `400`/`422`, aşırı uzun girdi `413` döner | `lib/api/http.ts` | Yanlış hata metni gösterilir |
+| Backend, sitenin adresine CORS izni verir (`POST`, `Content-Type`) | — | Her istek "Sunucuya ulaşılamadı" olarak görünür |
 
 ## Backend sahibine sorular
 
-1. `POST /check` yolu ve `input_type` alanı uygun mu?
-2. Cevap `claims[]` mı, tek iddia mı olacak?
-3. Kaynaklar nesne olarak (`url`, `source`, `text`, `published_at`) mı dönecek?
-4. Metin sınırı ve en uzun yanıt süresi nedir?
-5. Hata kodları yukarıdaki listeyle uyumlu mu?
+1. Bağlantı (URL) ile inceleme gelecek mi? Gelecekse istek şekli ne olacak (`input_type` mı, ayrı yol mu)?
+2. Metin sınırı ve en uzun yanıt süresi nedir?
+3. `used_sources` tam olarak neyi gösterir (açıklamada kullanılan kaynak kimlikleri mi) ve değerleri `sources[].id` ile aynı mı?
+4. Açıklamadaki atıfların biçimi nedir?
+5. Hata durumunda hangi durum kodları ve gövde döner? Yukarıdaki `{ "error": { "code" } }` şekli uygun mu?
+6. Kaynak adı, yayın tarihi ve güven puanı eklenecek mi?
+7. Hangi adreslere CORS izni verilecek?

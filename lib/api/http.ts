@@ -14,10 +14,22 @@ const KNOWN_CODES: ErrorCode[] = [
   "INTERNAL_ERROR",
 ];
 
-/** Backend hata gövdesinden kod çıkarır; tanımazsa INTERNAL_ERROR. Ham sunucu metni kullanıcıya gösterilmez. */
-function errorFromBody(body: unknown): ApiRequestError {
+/**
+ * Gövdede tanınan bir kod yoksa HTTP durum kodunun standart anlamına bakılır.
+ * Örn. FastAPI'nin varsayılan doğrulama hatası 422 + `{ detail }` döner; bunu "sunucu hatası, sorun
+ * girdinizde değil" diye göstermek kullanıcıyı yanlış yönlendirir. Backend'e özgü bir varsayım yoktur.
+ */
+function codeFromStatus(status: number): ErrorCode {
+  if (status === 413) return "INPUT_TOO_LONG";
+  if (status === 400 || status === 422) return "INVALID_INPUT";
+  if (status === 408 || status === 504) return "TIMEOUT";
+  return "INTERNAL_ERROR";
+}
+
+/** Backend hata gövdesinden kod çıkarır; tanımazsa durum koduna bakar. Ham sunucu metni kullanıcıya gösterilmez. */
+function errorFromResponse(body: unknown, status: number): ApiRequestError {
   const e = (body as { error?: { code?: string; message?: string } } | null)?.error;
-  const code = KNOWN_CODES.find((c) => c === e?.code) ?? "INTERNAL_ERROR";
+  const code = KNOWN_CODES.find((c) => c === e?.code) ?? codeFromStatus(status);
   const message = typeof e?.message === "string" && e.message ? e.message : "Sunucu isteği tamamlayamadı.";
   return new ApiRequestError(code, message);
 }
@@ -26,16 +38,17 @@ function errorFromBody(body: unknown): ApiRequestError {
  * Gerçek servis: `POST {baseUrl}/verify` (backend/main.py)  →  tek istek, tek cevap.
  *
  * Backend yalnızca `{ text }` kabul eder. Bağlantı (URL) desteği henüz yok: bağlantıyı iddia gibi
- * göndermek anlamsız sonuç verirdi, bu yüzden "url" modu açık bir hata olarak döner.
+ * göndermek anlamsız sonuç verirdi, bu yüzden "url" modu açık bir hata olarak döner
+ * (URL_UNSUPPORTED: "sayfa açılamadı" değil, "bu özellik henüz yok").
  * Backend aşama bilgisi vermediği için `onStage` çağrılmaz.
  */
 export function httpService(baseUrl: string): VerificationService {
-  // Sondaki "/" karakterleri atılır: ".../" + "/check" çift eğik çizgiye ("//check") dönüşmesin.
+  // Sondaki "/" karakterleri atılır: ".../" + "/verify" çift eğik çizgiye ("//verify") dönüşmesin.
   const base = baseUrl.replace(/\/+$/, "");
   return {
     async check(req: RawCheckRequest, { signal }): Promise<RawCheckResponse> {
       if (req.input_type === "url") {
-        throw new ApiRequestError("URL_UNREADABLE", "Bağlantı ile doğrulama henüz desteklenmiyor.");
+        throw new ApiRequestError("URL_UNSUPPORTED", "Bağlantı ile doğrulama henüz desteklenmiyor.");
       }
       const controller = new AbortController();
       let timedOut = false;
@@ -54,7 +67,7 @@ export function httpService(baseUrl: string): VerificationService {
           signal: controller.signal,
         });
         const body: unknown = await res.json().catch(() => null);
-        if (!res.ok) throw errorFromBody(body);
+        if (!res.ok) throw errorFromResponse(body, res.status);
         return body as RawCheckResponse; // şekil adapter'da doğrulanır
       } catch (err) {
         if (err instanceof ApiRequestError) throw err;

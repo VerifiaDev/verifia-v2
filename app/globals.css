@@ -876,6 +876,10 @@ textarea.field {
 .evidence-area > .t-h4 {
   margin-bottom: var(--space-3);
 }
+.evidence-note {
+  max-width: var(--measure);
+  margin-bottom: var(--space-3);
+}
 .evidence-list {
   border-bottom: 1px solid var(--rule);
 }
@@ -1080,6 +1084,18 @@ textarea.field {
   margin-top: var(--space-1);
   max-width: var(--measure);
   color: var(--ink-2);
+}
+
+/* ---------- Bulunamayan sayfa (app/not-found.tsx) ---------- */
+
+.not-found {
+  padding-block: var(--space-7) var(--space-9);
+}
+.not-found > * + * {
+  margin-top: var(--space-5);
+}
+a.btn {
+  text-decoration: none;
 }
 
 /* ---------- Footer ---------- */
@@ -1462,8 +1478,11 @@ html {
   .unverifiable { margin-top: var(--space-5); padding-top: var(--space-4); }
 }
 
+/* Sözde öğeler de kapsanır: bekleme halkası ve açılır ok ::before/::after ile çizilir. */
 @media (prefers-reduced-motion: reduce) {
-  * {
+  *,
+  *::before,
+  *::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;

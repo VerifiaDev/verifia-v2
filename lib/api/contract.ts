@@ -1,15 +1,18 @@
 /**
  * Backend (FastAPI) ile arayüz arasındaki HAM sözleşme. Telde giden şekil budur.
  *
- * DURUM: Geçici. Backend ekibi son şekli verene kadar bu dosya "bizim anlayışımız"dır.
+ * DURUM: Kısmen teyitli. Yol ve `results` şekli backend'den alındı; gerisi "bizim anlayışımız"dır.
  * Backend değişirse yalnızca bu dosya ve `adapter.ts` güncellenir; arayüze dokunulmaz.
  * Ayrıntılı açıklama: docs/API_CONTRACT.md
  */
 
-/** POST {BASE}/check isteğinin gövdesi. */
+/**
+ * Servis arayüzüne (service.ts) verilen istek. Gerçek backend'e (POST {BASE}/verify) yalnızca `{ text }` gider;
+ * `input_type` telde gitmez, hangi sekmeden gelindiğini servise bildirir (mock bağlantı senaryosu için kullanır).
+ */
 export interface RawCheckRequest {
   text: string;
-  /** "url" ise `text` alanında bağlantı gider. */
+  /** "url" ise `text` alanında bağlantı vardır. */
   input_type: "text" | "url";
 }
 

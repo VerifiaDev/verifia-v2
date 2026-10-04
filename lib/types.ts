@@ -12,6 +12,8 @@ export type ErrorCode =
   | "INVALID_INPUT"
   | "INPUT_TOO_LONG"
   | "URL_UNREADABLE"
+  /** Bağlantı hiç denenmedi: bağlı servis bağlantıyla incelemeyi desteklemiyor (arayüzün kendi kodu). */
+  | "URL_UNSUPPORTED"
   | "IMAGE_UNREADABLE"
   | "TIMEOUT"
   | "NETWORK"
