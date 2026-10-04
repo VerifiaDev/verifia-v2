@@ -17,6 +17,8 @@ export type ErrorCode =
   | "IMAGE_UNREADABLE"
   | "TIMEOUT"
   | "NETWORK"
+  /** Tarayıcı çevrimdışı olduğunu bildiriyor (arayüzün kendi kodu; istek hiç gönderilemedi). */
+  | "OFFLINE"
   | "INTERNAL_ERROR";
 
 export interface Source {

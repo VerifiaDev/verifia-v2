@@ -12,12 +12,14 @@ const SERVICE_NOTE_ID = "service-note";
 
 /**
  * Sayfanın etkileşimli kısmı. Durumlar: bkz. hooks/useAnalysis.ts.
- * Form, bekleme ve sonuç aynı yüzeyde kalır; yazılan içerik hata, vazgeçme ve düzenlemede kaybolmaz.
- * Yalnızca kullanıcı açıkça "Yeni bir içerik incele" derse alan boşaltılır.
+ * Kart yalnızca girişi, beklemeyi ve hatayı taşır; sonuç kartın dışında, kendi bölümünde açılır.
+ * Yazılan içerik hata, vazgeçme ve düzenlemede kaybolmaz; yalnızca kullanıcı açıkça
+ * "Yeni bir içerik incele" derse alan boşaltılır.
  */
 export function Analyzer() {
-  const { state, start, retry, reset } = useAnalysis();
+  const { state, start, retry, reset, showSample } = useAnalysis();
   const formWrap = useRef<HTMLDivElement>(null);
+  const sampleButton = useRef<HTMLButtonElement>(null);
   const prevPhase = useRef(state.phase);
   // "Yeni bir içerik incele" formu boşaltır (anahtar değişince alan sıfırdan kurulur).
   // "İçeriği düzenle" ve "Vazgeç" ise yazılanı korur.
@@ -27,53 +29,78 @@ export function Analyzer() {
     reset();
   };
 
-  // Hata ya da vazgeçmeden sonra odak forma döner.
+  // Hata, vazgeçme ya da sonucu kapatmadan sonra odak forma döner. Form kullanılamıyorsa
+  // (servis bağlı değil) odak, örneği açan düğmeye döner.
   useEffect(() => {
     if (prevPhase.current !== state.phase && state.phase === "idle") {
-      formWrap.current?.querySelector<HTMLElement>("textarea, input[type=url]")?.focus();
+      const field = formWrap.current?.querySelector<HTMLElement>("textarea:not(:disabled), input[type=url]:not(:disabled)");
+      (field ?? sampleButton.current)?.focus();
     }
     prevPhase.current = state.phase;
   }, [state.phase]);
 
   const busy = isBusy(state);
   const completed = state.phase === "completed";
+  /** Sabit örnek sonuç gösteriliyor (kullanıcı bir şey göndermedi). */
+  const showcase = state.phase === "completed" && state.sample === true;
 
   return (
-    <section className="analyzer" id="analyzer" aria-labelledby="analyzer-title" data-phase={state.phase}>
-      <h2 className="t-h2 analyzer-title" id="analyzer-title">İçeriği inceleyin</h2>
-      {apiInfo.usingMock && (
-        <p className="mock-note" role="note">
-          <strong className="mock-label">Geliştirme</strong>
-          <span>Örnek kaynaklar uydurmadır; gerçek inceleme yapılmıyor.</span>
-        </p>
-      )}
-      {apiInfo.unavailable && (
-        <p className="mock-note" role="note" id={SERVICE_NOTE_ID}>
-          <strong className="mock-label">Bilgi</strong>
-          <span>İnceleme servisi henüz bağlı değil; şu an içerik incelenemiyor.</span>
-        </p>
-      )}
+    <>
+      <section className="analyzer" id="analyzer" aria-labelledby="analyzer-title" data-phase={state.phase}>
+        {/* Sayfa başlığı zaten "inceleyin" diyor; kart başlığı görünür olsa aynı çağrı yinelenirdi. */}
+        <h2 className="sr-only" id="analyzer-title">
+          İçeriği inceleyin
+        </h2>
+        {apiInfo.usingMock && (
+          <p className="note note--warn" role="note">
+            <strong className="note-label">Geliştirme</strong>
+            <span>Örnek kaynaklar uydurmadır; gerçek inceleme yapılmıyor.</span>
+          </p>
+        )}
+        {apiInfo.unavailable && (
+          <p className="note note--info" role="note" id={SERVICE_NOTE_ID}>
+            <strong className="note-label">Bilgi</strong>
+            <span>İnceleme servisi henüz bağlı değil; şu an içerik incelenemiyor.</span>
+          </p>
+        )}
 
-      <div ref={formWrap} className="analyzer-input">
-        <VerificationInput
-          key={formKey}
-          disabled={busy || apiInfo.unavailable}
-          busy={busy}
-          readOnly={completed}
-          onEdit={reset}
-          onSubmit={start}
-          noticeId={apiInfo.unavailable ? SERVICE_NOTE_ID : undefined}
-          examples={apiInfo.examples}
-        />
-      </div>
+        <div ref={formWrap} className="analyzer-input">
+          <VerificationInput
+            key={formKey}
+            disabled={busy || apiInfo.unavailable}
+            busy={busy}
+            readOnly={completed && !showcase}
+            onEdit={reset}
+            onSubmit={start}
+            noticeId={apiInfo.unavailable ? SERVICE_NOTE_ID : undefined}
+            urlSupported={apiInfo.urlSupported}
+            demoteSubmit={state.phase === "error"}
+            examples={apiInfo.examples}
+          />
+        </div>
 
-      {busy && <AnalysisProgress phase={state.phase} onCancel={reset} />}
+        {apiInfo.unavailable && !showcase && (
+          <div className="examples">
+            <p className="t-meta muted">Servis bağlanana kadar arayüzün ne ürettiğini örnek bir sonuçla görebilirsiniz.</p>
+            <button ref={sampleButton} type="button" className="link-btn" onClick={showSample}>
+              Örnek bir incelemeyi görüntüle
+            </button>
+          </div>
+        )}
 
-      {state.phase === "error" && <ErrorState error={state.error} onRetry={retry} onEdit={reset} />}
+        {busy && <AnalysisProgress phase={state.phase} onCancel={reset} />}
+
+        {state.phase === "error" && <ErrorState error={state.error} onRetry={retry} onEdit={reset} />}
+      </section>
 
       {state.phase === "completed" && (
-        <ResultView result={state.result} onReset={startOver} sample={apiInfo.usingMock} />
+        <ResultView
+          result={state.result}
+          onReset={showcase ? reset : startOver}
+          sample={apiInfo.usingMock || showcase}
+          showcase={showcase}
+        />
       )}
-    </section>
+    </>
   );
 }

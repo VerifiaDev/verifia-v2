@@ -79,7 +79,16 @@ function buildBody(s: Scenario): RawCheckResponse {
 const STAGES: AnalysisStage[] = ["extracting_claims", "retrieving_evidence", "verifying"];
 const STAGE_MS = 900;
 
+/**
+ * Yayındaki sitede servis bağlı değilken gösterilen SABİT örnek sonuç (kullanıcının yazdığı içerikle ilgisi yoktur).
+ * Arayüz bunu baştan sona "Örnek" etiketiyle gösterir; kaynakların adında "(uydurma)" yazar.
+ */
+export function sampleBody(): RawCheckResponse {
+  return buildBody("mixed");
+}
+
 export const mockService: VerificationService = {
+  supportsUrl: true,
   async check(req, { signal, onStage }) {
     if (req.text.toLowerCase().includes("#asamali") && onStage) {
       for (const stage of STAGES) {

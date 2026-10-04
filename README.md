@@ -20,6 +20,7 @@ Metne şu anahtarları yazarak durumları deneyin:
 `#asamali`, aşama bildiren bir backend'i taklit eder (arayüzün aşama gösterimini denemek için); diğerlerinde aşama bildirilmez.
 Formun altındaki örnek bağlantıları iki gruptur: sonuç türleri herkese görünür; teknik senaryolar (aşama taklidi, hata) yalnızca `npm run dev` sırasında listelenir, yayın derlemesinde gizlenir (anahtar kelimeler yine çalışır).
 Örnek sonuçlar kesik çizgili çerçeve içinde gösterilir ve güven puanı örnek veride gösterilmez (uydurma yüzde gerçek sanılmasın).
+**Yayındaki sitede** servis bağlı değilken form kullanılamaz; altındaki "Örnek bir incelemeyi görüntüle" bağlantısı sabit bir örnek sonucu açar. Bu sonuç kullanıcının yazdığı içerikle ilişkilendirilmez, başlığı "Örnek inceleme"dir, üstünde açıklama notu ve her iddiada "Örnek veri" etiketi vardır; kaynak adlarında "(uydurma)" yazar (`tests/sample.test.ts` bunu denetler). Servis bağlanınca bağlantı kendiliğinden kaybolur.
 Bağlantı sekmesinde adreste "bozuk" geçerse "bağlantı okunamadı" hatası döner.
 Gerçek backend bağlantıyla incelemeyi henüz desteklemiyor: backend bağlıyken "Bağlantı" sekmesi istek göndermez, "bağlantıyla inceleme henüz desteklenmiyor" hatası gösterir.
 
@@ -37,26 +38,32 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 ## Yapı
 | Yer | Görev |
 |---|---|
-| `app/globals.css` | Tasarım sistemi (renk, yazı, boşluk, bileşen stilleri). Her kural kendi bölümünde bir kez tanımlıdır; üzerine gelme durumları ve hareket dosyanın sonunda toplanmıştır |
+| `app/globals.css` | Tasarım sistemi. Dosyanın başındaki jetonlar tek kaynaktır: renk, 8 basamaklı tip ölçeği, satır yüksekliği, 4 piksel tabanlı boşluk, köşe ve kenar. Kurallarda jeton dışı yazı boyutu kullanılmaz. Küçük ekran ayarları ilgili bölümün hemen altındadır; üzerine gelme durumları ve hareket dosyanın sonunda toplanmıştır |
 | `app/layout.tsx`, `app/fonts/` | Yazı tipleri proje içinden sunulur (`next/font/local`): başlık ve alıntılar Literata, arayüz Atkinson Hyperlegible Next. Dosyalar Latin + Türkçe harflerle sınırlandırılmıştır; lisans SIL OFL (aynı klasörde) |
 | `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png` | Logo yalnızca yazıdır ("verify" sözcük işareti, `components/Navbar.tsx`); ayrı bir simge yok. Sekme simgesi, aynı yazı tipindeki "v" harfidir. `favicon.ico` (16/32/48) ve `apple-icon.png` (180) doğrudan `icon.svg`'den üretilmiştir; simge değişirse ikisi de yeniden üretilmeli |
 | `app/page.tsx` | Sayfa: navbar, hero, giriş, nasıl çalışır, güven ilkeleri, footer |
 | `app/not-found.tsx`, `app/error.tsx` | Sitede olmayan adres ve beklenmeyen çizim hatası için Türkçe sayfalar (ortak iskelet: `components/PlainPage.tsx`) |
 | `app/opengraph-image.png`, `app/twitter-image.png` | Bağlantı paylaşılınca görünen görsel (1200×630, yazı logo). Slogan ya da renk değişirse yeniden üretilmeli; `.alt.txt` dosyaları görselin metin karşılığıdır |
 | `lib/site.ts` | Yayın adresi. Elle yazılmaz: Vercel'in bildirdiği üretim alan adından (`VERCEL_PROJECT_PRODUCTION_URL`) okunur; canonical ve paylaşım bağlantıları buna göre kurulur. Yerelde boştur |
-| `components/` | Analyzer (durum), VerificationInput, AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Navbar, HowItWorks, TrustNotes, Footer, PlainPage |
+| `components/` | Analyzer (durum; kart + sonuç), VerificationInput (form ve inceleme sonrası özet), AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Legend (sonuç türleri), Icon (tek simge seti), Navbar, ThemeToggle, HowItWorks, TrustNotes, Footer, PlainPage |
 | `hooks/useAnalysis.ts` | idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed \| error. Parantezdeki aşamalar yalnızca backend gerçek aşama bilgisi verirse kullanılır; vermezse `submitting`'de kalınır, sahte ilerleme gösterilmez |
 | `tests/` | adapter, atıflar, girdi doğrulama, state, API (hata/zaman aşımı/bozuk cevap), uç durum görünümleri |
 | `lib/api/` | `index.ts` (tek kapı), `contract.ts` (ham şekiller), `adapter.ts`, `http.ts` (FastAPI), `mock/` (sahte servis ve veriler), `errors.ts`, `service.ts` |
 | `lib/` | citations, format, input, config, types |
 
 ## Tasarım ilkeleri
-Sakin, editoryal, kanıt odaklı. Gradyan/gölge/parlama yok; sonuç rengi her zaman simge + yazıyla birlikte
-(✓ ✕ ≠ ?). Sahte ilerleme çubuğu yok. Sonuç sırası: iddia → sonuç → kısa açıklama → öne çıkan kanıt →
-diğer kaynaklar → kaynak bağlantıları. "Dayandığımız kanıtlar" yalnızca açıklamanın atıf yaptığı kaynaklar için
-söylenir; atıf yoksa başlık "Bulunan kaynaklar" olur. Ek bağımlılık yok.
-Bekleme, hata ve sonuç durumları odakla duyurulur (odak ilgili başlığa taşınır); panelin tamamı ayrıca canlı bölge
-olarak okunmaz. Yalnızca backend'in bildirdiği aşama değişimi kısa bir durum satırıyla okunur.
+Sakin, editoryal, kanıt odaklı. Yapı ince çizgilerle kurulur; gölge, gradyan ve parlama yok. Sayfada tek kutu vardır (inceleme kartı); sonuç kartın dışında, kendi bölümünde açılır ve inceleme bitince giriş tek satırlık özete iner.
+- **Sonuç:** renk her zaman simge + yazıyla birlikte gelir. Sıra: iddia → sonuç → açıklama → kanıtlar → kaynak bağlantısı. Sonuç kutusunda etiketin anlamı yinelenmez (anlamlar "Sonuç türleri" listesindedir); yalnızca "yeterli kanıt yok" sonucunda "bu, iddianın yanlış olduğu anlamına gelmez" uyarısı gösterilir.
+- **Kanıt:** "Dayandığımız kanıtlar" yalnızca açıklamanın atıf yaptığı kaynaklar için söylenir; atıf yoksa başlık "Bulunan kaynaklar" olur. Kaynağın adı ya da tarihi gelmediyse satır tek sütundur ve "belirtilmemiş" yazılmaz.
+- **Bekleme:** sahte ilerleme yok. Backend aşama bildirmiyorsa adım listesi gösterilmez; yalnızca geçen süre sayılır (30 saniyeden sonra "sürüyor, vazgeçebilirsiniz" notu eklenir).
+- **Tek birincil eylem:** hata gösterilirken formdaki düğme ikincil görünür; birincil eylem hata panelindedir.
+- **Bağlantı sekmesi:** yalnızca servis destekliyorsa görünür (`apiInfo.urlSupported`); başlık altı metin de buna göre değişir.
+- **Rakamlar:** düz metinde orantılıdır; eş genişlikli rakam yalnızca sayaçlarda (`.tnum`).
+- **Simgeler:** tek set (`components/Icon.tsx`), yalnızca çizgi, tek kalınlık; her zaman yazıyla birlikte.
+- **Hareket:** yalnızca renk geçişi ve içerik ilk göründüğünde kısa bir giriş; yükselme, gölge, kaydırma animasyonu yok. "Hareketi azalt" tercihi desteklenir.
+- **Duyuru:** bekleme, hata ve sonuç odakla duyurulur (odak ilgili başlığa taşınır); panelin tamamı ayrıca canlı bölge olarak okunmaz. Yalnızca backend'in bildirdiği aşama değişimi kısa bir durum satırıyla okunur.
+- **Dar ekran:** sonuç türleri kapalı bir açılır satırdadır; tablette üst bant tek satırdır.
+Ek bağımlılık yok.
 
 ## Açık sorular (backend sahibine)
 Teyit edilmemiş varsayımlar: URL desteği, metin sınırı (şimdilik 5000), azami süre (şimdilik 90 sn), atıf biçimi, hata gövdesi ve durum kodları, CORS. Tam liste ve sorular: [docs/API_CONTRACT.md](docs/API_CONTRACT.md).

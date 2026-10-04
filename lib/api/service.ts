@@ -8,6 +8,8 @@ import type { AnalysisStage } from "../types";
  * Başarısızlıkta `ApiRequestError` fırlatır (bkz. errors.ts). Ham cevabı döner; çeviri `index.ts`'te yapılır.
  */
 export interface VerificationService {
+  /** Servis bağlantıyla (URL) incelemeyi destekliyor mu? Desteklemiyorsa arayüz "Bağlantı" seçeneğini hiç göstermez. */
+  supportsUrl: boolean;
   check(
     req: RawCheckRequest,
     ctx: {

@@ -18,17 +18,35 @@ interface Props {
    * Devre dışı alan ve düğme bu nota bağlanır; ekran okuyucu "kullanılamıyor" derken nedenini de okur.
    */
   noticeId?: string;
+  /** Servis bağlantıyla incelemeyi desteklemiyorsa false: "Metin / Bağlantı" seçimi hiç gösterilmez. */
+  urlSupported?: boolean;
+  /** Hata gösterilirken true: gönder düğmesi ikincil görünür; ekranda tek birincil eylem (hata panelindeki) kalır. */
+  demoteSubmit?: boolean;
   /** Örnek kullanım (yalnızca örnek veri modunda). */
   examples?: ExampleInput[];
 }
 
+/** Sınırın bu oranına gelince sayaç vurgulanır. */
+const NEAR_LIMIT = 0.9;
+
 /**
  * Giriş alanı: Metin / Bağlantı seçimi, doğrulama ve gönder.
+ * İnceleme bitince (`readOnly`) form yerine tek satırlık özet ve "İçeriği düzenle" gösterilir.
  * Hata mesajı alanın hemen altında, alana `aria-describedby` ile bağlı gösterilir.
  * Değerler bu bileşende tutulur; hata ya da yeniden deneme sırasında kaybolmaz.
  * Metin ve Bağlantı sekmelerinin değerleri ayrı tutulur (metin, bağlantı alanına taşınmaz).
  */
-export function VerificationInput({ disabled = false, busy = false, readOnly = false, onEdit, onSubmit, noticeId, examples }: Props) {
+export function VerificationInput({
+  disabled = false,
+  busy = false,
+  readOnly = false,
+  onEdit,
+  onSubmit,
+  noticeId,
+  urlSupported = true,
+  demoteSubmit = false,
+  examples,
+}: Props) {
   const [mode, setMode] = useState<InputMode>("text");
   const [values, setValues] = useState<Record<InputMode, string>>({ text: "", url: "" });
   const value = values[mode];
@@ -87,6 +105,22 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
   const isText = mode === "text";
   const length = value.trim().length;
   const describedBy = [hintId, error ? errId : null, noticeId].filter(Boolean).join(" ");
+  const countState = length > MAX_INPUT_LENGTH ? "over" : length >= MAX_INPUT_LENGTH * NEAR_LIMIT ? "near" : "ok";
+  const limit = MAX_INPUT_LENGTH.toLocaleString("tr-TR");
+
+  if (readOnly) {
+    return (
+      <div className="input-summary">
+        <div className="input-summary-text">
+          <p className="t-meta muted">{isText ? "İncelenen metin" : "İncelenen bağlantı"}</p>
+          <p className="input-summary-value">{value}</p>
+        </div>
+        <button type="button" className="btn btn-quiet" onClick={() => onEdit?.()}>
+          İçeriği düzenle
+        </button>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -98,24 +132,26 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
         submit(mode, value);
       }}
     >
-      <fieldset className="modes-set" disabled={disabled || readOnly}>
-        <legend className="sr-only">Girdi türü</legend>
-        {/* Grup adı fieldset + legend ile verilir; ikinci bir radiogroup etiketi aynı adı iki kez okuturdu. */}
-        <div className="modes">
-          {INPUT_MODES.map((m) => (
-            <label key={m.id} className="mode">
-              <input
-                type="radio"
-                name={`${uid}-mode`}
-                value={m.id}
-                checked={mode === m.id}
-                onChange={() => changeMode(m.id)}
-              />
-              <span>{m.label}</span>
-            </label>
-          ))}
-        </div>
-      </fieldset>
+      {urlSupported && (
+        <fieldset className="modes-set" disabled={disabled}>
+          <legend className="sr-only">Girdi türü</legend>
+          {/* Grup adı fieldset + legend ile verilir; ikinci bir radiogroup etiketi aynı adı iki kez okuturdu. */}
+          <div className="modes">
+            {INPUT_MODES.map((m) => (
+              <label key={m.id} className="mode">
+                <input
+                  type="radio"
+                  name={`${uid}-mode`}
+                  value={m.id}
+                  checked={mode === m.id}
+                  onChange={() => changeMode(m.id)}
+                />
+                <span>{m.label}</span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
 
       <label htmlFor={fieldId} className="field-label t-h4">
         {isText ? "İncelenecek metin" : "İncelenecek haberin bağlantısı"}
@@ -129,7 +165,6 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
           rows={5}
           value={value}
           disabled={disabled}
-          readOnly={readOnly}
           onChange={(e) => setValue(e.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
@@ -146,7 +181,6 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
           spellCheck={false}
           value={value}
           disabled={disabled}
-          readOnly={readOnly}
           onChange={(e) => setValue(e.target.value)}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
@@ -157,15 +191,16 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
       <div className="field-foot">
         <p id={hintId} className="field-hint">
           {isText
-            ? `En fazla ${MAX_INPUT_LENGTH.toLocaleString("tr-TR")} karakter. İddialar ayrı ayrı incelenir.`
+            ? "İddialar ayrı ayrı incelenir."
             : "Haberin tam adresini girin. Sayfa açılamazsa metni kopyalayıp “Metin” sekmesinden gönderebilirsiniz."}
-          {isText && length > 0 && (
-            <>
-              {" "}
-              <span aria-hidden="true">({length.toLocaleString("tr-TR")} karakter)</span>
-            </>
-          )}
+          {/* Sınır görünür sayaçta yazar; ekran okuyucu için ipucunun parçası olarak da okunur. */}
+          {isText && <span className="sr-only"> En fazla {limit} karakter.</span>}
         </p>
+        {isText && (
+          <p className="field-count tnum" data-state={countState} aria-hidden="true">
+            {length.toLocaleString("tr-TR")} / {limit}
+          </p>
+        )}
         {error && (
           <p id={errId} className="field-error" role="alert">
             {error}
@@ -174,27 +209,23 @@ export function VerificationInput({ disabled = false, busy = false, readOnly = f
       </div>
 
       <div className="actions">
-        {readOnly ? (
-          <button key="edit" type="button" className="btn btn-quiet" onClick={(event) => {
-            event.preventDefault();
-            onEdit?.();
-          }}>İçeriği düzenle</button>
-        ) : (
-          <button key="submit" type="submit" className="btn" disabled={disabled || busy} aria-describedby={noticeId}>
-            {busy && <span className="activity-indicator" aria-hidden="true" />}
-            {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
-            {!busy && <span aria-hidden="true">→</span>}
-          </button>
-        )}
+        <button
+          type="submit"
+          className={demoteSubmit ? "btn btn-quiet" : "btn"}
+          disabled={disabled || busy}
+          aria-describedby={noticeId}
+        >
+          {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
+        </button>
       </div>
 
-      {!readOnly && userExamples.length > 0 && (
+      {userExamples.length > 0 && (
         <div className="examples">
           <p className="t-meta muted">Örnek deneyin (örnek veri):</p>
           <ul className="examples-list">{userExamples.map(exampleItem)}</ul>
         </div>
       )}
-      {!readOnly && devExamples.length > 0 && (
+      {devExamples.length > 0 && (
         <div className="examples examples--dev">
           <p className="t-meta muted">Geliştirici senaryoları (yayındaki sitede görünmez):</p>
           <ul className="examples-list">{devExamples.map(exampleItem)}</ul>

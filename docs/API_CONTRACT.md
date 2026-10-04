@@ -44,7 +44,7 @@ Adapter ayrıca iki eski biçimi de kabul eder (mock bunları kullanır): `{ "cl
 | `sources[].url` | evet | Yoksa o kaynak atılır. `http`/`https` dışındaki adresler tıklanabilir yapılmaz |
 | `sources[].source` / `title` / `name` | hayır | Kaynak adı; yoksa alan adı gösterilir |
 | `sources[].text` | hayır | Kısa alıntı (360 karakterden uzunsa kesilir) |
-| `sources[].published_at` | hayır | ISO tarih; yoksa "Yayın tarihi belirtilmemiş" |
+| `sources[].published_at` | hayır | ISO tarih; yoksa tarih gösterilmez. Kaynak adı da yoksa satır tek sütun olur |
 | `confidence` | hayır | 0 ile 1 arası sayı. "Modelin güven puanı: %91" diye, doğruluk olasılığı olmadığı notuyla gösterilir. Yoksa ya da 0-1 dışındaysa hiçbir şey gösterilmez |
 | `used_sources` | hayır | **Şu an okunmuyor** (aşağıdaki soru 3) |
 | `sources[].score` | hayır | Gösterilmez |
@@ -62,6 +62,7 @@ Backend şu an bir hata gövdesi tanımlamıyor. Arayüz iki adımda karar verir
 
 Her kod için kullanıcıya "ne oldu / ne yapabilirsiniz" metni gösterilir (`lib/format.ts`). Sunucunun `message` metni gösterilmez.
 İstek hiç ulaşmazsa (ağ, CORS) `NETWORK` gösterilir; tarayıcı bu ikisini ayırt etmeye izin vermez.
+Tarayıcı çevrimdışı olduğunu bildiriyorsa aynı durum `OFFLINE` ("internet bağlantısı yok") olarak gösterilir. `OFFLINE` ve `URL_UNSUPPORTED` arayüzün kendi kodlarıdır; backend bunları göndermez.
 
 ## Süre ve aşamalar
 

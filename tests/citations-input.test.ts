@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { citedNumbers, sentencesCiting, splitIds } from "@/lib/citations";
+import { citedNumbers, splitIds } from "@/lib/citations";
 import { validateInput } from "@/lib/input";
 import { MAX_INPUT_LENGTH } from "@/lib/config";
 import type { Source } from "@/lib/types";
@@ -14,10 +14,6 @@ describe("citations", () => {
   it("citedNumbers yalnızca listedeki kaynakları numaralar", () => {
     const s = [src("kaynak_1"), src("kaynak_2")];
     assert.deepEqual(citedNumbers("a [kaynak_2] b [kaynak_1, kaynak_9] c [kaynak_2]", s), [2, 1]);
-  });
-  it("sentencesCiting atıf işaretini temizler", () => {
-    assert.deepEqual(sentencesCiting("Düştü [kaynak_1]. Arttı [kaynak_2].", "kaynak_1"), ["Düştü."]);
-    assert.deepEqual(sentencesCiting("Hiç atıf yok.", "kaynak_1"), []);
   });
 });
 

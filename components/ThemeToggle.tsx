@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Icon } from "./Icon";
 
 const KEY = "verify-theme";
 /** globals.css'teki --paper değerleri; telefon tarayıcısının üst çubuk rengi için. */
@@ -23,7 +24,8 @@ function currentIsDark(): boolean {
 }
 
 /**
- * Gece modu düğmesi. Tercih yoksa sistem ayarı izlenir; tıklayınca seçim tarayıcıda saklanır.
+ * Gece modu düğmesi: her genişlikte çerçevesiz bir simge düğmesi (menüden ağır durmasın); adı ekran
+ * okuyucuya okunur ve üzerine gelince ipucu olarak görünür. Tercih yoksa sistem ayarı izlenir; tıklayınca seçim tarayıcıda saklanır.
  * İlk boyamada yanıp sönme olmasın diye `data-theme` değerini app/layout.tsx içindeki satır içi betik atar.
  * Depolama kullanılamıyorsa (gizli pencere vb.) düğme yine o oturum için çalışır.
  */
@@ -54,11 +56,9 @@ export function ThemeToggle() {
   }
 
   return (
-    <button type="button" className="theme-toggle" aria-pressed={dark} onClick={toggle}>
-      <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z" />
-      </svg>
-      <span className="theme-toggle-text">Gece modu</span>
+    <button type="button" className="theme-toggle" aria-pressed={dark} title="Gece modu" onClick={toggle}>
+      <Icon name="moon" />
+      <span className="sr-only">Gece modu</span>
     </button>
   );
 }

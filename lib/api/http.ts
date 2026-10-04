@@ -46,6 +46,7 @@ export function httpService(baseUrl: string): VerificationService {
   // Sondaki "/" karakterleri atılır: ".../" + "/verify" çift eğik çizgiye ("//verify") dönüşmesin.
   const base = baseUrl.replace(/\/+$/, "");
   return {
+    supportsUrl: false,
     async check(req: RawCheckRequest, { signal }): Promise<RawCheckResponse> {
       if (req.input_type === "url") {
         throw new ApiRequestError("URL_UNSUPPORTED", "Bağlantı ile doğrulama henüz desteklenmiyor.");

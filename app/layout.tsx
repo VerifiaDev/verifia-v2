@@ -28,7 +28,7 @@ const fontSans = localFont({
 });
 
 const TITLE = `${SITE_NAME} — kanıt temelli iddia incelemesi`;
-const DESCRIPTION = `${SITE_TAGLINE} Bir metin ya da haber bağlantısı ekleyin; iddiaları ve ilgili kaynakları birlikte inceleyin.`;
+const DESCRIPTION = `${SITE_TAGLINE} Bir haber metni ya da iddia ekleyin; iddiaları ve ilgili kaynakları birlikte inceleyin.`;
 
 // Paylaşım görseli: app/opengraph-image.png ve app/twitter-image.png (dosya adı kuralıyla kendiliğinden eklenir).
 // Yayın adresi (metadataBase) için bkz. lib/site.ts. Canonical yalnızca ana sayfada yazılır (app/page.tsx).

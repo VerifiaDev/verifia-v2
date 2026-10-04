@@ -11,7 +11,7 @@ import { API_BASE_URL } from "../config";
 import { InvalidResponseError, parseCheckResponse } from "./adapter";
 import { ApiRequestError } from "./errors";
 import { httpService } from "./http";
-import { MOCK_EXAMPLES, mockService } from "./mock";
+import { MOCK_EXAMPLES, mockService, sampleBody } from "./mock";
 import type { VerificationService } from "./service";
 import type { AnalysisStage, CheckRequest, CheckResult, InputMode } from "../types";
 
@@ -26,6 +26,7 @@ const usingMock = !hasBackend && !isProduction;
 const unavailable = !hasBackend && isProduction;
 
 const unavailableService: VerificationService = {
+  supportsUrl: false,
   async check() {
     throw new ApiRequestError("NETWORK", "İnceleme servisi şu an bağlı değil.");
   },
@@ -49,11 +50,26 @@ export interface ExampleInput {
 const showDevExamples = process.env.NODE_ENV !== "production";
 
 /** Arayüz için servis bilgisi. Mock'un kendisini değil, yalnızca bunları bilir. */
-export const apiInfo: { usingMock: boolean; unavailable: boolean; examples: ExampleInput[] } = {
+export const apiInfo: {
+  usingMock: boolean;
+  unavailable: boolean;
+  /** Bağlı servis bağlantıyla incelemeyi destekliyor mu? Desteklemiyorsa "Bağlantı" seçeneği gösterilmez. */
+  urlSupported: boolean;
+  examples: ExampleInput[];
+} = {
   usingMock,
   unavailable,
+  urlSupported: service.supportsUrl,
   examples: usingMock ? MOCK_EXAMPLES.filter((ex) => showDevExamples || !ex.dev) : [],
 };
+
+/**
+ * Sabit örnek sonuç: servis bağlı değilken arayüzün ne ürettiğini göstermek için.
+ * Gerçek cevapla aynı adapter'dan geçer. Arayüz bunu "Örnek" etiketiyle gösterir; gerçek inceleme gibi sunulmaz.
+ */
+export function sampleResult(): CheckResult {
+  return parseCheckResponse(sampleBody());
+}
 
 export async function checkInput(
   req: CheckRequest,

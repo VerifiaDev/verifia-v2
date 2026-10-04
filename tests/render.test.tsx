@@ -33,7 +33,7 @@ describe("ClaimItem", () => {
     for (const v of Object.keys(VERDICT_META) as Verdict[]) {
       const html = render(claim({ verdict: v }));
       assert.ok(html.includes(VERDICT_META[v].label), v);
-      assert.ok(html.includes(VERDICT_META[v].symbol), v);
+      assert.ok(html.includes(`data-icon="${VERDICT_META[v].icon}"`), v);
     }
   });
   it("kaynak yoksa 'kaynak bulunamadı' der ve 'yanlış' demez", () => {
@@ -59,11 +59,28 @@ describe("ClaimItem", () => {
     assert.ok(html.includes("A".repeat(500)));
     assert.ok(html.includes("…"));
   });
-  it("tarih ve ad yoksa alan adını ve 'belirtilmemiş' metnini gösterir", () => {
+  it("ad ve tarih yoksa kaynak tek sütundur: alan adı gösterilir, 'belirtilmemiş' yazılmaz", () => {
     const html = render(claim({ sources: [source(1, { name: null, publishedAt: null, excerpt: null })] }));
     assert.ok(html.includes("ornek1.example"));
-    assert.ok(html.includes("Yayın tarihi belirtilmemiş"));
+    assert.ok(html.includes("evidence--plain"));
+    assert.ok(!html.includes("belirtilmemiş"));
     assert.ok(html.includes("alıntı gelmedi"));
+  });
+  it("ad ya da tarih varsa iki sütunlu satır kullanılır; yalnızca gelen bilgi gösterilir", () => {
+    const withName = render(claim({ sources: [source(1, { publishedAt: null })] }));
+    assert.ok(!withName.includes("evidence--plain"));
+    assert.ok(!withName.includes("<time"));
+    assert.ok(render(claim()).includes('<time dateTime="2025-03-14">14 Mart 2025</time>'));
+  });
+  it("sonuç kutusu etiketi yinelemez; yalnızca 'yeterli kanıt yok' sonucunda uyarı gösterir", () => {
+    const ok = render(claim({ verdict: "SUPPORTED" }));
+    assert.ok(!ok.includes(VERDICT_META.SUPPORTED.meaning));
+    assert.ok(!ok.includes("verdict-caveat"));
+    const nee = render(claim({ verdict: "NOT_ENOUGH_EVIDENCE" }));
+    assert.equal((nee.match(/yanlış olduğu anlamına gelmez/g) ?? []).length, 1);
+  });
+  it("kaynak satırı açıklamadaki cümleyi yinelemez", () => {
+    assert.ok(!render(claim()).includes("dayanılan ifade"));
   });
   it("güven puanı varsa yüzde olarak ve 'olasılık değildir' notuyla gösterir", () => {
     const html = render(claim({ confidence: 0.91 }));
@@ -134,6 +151,20 @@ describe("ResultView", () => {
     const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} />);
     assert.ok(!html.includes("Gönderdiğiniz içerik"));
   });
+  it("sabit örnek sonuç baştan sona örnek olarak etiketlenir ve 'kapat' ile biter", () => {
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} sample showcase />);
+    assert.ok(html.includes("Örnek inceleme"));
+    assert.ok(html.includes("sabit bir örnektir"));
+    assert.ok(html.includes("Örnek veri"));
+    assert.ok(html.includes("Örneği kapat"));
+    assert.ok(!html.includes("Yeni bir içerik incele"));
+    assert.ok(!html.includes("otomatik bir ön değerlendirmedir"));
+  });
+  it("gerçek sonuçta örnek etiketi yoktur", () => {
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} />);
+    assert.ok(!html.includes("Örnek"));
+    assert.ok(html.includes("Yeni bir içerik incele"));
+  });
   it("örnek veri bayrağını iddialara iletir", () => {
     const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} sample />);
     assert.ok(html.includes("Örnek veri"));
@@ -147,11 +178,30 @@ describe("VerificationInput örnekleri", () => {
     assert.match(html, /<button[^>]*type="submit"[^>]*disabled/);
     assert.ok(html.includes("İnceleniyor…"));
   });
-  it("sonuç sırasında formu okunabilir tutar ve yeni gönderim yerine düzenleme sunar", () => {
+  it("sonuç gelince form tek satırlık özete iner ve yeni gönderim yerine düzenleme sunar", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} readOnly onEdit={() => {}} />);
-    assert.match(html, /<textarea[^>]*readOnly/i);
+    assert.ok(html.includes("input-summary"));
+    assert.ok(html.includes("İncelenen metin"));
     assert.ok(html.includes("İçeriği düzenle"));
+    assert.ok(!html.includes("<textarea"));
     assert.ok(!html.includes('type="submit"'));
+  });
+  it("servis bağlantıyı desteklemiyorsa 'Metin / Bağlantı' seçimi hiç gösterilmez", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} urlSupported={false} />);
+    assert.ok(!html.includes("Girdi türü"));
+    assert.ok(!html.includes('type="radio"'));
+    assert.ok(html.includes("<textarea"));
+  });
+  it("hata gösterilirken gönder düğmesi ikincil görünür (tek birincil eylem hata panelinde)", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} demoteSubmit />);
+    assert.match(html, /<button[^>]*type="submit"[^>]*class="btn btn-quiet"/);
+    assert.match(renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />), /<button[^>]*type="submit"[^>]*class="btn"/);
+  });
+  it("sayaç sınırı görünür biçimde taşır; düğme metninde ok işareti yoktur", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
+    assert.match(html, /class="field-count tnum" data-state="ok"[^>]*>0 \/ 5\.000</);
+    assert.ok(html.includes("En fazla 5.000 karakter."));
+    assert.ok(!html.includes("→"));
   });
   it("girdi türü grubunu tek kez adlandırır (fieldset + legend; ikinci bir radiogroup etiketi yok)", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
@@ -194,6 +244,15 @@ describe("ErrorState ve AnalysisProgress", () => {
     assert.ok(!html.includes("açılamadı"));
     assert.ok(html.includes("“Metin” sekmesinden"));
     assert.ok(!html.includes("Yeniden dene"));
+  });
+  it("aşama bilgisi yokken adım listesi hiç gösterilmez; yalnızca geçen süre sayılır", () => {
+    const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
+    assert.ok(!html.includes("<ol"));
+    assert.ok(!html.includes("adım bilgisi alınmıyor"));
+    assert.ok(html.includes("Geçen süre:"));
+    assert.ok(html.includes("0:00"));
+    const staged = renderToStaticMarkup(<AnalysisProgress phase="verifying" onCancel={() => {}} />);
+    assert.ok(staged.includes("<ol"));
   });
   it("aşama bilgisi yokken hiçbir adımı 'şu an' diye işaretlemez; yüzde göstermez", () => {
     const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);

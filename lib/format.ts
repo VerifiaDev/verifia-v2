@@ -2,32 +2,41 @@ import type { ErrorCode, InputMode, Verdict } from "./types";
 
 export const VERDICT_ORDER: Verdict[] = ["SUPPORTED", "REFUTED", "CONFLICTING", "NOT_ENOUGH_EVIDENCE"];
 
+/** Sonuç simgeleri (components/Icon.tsx içindeki çizimlerin adları). */
+export type VerdictIcon = "check" | "cross" | "not-equal" | "question";
+
+/**
+ * `meaning`: sonucun açıklaması; "Sonuç türleri" listesinde gösterilir.
+ * `caveat`: sonucun yanlış okunmasını önleyen uyarı; sonuç kutusunda etiketin altında gösterilir.
+ * Sonuç kutusunda `meaning` yinelenmez (etiketin aynısını söylerdi); yalnızca uyarısı olan sonuçta not çıkar.
+ */
 export const VERDICT_META: Record<
   Verdict,
-  { label: string; meaning: string; symbol: string; tone: "ok" | "bad" | "unknown" | "mixed" }
+  { label: string; meaning: string; caveat?: string; icon: VerdictIcon; tone: "ok" | "bad" | "unknown" | "mixed" }
 > = {
   SUPPORTED: {
     label: "Kanıtlar destekliyor",
     meaning: "Bulunan kaynaklar bu iddiayı destekliyor.",
-    symbol: "✓",
+    icon: "check",
     tone: "ok",
   },
   REFUTED: {
     label: "Kanıtlar iddiayla çelişiyor",
     meaning: "Bulunan kaynaklar bu iddiayla çelişiyor.",
-    symbol: "✕",
+    icon: "cross",
     tone: "bad",
   },
   CONFLICTING: {
     label: "Kaynaklar birbiriyle çelişiyor",
     meaning: "Kaynaklar farklı sonuçlara varıyor ya da iddia seçmeci sunulmuş.",
-    symbol: "≠",
+    icon: "not-equal",
     tone: "mixed",
   },
   NOT_ENOUGH_EVIDENCE: {
     label: "Yeterli kanıt yok",
     meaning: "İddiayı doğrulayacak ya da çürütecek yeterli kaynak bulunamadı. Bu, iddianın yanlış olduğu anlamına gelmez.",
-    symbol: "?",
+    caveat: "Bu, iddianın yanlış olduğu anlamına gelmez.",
+    icon: "question",
     tone: "unknown",
   },
 };
@@ -77,6 +86,12 @@ export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: 
     title: "Sunucuya ulaşılamadı",
     what: "İstek sunucuya iletilemedi. İnternet bağlantınızda ya da sunucuda sorun olabilir.",
     todo: ["İnternet bağlantınızı kontrol edin.", "Birkaç saniye sonra yeniden deneyin."],
+    retry: true,
+  },
+  OFFLINE: {
+    title: "İnternet bağlantısı yok",
+    what: "Cihazınız çevrimdışı görünüyor; istek gönderilemedi. Yazdığınız içerik yerinde duruyor.",
+    todo: ["Bağlantınız geri gelince yeniden deneyin."],
     retry: true,
   },
   INTERNAL_ERROR: {

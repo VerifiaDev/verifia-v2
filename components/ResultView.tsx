@@ -10,10 +10,15 @@ interface Props {
   onReset: () => void;
   /** Örnek (mock) veri modunda true: her iddiada "örnek veri" etiketi gösterilir. */
   sample?: boolean;
+  /** Sabit örnek sonuç (servis bağlı değilken): başlık, not ve kapatma düğmesi buna göre değişir. */
+  showcase?: boolean;
 }
 
-/** Gönderilen içerik burada yinelenmez: yukarıdaki alanda salt okunur olarak durur. */
-export function ResultView({ result, onReset, sample = false }: Props) {
+/**
+ * Sonuç, giriş kartının dışında kendi bölümünde durur (kartın içinde uzun, dar bir sütuna sıkışmasın diye).
+ * Gönderilen içerik burada yinelenmez: yukarıdaki kartta özet olarak durur.
+ */
+export function ResultView({ result, onReset, sample = false, showcase = false }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const { claims, unverifiable } = result;
 
@@ -25,10 +30,20 @@ export function ResultView({ result, onReset, sample = false }: Props) {
   return (
     <section aria-labelledby="result-title" className="result">
       <div className="result-head">
-        <p className="result-kicker">İnceleme sonucu</p>
+        <p className="result-kicker">{showcase ? "Örnek inceleme" : "İnceleme sonucu"}</p>
         <h2 id="result-title" ref={headingRef} tabIndex={-1} className="t-h2 result-title">
           {claims.length === 0 ? "İncelenebilir iddia bulunamadı" : `${claims.length} iddia incelendi`}
         </h2>
+
+        {showcase && (
+          <p className="note note--warn" role="note">
+            <strong className="note-label">Örnek</strong>
+            <span>
+              Bu sonuç, servis bağlanana kadar arayüzü göstermek için hazırlanmış sabit bir örnektir. İddialar ve
+              kaynaklar uydurmadır.
+            </span>
+          </p>
+        )}
 
         {claims.length > 1 && <ClaimList claims={claims} />}
       </div>
@@ -41,7 +56,7 @@ export function ResultView({ result, onReset, sample = false }: Props) {
       ) : (
         <div className="claims">
           {claims.map((c, i) => (
-            <ClaimItem key={c.id} claim={c} index={i} total={claims.length} sample={sample} />
+            <ClaimItem key={c.id} claim={c} index={i} total={claims.length} sample={sample} showcase={showcase} />
           ))}
         </div>
       )}
@@ -61,11 +76,14 @@ export function ResultView({ result, onReset, sample = false }: Props) {
       )}
 
       <div className="result-foot">
-        <p className="muted t-meta">
-          Bu sonuç otomatik bir ön değerlendirmedir. Karar vermeden önce yukarıdaki kaynakları kendiniz de kontrol edin.
-        </p>
+        {!showcase && (
+          <p className="muted t-meta">
+            Bu sonuç otomatik bir ön değerlendirmedir. Karar vermeden önce yukarıdaki kaynakları kendiniz de kontrol
+            edin.
+          </p>
+        )}
         <button type="button" className="btn btn-quiet" onClick={onReset}>
-          Yeni bir içerik incele
+          {showcase ? "Örneği kapat" : "Yeni bir içerik incele"}
         </button>
       </div>
     </section>

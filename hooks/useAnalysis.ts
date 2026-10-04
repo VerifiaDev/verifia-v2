@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { ApiRequestError, checkInput } from "@/lib/api";
+import { ApiRequestError, checkInput, sampleResult } from "@/lib/api";
 import type { AnalysisStage, ApiError, CheckRequest, CheckResult } from "@/lib/types";
 
 /**
@@ -17,13 +17,14 @@ export type BusyPhase = "submitting" | AnalysisStage;
 export type AnalysisState =
   | { phase: "idle" }
   | { phase: BusyPhase }
-  | { phase: "completed"; result: CheckResult }
+  /** `sample`: sonuç gerçek bir inceleme değil, sabit örnek (servis bağlı değilken gösterilir). */
+  | { phase: "completed"; result: CheckResult; sample?: boolean }
   | { phase: "error"; error: ApiError };
 
 export type AnalysisAction =
   | { type: "start" }
   | { type: "stage"; phase: AnalysisStage }
-  | { type: "done"; result: CheckResult }
+  | { type: "done"; result: CheckResult; sample?: boolean }
   | { type: "fail"; error: ApiError }
   | { type: "reset" };
 
@@ -44,12 +45,24 @@ export function analysisReducer(state: AnalysisState, action: AnalysisAction): A
       // Aşama bilgisi yalnızca devam eden bir istekte anlamlıdır; geç gelen bilgi yok sayılır.
       return isBusy(state) ? { phase: action.phase } : state;
     case "done":
-      return { phase: "completed", result: action.result };
+      return action.sample
+        ? { phase: "completed", result: action.result, sample: true }
+        : { phase: "completed", result: action.result };
     case "fail":
       return { phase: "error", error: action.error };
     case "reset":
       return { phase: "idle" };
   }
+}
+
+/**
+ * Yakalanan hatayı arayüzün hata tipine çevirir. Tarayıcı çevrimdışı olduğunu bildiriyorsa ağ hatası
+ * "internet bağlantısı yok" olarak gösterilir (sunucuyu suçlamak yanlış olurdu).
+ */
+export function toApiError(err: unknown, online: boolean): ApiError {
+  if (!(err instanceof ApiRequestError)) return { code: "INTERNAL_ERROR", message: "Beklenmeyen bir hata oluştu." };
+  if (err.code === "NETWORK" && !online) return { code: "OFFLINE", message: "Cihaz çevrimdışı." };
+  return err.toApiError();
 }
 
 export function useAnalysis() {
@@ -83,11 +96,8 @@ export function useAnalysis() {
       dispatch({ type: "done", result });
     } catch (err) {
       if (runId.current !== myRun) return;
-      const apiErr =
-        err instanceof ApiRequestError
-          ? err.toApiError()
-          : ({ code: "INTERNAL_ERROR", message: "Beklenmeyen bir hata oluştu." } as ApiError);
-      dispatch({ type: "fail", error: apiErr });
+      const online = typeof navigator === "undefined" ? true : navigator.onLine;
+      dispatch({ type: "fail", error: toApiError(err, online) });
     }
   }, []);
 
@@ -103,5 +113,12 @@ export function useAnalysis() {
     dispatch({ type: "reset" });
   }, []);
 
-  return { state, start, retry, reset };
+  /** Sabit örnek sonucu gösterir (istek gönderilmez). */
+  const showSample = useCallback(() => {
+    runId.current += 1;
+    controller.current?.abort();
+    dispatch({ type: "done", result: sampleResult(), sample: true });
+  }, []);
+
+  return { state, start, retry, reset, showSample };
 }

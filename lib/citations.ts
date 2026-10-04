@@ -25,17 +25,3 @@ export function citedNumbers(explanation: string, sources: Source[]): number[] {
   }
   return seen;
 }
-
-/** Açıklamada verilen kaynağa atıf yapan cümleler, atıf işaretleri temizlenmiş olarak. */
-export function sentencesCiting(explanation: string, sourceId: string): string[] {
-  const sentences = explanation.match(/[^.!?]+(?:[.!?]+|$)/g) ?? [];
-  return sentences
-    .filter((s) => Array.from(s.matchAll(CITATION)).some((m) => splitIds(m[1]).includes(sourceId)))
-    .map((s) =>
-      s
-        .replace(CITATION, "")
-        .replace(/\s+([.,;!?])/g, "$1")
-        .replace(/\s{2,}/g, " ")
-        .trim(),
-    );
-}

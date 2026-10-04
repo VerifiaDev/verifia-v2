@@ -31,3 +31,21 @@ describe("analysisReducer", () => {
     assert.equal(isBusy(idle), false);
   });
 });
+
+describe("örnek sonuç ve çevrimdışı hatası", () => {
+  it("örnek sonuç 'sample' olarak işaretlenir; gerçek sonuç işaretlenmez", () => {
+    const real = analysisReducer(idle, { type: "done", result });
+    assert.ok(real.phase === "completed" && !real.sample);
+    const sample = analysisReducer(idle, { type: "done", result, sample: true });
+    assert.ok(sample.phase === "completed" && sample.sample === true);
+  });
+  it("çevrimdışıyken ağ hatası 'OFFLINE' olur; çevrimiçiyken 'NETWORK' kalır", async () => {
+    const { toApiError } = await import("@/hooks/useAnalysis");
+    const { ApiRequestError } = await import("@/lib/api/errors");
+    const net = new ApiRequestError("NETWORK", "x");
+    assert.equal(toApiError(net, false).code, "OFFLINE");
+    assert.equal(toApiError(net, true).code, "NETWORK");
+    assert.equal(toApiError(new ApiRequestError("TIMEOUT", "x"), false).code, "TIMEOUT");
+    assert.equal(toApiError(new Error("x"), true).code, "INTERNAL_ERROR");
+  });
+});

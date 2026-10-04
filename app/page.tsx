@@ -1,12 +1,13 @@
+import type { Metadata } from "next";
 import { Analyzer } from "@/components/Analyzer";
 import { Footer } from "@/components/Footer";
 import { HowItWorks } from "@/components/HowItWorks";
+import { Icon } from "@/components/Icon";
+import { Legend } from "@/components/Legend";
 import { Navbar } from "@/components/Navbar";
 import { TrustNotes } from "@/components/TrustNotes";
-import { VerdictSummary } from "@/components/VerdictSummary";
-import { VERDICT_META, VERDICT_ORDER } from "@/lib/format";
+import { apiInfo } from "@/lib/api";
 import { SITE_ORIGIN } from "@/lib/site";
-import type { Metadata } from "next";
 
 // Aynı içerik birden çok adresten sunulduğu için ana sayfa tek bir asıl adrese (canonical) işaret eder.
 export const metadata: Metadata = SITE_ORIGIN ? { alternates: { canonical: "/" } } : {};
@@ -20,31 +21,31 @@ export default function HomePage() {
           <div className="layout-main">
             <div className="hero">
               <h1 className="t-display">İddiaları kanıtlarla inceleyin</h1>
+              {/* Bağlantıdan yalnızca servis destekliyorsa söz edilir (çalışmayan bir özellik vaat edilmez). */}
               <p className="hero-lead">
-                Metin veya bağlantı ekleyin; kaynakları ve belirsizlikleri birlikte inceleyin.
+                {apiInfo.urlSupported
+                  ? "Metin veya bağlantı ekleyin; kaynakları ve belirsizlikleri birlikte inceleyin."
+                  : "Bir haber metni ya da iddia yapıştırın; kaynakları ve belirsizlikleri birlikte inceleyin."}
               </p>
             </div>
             <Analyzer />
           </div>
+
+          {/* Geniş ekran: sonuç türleri yan sütunda sürekli görünür. */}
           <aside className="aside" aria-labelledby="legend-title">
             <h2 id="legend-title" className="legend-title">
               Sonuç türleri
             </h2>
-            <dl className="legend">
-              {VERDICT_ORDER.map((v) => (
-                <div key={v}>
-                  {/* Sonuçlardaki halkalı simgenin aynısı: açıklama ile sonuç aynı görünsün. */}
-                  <dt>
-                    <VerdictSummary verdict={v} variant="inline" />
-                  </dt>
-                  <dd>{VERDICT_META[v].meaning}</dd>
-                </div>
-              ))}
-            </dl>
-            <p className="legend-note">
-              Bir sonuç kesin hüküm değildir. Kaynağı, bağlamı ve kanıtın sınırlarını birlikte okuyun.
-            </p>
+            <Legend />
           </aside>
+          {/* Dar ekran: aynı içerik kapalı bir satırda; form ile açıklamalar arasında bir ekran yer tutmasın. */}
+          <details className="more legend-disclosure">
+            <summary>
+              Sonuç türleri ne anlama gelir?
+              <Icon name="chevron" className="chevron" />
+            </summary>
+            <Legend />
+          </details>
         </div>
 
         <HowItWorks />

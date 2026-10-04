@@ -1,5 +1,6 @@
 import { EvidenceCard } from "./EvidenceCard";
 import { Explanation } from "./Explanation";
+import { Icon } from "./Icon";
 import { VerdictSummary } from "./VerdictSummary";
 import { citedNumbers } from "@/lib/citations";
 import { claimAnchor } from "@/lib/format";
@@ -11,6 +12,8 @@ interface Props {
   total: number;
   /** Örnek (mock) veri: sonuç gerçek bir inceleme değildir; her iddiada açıkça belirtilir. */
   sample?: boolean;
+  /** Sabit örnek (servis bağlı değilken gösterilen): kullanıcı bir şey göndermedi; etiket metni buna göre değişir. */
+  showcase?: boolean;
 }
 
 const FALLBACK_KEY_COUNT = 2;
@@ -20,7 +23,7 @@ const FALLBACK_KEY_COUNT = 2;
  * "Dayandığımız kanıtlar" yalnızca açıklamanın atıf yaptığı kaynaklar için söylenir. Atıf yoksa hangi
  * kaynağa dayanıldığı bilinmez: ilk ikisi yine açık gösterilir ama başlık yalnızca "Bulunan kaynaklar" der.
  */
-export function ClaimItem({ claim, index, total, sample = false }: Props) {
+export function ClaimItem({ claim, index, total, sample = false, showcase = false }: Props) {
   const { sources } = claim;
   const cited = citedNumbers(claim.explanation, sources);
   const hasCitations = cited.length > 0;
@@ -29,7 +32,7 @@ export function ClaimItem({ claim, index, total, sample = false }: Props) {
   const titleId = `${claimAnchor(claim.id)}-title`;
 
   const card = (n: number) => (
-    <EvidenceCard key={n} source={sources[n - 1]} number={n} claimId={claim.id} explanation={claim.explanation} />
+    <EvidenceCard key={n} source={sources[n - 1]} number={n} claimId={claim.id} />
   );
 
   return (
@@ -40,7 +43,10 @@ export function ClaimItem({ claim, index, total, sample = false }: Props) {
     >
       {sample && (
         <p className="sample-tag">
-          <strong>Örnek veri.</strong> Gönderdiğiniz içerikle ilgisi yok; gerçek bir inceleme değil.
+          <strong>Örnek veri.</strong>{" "}
+          {showcase
+            ? "Arayüzü göstermek için hazırlandı; gerçek bir inceleme değil."
+            : "Gönderdiğiniz içerikle ilgisi yok; gerçek bir inceleme değil."}
         </p>
       )}
       {total > 1 && (
@@ -68,10 +74,7 @@ export function ClaimItem({ claim, index, total, sample = false }: Props) {
         {sources.length === 0 ? (
           <div className="notice">
             <h4 className="t-h4">Kaynak bulunamadı</h4>
-            <p>
-              Bu iddia için gösterilebilecek bir kaynak yok. Bu, iddianın yanlış olduğu anlamına gelmez; doğrulayacak ya
-              da çürütecek güvenilir kaynak bulunamadı.
-            </p>
+            <p>Bu iddia için gösterilebilecek bir kaynak yok.</p>
             <p className="muted">
               Daha somut bir cümleyle yeniden deneyebilir ya da konuyla ilgili resmî kaynaklara doğrudan bakabilirsiniz.
             </p>
@@ -90,7 +93,10 @@ export function ClaimItem({ claim, index, total, sample = false }: Props) {
 
             {restNumbers.length > 0 && (
               <details className="more">
-                <summary>Diğer kaynaklar ({restNumbers.length})</summary>
+                <summary>
+                  Diğer kaynaklar ({restNumbers.length})
+                  <Icon name="chevron" className="chevron" />
+                </summary>
                 <ol className="evidence-list">{restNumbers.map(card)}</ol>
               </details>
             )}
