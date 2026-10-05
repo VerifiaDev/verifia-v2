@@ -20,7 +20,7 @@ interface Props {
  */
 export function ResultView({ result, onReset, sample = false, showcase = false }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const { claims, unverifiable } = result;
+  const { claims, unverifiable, unreadable } = result;
 
   // Sonuç gelince odağı başlığa taşı: ekran okuyucu kullanıcı sonucu duysun.
   useEffect(() => {
@@ -45,6 +45,16 @@ export function ResultView({ result, onReset, sample = false, showcase = false }
           </p>
         )}
 
+        {/* Eksik sonuç başta söylenir: uzun bir sayfanın sonundaki liste gözden kaçabilir. */}
+        {unreadable.length > 0 && (
+          <p className="note note--warn" role="note">
+            <strong className="note-label">Eksik</strong>
+            <span>
+              {unreadable.length} iddianın sonucu okunamadı; bu iddialar aşağıda ayrıca listelenir.
+            </span>
+          </p>
+        )}
+
         {claims.length > 1 && <ClaimList claims={claims} />}
       </div>
 
@@ -59,6 +69,23 @@ export function ResultView({ result, onReset, sample = false, showcase = false }
             <ClaimItem key={c.id} claim={c} index={i} total={claims.length} sample={sample} showcase={showcase} />
           ))}
         </div>
+      )}
+
+      {unreadable.length > 0 && (
+        <section className="unverifiable" aria-labelledby="unreadable-title">
+          <h3 id="unreadable-title" className="t-h4">
+            Sonucu gösterilemeyen iddialar ({unreadable.length})
+          </h3>
+          <p className="muted t-meta">
+            Servisten gelen sonuç tanınmadı. Bu, iddiaların doğru ya da yanlış olduğu anlamına gelmez; yeniden
+            deneyebilirsiniz.
+          </p>
+          <ul>
+            {unreadable.map((t, i) => (
+              <li key={i}>{t}</li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {unverifiable.length > 0 && (

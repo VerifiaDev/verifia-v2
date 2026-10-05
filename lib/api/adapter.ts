@@ -15,6 +15,9 @@
  *  B) Tek iddia (proje dokümanındaki örnek):
  *     { claim, verdict, explanation, confidence, evidence: [ {text, source, url, score, published_at} ] }
  *
+ * Kısmi sonuç: bir iddianın `verdict` değeri tanınmıyorsa o iddia `unreadable` listesine girer, diğerleri gösterilir.
+ * Okunabilen hiçbir iddia kalmazsa cevap geçersiz sayılır.
+ *
  * `confidence` (0-1 arası sayı) okunur ve "modelin güven puanı" olarak gösterilir; geçersizse (sayı değil,
  * 0-1 dışında) yok sayılır, tahmin edilmez. `score` (kanıt başına) okunmaz.
  * Ham şekiller için bkz. contract.ts. Bu dosya bilerek başka dosyalardan YALNIZCA tip alır (kolay test için).
@@ -64,7 +67,7 @@ function parseSource(raw: unknown, index: number): Source | null {
   };
 }
 
-function parseClaim(raw: unknown, index: number): Claim | { unverifiableText: string } {
+function parseClaim(raw: unknown, index: number): Claim | { unverifiableText: string } | { unreadableText: string } {
   if (!isRecord(raw)) throw new InvalidResponseError(`claims[${index}] nesne değil`);
 
   const text = str(raw.text) ?? str(raw.claim);
@@ -72,8 +75,10 @@ function parseClaim(raw: unknown, index: number): Claim | { unverifiableText: st
 
   if (raw.is_verifiable === false) return { unverifiableText: text };
 
+  // Sonuç değeri tanınmıyorsa yalnızca bu iddia "okunamadı" sayılır; diğer iddialar yine gösterilir.
+  // (Tek bozuk satır yüzünden bütün incelemeyi "sunucu hatası" diye atmak, kullanıcının beklediği sonucu boşa harcardı.)
   const verdict = normalizeVerdict(raw.verdict);
-  if (!verdict) throw new InvalidResponseError(`claims[${index}].verdict tanınmadı: ${String(raw.verdict)}`);
+  if (!verdict) return { unreadableText: text };
 
   const rawSources = Array.isArray(raw.sources) ? raw.sources : Array.isArray(raw.evidence) ? raw.evidence : [];
   const sources = rawSources.map(parseSource).filter((s): s is Source => s !== null);
@@ -102,10 +107,17 @@ export function parseCheckResponse(body: unknown): CheckResult {
 
   const claims: Claim[] = [];
   const unverifiable: string[] = [];
+  const unreadable: string[] = [];
   list.forEach((raw, i) => {
     const parsed = parseClaim(raw, i);
     if ("unverifiableText" in parsed) unverifiable.push(parsed.unverifiableText);
+    else if ("unreadableText" in parsed) unreadable.push(parsed.unreadableText);
     else claims.push(parsed);
   });
-  return { claims, unverifiable };
+  // Okunabilen hiçbir sonuç yoksa cevap geçersizdir: "incelenebilir iddia bulunamadı" demek yanlış olurdu
+  // (iddia bulundu, sonucu okunamadı).
+  if (claims.length === 0 && unreadable.length > 0) {
+    throw new InvalidResponseError("Hiçbir iddianın sonucu tanınmadı");
+  }
+  return { claims, unverifiable, unreadable };
 }

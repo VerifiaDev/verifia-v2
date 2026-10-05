@@ -17,6 +17,7 @@ export const MOCK_EXAMPLES: { label: string; mode: "text" | "url"; content: stri
   { label: "Kaynakların birbiriyle çeliştiği iddia", mode: "text", content: "#celiski Örnek iddia: Bir bölgede yağış rekoru kırıldı." },
   { label: "Yeterli kanıt bulunmayan iddia", mode: "text", content: "#yetersiz Örnek iddia: Bir şirket gizli bir anlaşma yaptı." },
   { label: "Aşama bildiren backend (taklit)", mode: "text", content: "#asamali Örnek iddia: Bir kentin nüfusu son sayımda arttı.", dev: true },
+  { label: "Kısmi sonuç (bir iddia okunamıyor)", mode: "text", content: "#eksik Örnek iddia: Bir kentin nüfusu son sayımda arttı.", dev: true },
   { label: "Hata: zaman aşımı", mode: "text", content: "#hata-zamanasimi örnek", dev: true },
 ];
 

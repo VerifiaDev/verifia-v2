@@ -36,6 +36,7 @@ type Scenario =
   | "not_enough"
   | "conflicting"
   | "opinion"
+  | "partial"
   | "error_url"
   | "error_timeout"
   | "error_server"
@@ -50,6 +51,7 @@ function pickScenario(req: RawCheckRequest): Scenario {
   if (t.includes("#yetersiz")) return "not_enough";
   if (t.includes("#celiski")) return "conflicting";
   if (t.includes("#gorus")) return "opinion";
+  if (t.includes("#eksik")) return "partial";
   if (t.includes("#dogru")) return "supported";
   if (t.includes("#yanlis")) return "refuted";
   return "mixed";
@@ -67,6 +69,9 @@ function buildBody(s: Scenario): RawCheckResponse {
       return conflicting; // tek iddia biçimi
     case "opinion":
       return { claims: [opinion] };
+    case "partial":
+      // Kısmi sonuç: ikinci iddianın sonuç değeri arayüzün tanımadığı bir etiket.
+      return { claims: [supported, { ...refuted, id: "claim_okunamayan", verdict: "TANINMAYAN_ETIKET" }] };
     default:
       return { claims: [refuted, supported, notEnough, opinion] };
   }

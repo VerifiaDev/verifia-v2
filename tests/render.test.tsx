@@ -131,12 +131,12 @@ describe("ClaimItem", () => {
 describe("ResultView", () => {
   const noop = () => {};
   it("iddia yoksa boş durumu gösterir", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [], unverifiable: [] }} onReset={noop} />);
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [], unverifiable: [], unreadable: [] }} onReset={noop} />);
     assert.ok(html.includes("İncelenebilir iddia bulunamadı"));
   });
   it("birden fazla iddiada özet listesi ve doğrulanmayan ifadeleri gösterir", () => {
     const html = renderToStaticMarkup(
-      <ResultView result={{ claims: [claim({ id: "a" }), claim({ id: "b", verdict: "CONFLICTING" })], unverifiable: ["Bence harika."] }} onReset={noop} />,
+      <ResultView result={{ claims: [claim({ id: "a" }), claim({ id: "b", verdict: "CONFLICTING" })], unverifiable: ["Bence harika."], unreadable: [] }} onReset={noop} />,
     );
     assert.ok(html.includes("2 iddia incelendi"));
     assert.ok(html.includes('aria-label="İncelenen iddialar"'));
@@ -145,16 +145,16 @@ describe("ResultView", () => {
   it("backend'den gelen metni HTML olarak yorumlamaz", () => {
     const evil = "<script>alert(1)</script>";
     const html = renderToStaticMarkup(
-      <ResultView result={{ claims: [claim({ text: evil, explanation: evil })], unverifiable: [evil] }} onReset={noop} />,
+      <ResultView result={{ claims: [claim({ text: evil, explanation: evil })], unverifiable: [evil], unreadable: [] }} onReset={noop} />,
     );
     assert.ok(!html.includes("<script>alert(1)"));
   });
   it("gönderilen içeriği yinelemez (içerik yukarıdaki salt okunur alanda zaten görünür)", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} />);
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [] }} onReset={noop} />);
     assert.ok(!html.includes("Gönderdiğiniz içerik"));
   });
   it("sabit örnek sonuç baştan sona örnek olarak etiketlenir ve 'kapat' ile biter", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} sample showcase />);
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [] }} onReset={noop} sample showcase />);
     assert.ok(html.includes("Örnek inceleme"));
     assert.ok(html.includes("sabit bir örnektir"));
     assert.ok(html.includes("Örnek veri"));
@@ -163,24 +163,42 @@ describe("ResultView", () => {
     assert.ok(!html.includes("otomatik bir ön değerlendirmedir"));
   });
   it("gerçek sonuçta örnek etiketi yoktur", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} />);
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [] }} onReset={noop} />);
     assert.ok(!html.includes("Örnek"));
     assert.ok(html.includes("Yeni bir içerik incele"));
   });
   it("örnek veri bayrağını iddialara iletir", () => {
-    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={noop} sample />);
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [] }} onReset={noop} sample />);
     assert.ok(html.includes("Örnek veri"));
+  });
+});
+
+describe("kısmi sonuç", () => {
+  it("sonucu okunamayan iddiaları başta uyarıyla, sonda ayrı listeyle gösterir; hüküm yazmaz", () => {
+    const html = renderToStaticMarkup(
+      <ResultView result={{ claims: [claim()], unverifiable: [], unreadable: ["Okunamayan iddia"] }} onReset={() => {}} />,
+    );
+    assert.ok(html.includes("1 iddia incelendi"));
+    assert.ok(html.includes("1 iddianın sonucu okunamadı"));
+    assert.ok(html.includes("Sonucu gösterilemeyen iddialar (1)"));
+    assert.ok(html.includes("Okunamayan iddia"));
+    assert.ok(html.includes("doğru ya da yanlış olduğu anlamına gelmez"));
+  });
+  it("okunamayan iddia yoksa uyarı da bölüm de yoktur", () => {
+    const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [] }} onReset={() => {}} />);
+    assert.ok(!html.includes("okunamadı"));
+    assert.ok(!html.includes("Sonucu gösterilemeyen"));
   });
 });
 
 describe("uzun sonuçta gezinme ve marka", () => {
   it("birden fazla iddiada her iddia listeye geri bağlanır; tek iddiada bağlantı yoktur", () => {
     const many = renderToStaticMarkup(
-      <ResultView result={{ claims: [claim({ id: "a" }), claim({ id: "b" })], unverifiable: [] }} onReset={() => {}} />,
+      <ResultView result={{ claims: [claim({ id: "a" }), claim({ id: "b" })], unverifiable: [], unreadable: [] }} onReset={() => {}} />,
     );
     assert.ok(many.includes(`id="${CLAIM_LIST_ID}"`));
     assert.equal(many.split(`href="#${CLAIM_LIST_ID}"`).length - 1, 2);
-    const one = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [] }} onReset={() => {}} />);
+    const one = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [] }} onReset={() => {}} />);
     assert.ok(!one.includes(`#${CLAIM_LIST_ID}`));
   });
   it("marka adı ve slogan tek kaynaktan gelir; alt bilgide bağlantı değildir", () => {

@@ -3,7 +3,7 @@ import { describe, it } from "node:test";
 import { analysisReducer, isBusy, type AnalysisState } from "@/hooks/useAnalysis";
 
 const idle: AnalysisState = { phase: "idle" };
-const result = { claims: [], unverifiable: [] };
+const result = { claims: [], unverifiable: [], unreadable: [] };
 
 describe("analysisReducer", () => {
   it("idle → submitting → completed", () => {

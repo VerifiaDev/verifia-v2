@@ -449,8 +449,8 @@ header {
 .theme-toggle[aria-pressed="true"] .icon {
   fill: currentColor;
 }
-/* Tablet: slogan logonun altına iner; menü ve düğme aynı satırda sağda kalır (tek bant). */
-@media (min-width: 48rem) and (max-width: 63.99rem) {
+/* Tablet ve yatay telefon (600px ve üstü): slogan logonun altına iner; menü ve düğme aynı satırda sağda kalır (tek bant). */
+@media (min-width: 37.5rem) and (max-width: 63.99rem) {
   .masthead {
     flex-wrap: nowrap;
   }
@@ -465,12 +465,14 @@ header {
   .masthead {
     padding-block: var(--space-3) var(--space-2);
   }
+  .nav-list {
+    gap: 0 var(--space-4);
+  }
+}
+@media (max-width: 37.49rem) {
   .masthead-end {
     width: 100%;
     justify-content: space-between;
-  }
-  .nav-list {
-    gap: 0 var(--space-4);
   }
 }
 @media (max-width: 30rem) {

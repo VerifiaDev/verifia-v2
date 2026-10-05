@@ -94,9 +94,27 @@ describe("parseCheckResponse", () => {
     assert.equal(r.claims[0].explanation, "");
   });
 
+  it("sonucu tanınmayan iddia diğerlerini düşürmez; ayrı listelenir (kısmi sonuç)", () => {
+    const r = parseCheckResponse({
+      results: [
+        { claim: "A", verdict: "SUPPORTED" },
+        { claim: "B", verdict: "MOSTLY_TRUE" },
+        { claim: "C" },
+        { claim: "D", is_verifiable: false },
+      ],
+    });
+    assert.deepEqual(r.claims.map((c) => c.text), ["A"]);
+    assert.deepEqual(r.unreadable, ["B", "C"]);
+    assert.deepEqual(r.unverifiable, ["D"]);
+  });
+
+  it("okunabilen hiçbir iddia yokken sonucu tanınmayan iddia varsa cevap geçersizdir ('iddia bulunamadı' denmez)", () => {
+    assert.throws(() => parseCheckResponse({ results: [{ claim: "B", verdict: "MOSTLY_TRUE" }, { claim: "D", is_verifiable: false }] }), InvalidResponseError);
+  });
+
   it("boş claims listesi geçerlidir", () => {
     const r = parseCheckResponse({ claims: [] });
-    assert.deepEqual(r, { claims: [], unverifiable: [] });
+    assert.deepEqual(r, { claims: [], unverifiable: [], unreadable: [] });
   });
 
   for (const bad of [null, "x", [], {}, { claims: "a" }, { claims: [null] }, { claims: [{ verdict: "SUPPORTED" }] }, { claims: [{ text: "t", verdict: "??" }] }]) {

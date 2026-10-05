@@ -8,7 +8,7 @@
 2. Bu klasörde terminal açın: `npm install`, bitince `npm run dev`.
 3. Tarayıcıda http://localhost:3000
 
-Kontrol: `npm run typecheck`, `npm run build`, `npm test` (ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
+Kontrol: `npm run typecheck`, `npm run build`, `npm test` — aynı üçü her gönderimde GitHub'da da çalışır (`.github/workflows/ci.yml`) (ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
 
 ## Gece modu
 Sistem tercihi (`prefers-color-scheme`) izlenir; üstteki "Gece modu" düğmesi tercihi elle değiştirir ve tarayıcıda (`localStorage`, anahtar `verify-theme`) saklar. Renkler `app/globals.css` başındaki jetonlardır; koyu palet iki yerde tanımlıdır (`[data-theme="dark"]` ve sistem koyuyken `:root:not([data-theme="light"])`), biri değişirse diğeri de güncellenmelidir. Telefonda tarayıcı çubuğu rengi de temayı izler (`viewport.themeColor`; elle seçimde `ThemeToggle` günceller). Renk çiftleri `tests/theme.test.tsx` ile kontrast ve iki koyu bloğun eşitliği açısından denenir. Kayıtlı tercih, `app/layout.tsx` içindeki satır içi betikle ilk boyamadan önce uygulanır (yanıp sönme olmaz).
@@ -16,7 +16,8 @@ Sistem tercihi (`prefers-color-scheme`) izlenir; üstteki "Gece modu" düğmesi 
 ## Örnek veri (mock)
 `NEXT_PUBLIC_API_BASE_URL` boşken yalnızca `npm run dev` sırasında mock çalışır; sayfada "Geliştirme" uyarısı görünür ve her iddia "Örnek veri" etiketi taşır. Kaynaklar uydurmadır; sonuç, yazdığınız içerikle değil yalnızca aşağıdaki anahtarlarla seçilir.
 Metne şu anahtarları yazarak durumları deneyin:
-`#dogru` `#yanlis` `#yetersiz` `#celiski` `#gorus` `#asamali` `#hata-zamanasimi` `#hata-sunucu` `#hata-ag`.
+`#dogru` `#yanlis` `#yetersiz` `#celiski` `#gorus` `#eksik` `#asamali` `#hata-zamanasimi` `#hata-sunucu` `#hata-ag`.
+`#eksik`, bir iddianın sonuç değeri tanınmadığında ne olduğunu gösterir (kısmi sonuç: okunabilen iddialar gösterilir, diğeri "Sonucu gösterilemeyen iddialar" bölümüne düşer).
 `#asamali`, aşama bildiren bir backend'i taklit eder (arayüzün aşama gösterimini denemek için); diğerlerinde aşama bildirilmez.
 Formun altındaki örnek bağlantıları iki gruptur: sonuç türleri herkese görünür; teknik senaryolar (aşama taklidi, hata) yalnızca `npm run dev` sırasında listelenir, yayın derlemesinde gizlenir (anahtar kelimeler yine çalışır).
 Örnek sonuçlar kesik çizgili çerçeve içinde gösterilir ve güven puanı örnek veride gösterilmez (uydurma yüzde gerçek sanılmasın).

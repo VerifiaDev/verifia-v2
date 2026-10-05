@@ -49,6 +49,11 @@ export interface CheckResult {
   claims: Claim[];
   /** Doğrulanamaz bulunan ifadeler (görüş, tahmin vb.) */
   unverifiable: string[];
+  /**
+   * Sonucu okunamayan iddialar: metni geldi ama sonuç değeri tanınmadı ya da hiç gelmedi.
+   * Arayüz bunlar için hüküm göstermez; diğer iddiaların sonucu yine gösterilir (kısmi sonuç).
+   */
+  unreadable: string[];
 }
 
 /** Backend'in bildirebileceği gerçek işlem aşamaları. Bildirmezse hiçbiri kullanılmaz. */

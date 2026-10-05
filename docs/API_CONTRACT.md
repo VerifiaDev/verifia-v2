@@ -37,7 +37,7 @@ Adapter ayrıca iki eski biçimi de kabul eder (mock bunları kullanır): `{ "cl
 | Alan | Zorunlu | Arayüzün davranışı |
 |---|---|---|
 | `claim` ya da `text` | evet | İddia metni. Yoksa cevap geçersiz sayılır |
-| `verdict` | evet (`is_verifiable: false` değilse) | `SUPPORTED`, `REFUTED`, `CONFLICTING` (ya da `CONFLICTING_EVIDENCE`), `NOT ENOUGH EVIDENCE` (ya da `NOT_ENOUGH_EVIDENCE`). Tanınmayan değer hata sayılır |
+| `verdict` | evet (`is_verifiable: false` değilse) | `SUPPORTED`, `REFUTED`, `CONFLICTING` (ya da `CONFLICTING_EVIDENCE`), `NOT ENOUGH EVIDENCE` (ya da `NOT_ENOUGH_EVIDENCE`). Tanınmayan ya da eksik değerde yalnızca o iddia "Sonucu gösterilemeyen iddialar" bölümüne düşer, diğer iddialar gösterilir (kısmi sonuç). Okunabilen hiçbir iddia kalmazsa cevap geçersiz sayılır |
 | `is_verifiable` | hayır | `false` ise iddia "İncelenmeyen ifadeler" bölümünde gösterilir |
 | `explanation` | hayır | Köşeli parantezli atıflar (`[source_1]`) kaynak listesindeki `id` ile eşleşirse numaralı bağlantıya çevrilir. Eşleşmeyen atıf düz metin kalır |
 | `sources` ya da `evidence` | hayır | Kaynak listesi. Boşsa "Kaynak bulunamadı" gösterilir |
@@ -88,3 +88,5 @@ Tarayıcı çevrimdışı olduğunu bildiriyorsa aynı durum `OFFLINE` ("interne
 5. Hata durumunda hangi durum kodları ve gövde döner? Yukarıdaki `{ "error": { "code" } }` şekli uygun mu?
 6. Kaynak adı, yayın tarihi ve güven puanı eklenecek mi?
 7. Hangi adreslere CORS izni verilecek?
+8. Bir iddianın incelemesi başarısız olursa backend ne döner (iddia listeden çıkar mı, ayrı bir alanla mı bildirilir)? Arayüz şu an yalnızca tanımadığı `verdict` değerini "sonucu gösterilemeyen iddia" olarak ayırır.
+9. İstek sınırı (rate limit) olacak mı? Olacaksa `429` ile mi bildirilecek? Arayüz şu an `429`'u genel sunucu hatası olarak gösterir.
