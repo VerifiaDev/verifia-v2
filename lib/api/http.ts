@@ -14,6 +14,13 @@ const KNOWN_CODES: ErrorCode[] = [
   "INTERNAL_ERROR",
 ];
 
+/** backend/main.py'nin hata kodları. VALIDATION_ERROR hem boş hem 10 000 karakterden uzun metinde döner (ayrılamaz). */
+const BACKEND_CODES: Record<string, ErrorCode> = {
+  VALIDATION_ERROR: "INVALID_INPUT",
+  EMPTY_TEXT: "INVALID_INPUT",
+  VERIFY_FAILED: "INTERNAL_ERROR",
+};
+
 /**
  * Gövdede tanınan bir kod yoksa HTTP durum kodunun standart anlamına bakılır.
  * Örn. FastAPI'nin varsayılan doğrulama hatası 422 + `{ detail }` döner; bunu "sunucu hatası, sorun
@@ -28,14 +35,19 @@ function codeFromStatus(status: number): ErrorCode {
 
 /** Backend hata gövdesinden kod çıkarır; tanımazsa durum koduna bakar. Ham sunucu metni kullanıcıya gösterilmez. */
 function errorFromResponse(body: unknown, status: number): ApiRequestError {
-  const e = (body as { error?: { code?: string; message?: string } } | null)?.error;
-  const code = KNOWN_CODES.find((c) => c === e?.code) ?? codeFromStatus(status);
-  const message = typeof e?.message === "string" && e.message ? e.message : "Sunucu isteği tamamlayamadı.";
+  const b = body as { error?: unknown; message?: unknown } | null;
+  // Gerçek backend: { status:"error", error:"VERIFY_FAILED", message }  (error düz yazı).
+  // Eski/varsayılan şekil: { error: { code, message } }.
+  const nested = typeof b?.error === "object" && b.error !== null ? (b.error as { code?: unknown; message?: unknown }) : null;
+  const rawCode = typeof b?.error === "string" ? b.error : typeof nested?.code === "string" ? nested.code : "";
+  const rawMessage = typeof b?.message === "string" ? b.message : nested?.message;
+  const code = KNOWN_CODES.find((c) => c === rawCode) ?? BACKEND_CODES[rawCode] ?? codeFromStatus(status);
+  const message = typeof rawMessage === "string" && rawMessage ? rawMessage : "Sunucu isteği tamamlayamadı.";
   return new ApiRequestError(code, message);
 }
 
 /**
- * Gerçek servis: `POST {baseUrl}/verify` (backend/main.py)  →  tek istek, tek cevap.
+ * Gerçek servis: `POST {baseUrl}/verify` (backend/main.py, teyitli)  →  tek istek, tek cevap.
  *
  * Backend yalnızca `{ text }` kabul eder. Bağlantı (URL) desteği henüz yok: bağlantıyı iddia gibi
  * göndermek anlamsız sonuç verirdi, bu yüzden "url" modu açık bir hata olarak döner

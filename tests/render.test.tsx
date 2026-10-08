@@ -238,8 +238,8 @@ describe("VerificationInput örnekleri", () => {
   });
   it("sayaç sınırı görünür biçimde taşır; düğme metninde ok işareti yoktur", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
-    assert.match(html, /class="field-count tnum" data-state="ok"[^>]*>0 \/ 5\.000</);
-    assert.ok(html.includes("En fazla 5.000 karakter."));
+    assert.match(html, /class="field-count tnum" data-state="ok"[^>]*>0 \/ 10\.000</);
+    assert.ok(html.includes("En fazla 10.000 karakter."));
     assert.ok(!html.includes("→"));
   });
   it("girdi türü grubunu tek kez adlandırır (fieldset + legend; ikinci bir radiogroup etiketi yok)", () => {

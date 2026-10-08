@@ -1,11 +1,12 @@
 /**
  * Backend'in ham JSON cevabını arayüzün tiplerine çevirir.
  *
- * Backend henüz yazılmadığı için kabul edilen şekiller GEÇİCİDİR. İki biçim de desteklenir:
+ * Gerçek backend şekli aşağıda; iki eski biçim mock için tutulur:
  *
  *  Gerçek backend (backend/main.py, POST /verify):
- *     { results: [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id:"source_1", url, text} ] } ] }
- *     (güven puanı, kaynak adı ve tarih yoktur; arayüz bunları göstermez/uydurmaz)
+ *     { results: [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id:"source_1", title, domain, url, published_date, text} ] } ] }
+ *     Kaynakta ayrıca title, site_name, domain, published_date, retrieval_score bulunur (backend/main.py, 87ec895).
+     Güven puanı yoktur; arayüz uydurmaz. retrieval_score ve used_sources okunmaz.
  *
  *  A) { claims: [ {
  *        id, text | claim, verdict, explanation, is_verifiable?,
@@ -54,15 +55,31 @@ function parseConfidence(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) && v >= 0 && v <= 1 ? v : null;
 }
 
+function hostOnly(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "").toLowerCase();
+  } catch {
+    return "";
+  }
+}
+
+/** Backend'in "başlık yok" yedek etiketi (backend/main.py). Gerçek bir ad değildir; gösterilmez. */
+const BACKEND_TITLE_PLACEHOLDER = "kaynak";
+
 function parseSource(raw: unknown, index: number): Source | null {
   if (!isRecord(raw)) return null;
   const url = str(raw.url);
   if (!url) return null;
+  // Ad: sayfa başlığı. Alan adıyla aynıysa ya da yedek etiketse atılır (alan adı zaten ayrıca gösterilir).
+  const candidate = str(raw.source) ?? str(raw.title) ?? str(raw.name);
+  const host = hostOnly(url);
+  const lower = candidate?.toLowerCase().replace(/^www\./, "");
+  const name = candidate && lower !== host && lower !== BACKEND_TITLE_PLACEHOLDER ? candidate : null;
   return {
     id: str(raw.id) ?? `kaynak_${index + 1}`,
     url,
-    name: str(raw.source) ?? str(raw.title) ?? str(raw.name),
-    publishedAt: str(raw.published_at),
+    name,
+    publishedAt: str(raw.published_at) ?? str(raw.published_date),
     excerpt: str(raw.text) ?? str(raw.excerpt),
   };
 }

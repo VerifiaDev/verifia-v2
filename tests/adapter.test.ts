@@ -142,3 +142,37 @@ describe("proje dokümanındaki örnek cevap", () => {
     assert.equal(r.claims[0].sources[0].excerpt, "Kısa kanıt pasajı");
   });
 });
+
+describe("parseCheckResponse: gerçek backend şekli (backend/main.py)", () => {
+  const body = {
+    status: "ok",
+    results: [
+      {
+        claim_id: "claim_1",
+        claim: "Dünya yuvarlaktır.",
+        is_verifiable: true,
+        verdict: "NOT ENOUGH EVIDENCE",
+        explanation: "Kanıt yetersiz [source_1].",
+        used_sources: ["source_1"],
+        sources: [
+          { id: "source_1", title: "Bir başlık", site_name: "ornek.com", domain: "ornek.com", url: "https://www.ornek.com/a", published_date: "2025-03-04", retrieval_score: 0.8, text: "alıntı" },
+          { id: "source_2", title: "Kaynak", domain: "diger.org", url: "https://diger.org/b", published_date: null, retrieval_score: 0.5, text: "başka" },
+          { id: "source_3", title: "ornek.net", domain: "ornek.net", url: "https://ornek.net/c", published_date: null, text: "üçüncü" },
+        ],
+      },
+      { claim_id: "claim_2", claim: "Bence güzel.", is_verifiable: false, verdict: null, explanation: null, used_sources: [], sources: [] },
+    ],
+  };
+  it("başlık, tarih ve doğrulanamayan iddiayı doğru çevirir", () => {
+    const r = parseCheckResponse(body);
+    assert.equal(r.claims.length, 1);
+    assert.deepEqual(r.unverifiable, ["Bence güzel."]);
+    assert.equal(r.claims[0].verdict, "NOT_ENOUGH_EVIDENCE");
+    const [a, b, c] = r.claims[0].sources;
+    assert.equal(a.name, "Bir başlık");
+    assert.equal(a.publishedAt, "2025-03-04");
+    assert.equal(b.name, null, "yedek 'Kaynak' etiketi ad sayılmaz");
+    assert.equal(c.name, null, "alan adıyla aynı başlık ad sayılmaz");
+    assert.equal(r.claims[0].confidence, null);
+  });
+});

@@ -61,6 +61,18 @@ describe("checkInput (gerçek API yolu)", () => {
     assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "URL_UNREADABLE");
   });
 
+  it("gerçek backend hata gövdesini (error düz yazı) kodlara çevirir", async () => {
+    const cases: [number, string, string][] = [
+      [422, "VALIDATION_ERROR", "INVALID_INPUT"],
+      [400, "EMPTY_TEXT", "INVALID_INPUT"],
+      [500, "VERIFY_FAILED", "INTERNAL_ERROR"],
+    ];
+    for (const [status, error, expected] of cases) {
+      globalThis.fetch = (async () => json(status, { status: "error", error, message: "x" })) as typeof fetch;
+      assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), expected, error);
+    }
+  });
+
   it("tanımadığı kodu ve JSON olmayan 500 cevabını INTERNAL_ERROR yapar", async () => {
     globalThis.fetch = (async () => json(500, { error: { code: "WEIRD" } })) as typeof fetch;
     assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "INTERNAL_ERROR");

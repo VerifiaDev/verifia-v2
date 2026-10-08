@@ -5,8 +5,8 @@ export const SITE_TAGLINE = "Kanıtı görün. Kararı siz verin.";
 /** Doldurulursa navbar ve footer'da "GitHub" bağlantısı görünür. Boşsa görünmez. */
 export const REPO_URL = "";
 
-/** VARSAYIM: backend ekibi gerçek sınırı söyleyene kadar. */
-export const MAX_INPUT_LENGTH = 5000;
+/** backend/main.py: VerifyRequest.text max_length=10000 (Python karakter sayar; JS UTF-16 birimi sayar, yani bu sınır en kötü ihtimalle biraz erken keser). */
+export const MAX_INPUT_LENGTH = 10_000;
 
 /** Tek istek bu süreden uzun sürerse vazgeçilir (ms). Çok iddialı metinlerde uzun sürebilir. */
 export const REQUEST_TIMEOUT_MS = 90_000;

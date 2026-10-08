@@ -27,7 +27,7 @@ Gerçek backend bağlantıyla incelemeyi henüz desteklemiyor: backend bağlıyk
 
 ## Gerçek backend'e bağlama
 Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter → UI**.
-1. `.env.local` dosyası açın: `NEXT_PUBLIC_API_BASE_URL=https://backend-adresi` (boşsa: geliştirmede mock, yayın derlemesinde "servis bağlı değil" bilgisi). `NEXT_PUBLIC_` değişkenleri derleme sırasında koda gömülür; Vercel'de değiştirince yeniden dağıtım gerekir.
+1. `.env.local` dosyası açın: `NEXT_PUBLIC_API_BASE_URL=https://backend-adresi` (backend'in yayın adresi; backend'de `FRONTEND_ORIGIN` sitenin adresiyle ayarlı olmalı; boşsa: geliştirmede mock, yayın derlemesinde "servis bağlı değil" bilgisi). `NEXT_PUBLIC_` değişkenleri derleme sırasında koda gömülür; Vercel'de değiştirince yeniden dağıtım gerekir.
 2. Backend'in cevabı beklenenden farklıysa yalnızca `lib/api/contract.ts` ve `lib/api/adapter.ts` değişir; bileşenlere dokunulmaz.
 3. Sözleşmenin tamamı ve backend sahibine sorular: **[docs/API_CONTRACT.md](docs/API_CONTRACT.md)**.
 
@@ -67,5 +67,5 @@ Sakin, editoryal, kanıt odaklı. Yapı ince çizgilerle kurulur; gölge, gradya
 Ek bağımlılık yok.
 
 ## Açık sorular (backend sahibine)
-Teyit edilmemiş varsayımlar: URL desteği, metin sınırı (şimdilik 5000), azami süre (şimdilik 90 sn), atıf biçimi, hata gövdesi ve durum kodları, CORS. Tam liste ve sorular: [docs/API_CONTRACT.md](docs/API_CONTRACT.md).
+Backend sözleşmesi koddan okundu (`MertBulut11/verify`, `87ec895`): `POST /verify`, 10 000 karakter, hata gövdesi, CORS listesi. Teyitsiz kalanlar: azami süre (şimdilik 90 sn), atıf biçimi, tarih biçimi, tek iddia hatasında davranış. Tam liste ve sorular: [docs/API_CONTRACT.md](docs/API_CONTRACT.md).
 GitHub bağlantısı için `lib/config.ts` içindeki `REPO_URL` doldurulur.
