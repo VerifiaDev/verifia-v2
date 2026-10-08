@@ -28,7 +28,7 @@ export const VERDICT_META: Record<
   },
   CONFLICTING: {
     label: "Kaynaklar birbiriyle çelişiyor",
-    meaning: "Kaynaklar farklı sonuçlara varıyor ya da iddia seçmeci sunulmuş.",
+    meaning: "Bulunan kaynaklar aynı iddia hakkında birbiriyle uyuşmayan bilgiler veriyor. Ayrıntı ve bağlamı gerekçede inceleyin.",
     icon: "not-equal",
     tone: "mixed",
   },
@@ -43,10 +43,16 @@ export const VERDICT_META: Record<
 
 /** Hata metinleri: ne oldu → kullanıcı şimdi ne yapabilir. */
 export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: string[]; retry: boolean }> = {
+  RATE_LIMITED: {
+    title: "İstek sınırına ulaşıldı",
+    what: "Kısa sürede gönderilebilecek inceleme sayısı aşıldı. Yazdığınız içerik yerinde duruyor.",
+    todo: ["Biraz bekledikten sonra yeniden deneyin."],
+    retry: true,
+  },
   INVALID_INPUT: {
     title: "Girdi işlenemedi",
     what: "Gönderilen içerik geçerli bir girdi olarak kabul edilmedi.",
-    todo: ["Metnin boş olmadığından emin olun.", "Bağlantıysa https:// ile başlayan tam adresi girin."],
+    todo: ["Metnin boş olmadığından emin olun.", "İncelenecek haber metnini veya somut bir iddiayı giriş alanına ekleyin."],
     retry: false,
   },
   INPUT_TOO_LONG: {
@@ -60,20 +66,20 @@ export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: 
     what: "Bu adresteki sayfa açılamadı ya da içeriği okunamadı. Sayfa giriş gerektiriyor ya da erişime kapalı olabilir.",
     todo: [
       "Bağlantıyı tarayıcıda açıp çalıştığını kontrol edin.",
-      "Haberin metnini kopyalayıp “Metin” sekmesinden gönderin.",
+      "Haberin metnini kopyalayıp metin giriş alanından gönderin.",
     ],
     retry: false,
   },
   URL_UNSUPPORTED: {
     title: "Bağlantıyla inceleme henüz desteklenmiyor",
     what: "İnceleme servisi şu an yalnızca metin kabul ediyor. Gönderdiğiniz bağlantıdaki sayfa okunmadı ve incelenmedi.",
-    todo: ["Haberin metnini kopyalayıp “Metin” sekmesinden gönderin."],
+    todo: ["Haberin metnini kopyalayıp metin giriş alanından gönderin."],
     retry: false,
   },
   IMAGE_UNREADABLE: {
     title: "Görsel işlenemedi",
     what: "Görseldeki yazı okunamadı.",
-    todo: ["Daha yüksek çözünürlüklü bir görsel deneyin.", "Görseldeki metni yazıp “Metin” sekmesinden gönderin."],
+    todo: ["Görseldeki iddiayı metin olarak yazıp giriş alanından gönderin."],
     retry: false,
   },
   TIMEOUT: {

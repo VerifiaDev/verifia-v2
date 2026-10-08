@@ -5,7 +5,7 @@ import type { Verdict } from "@/lib/types";
 interface Props {
   verdict: Verdict;
   /** "block": sonuç kutusu (etiket + varsa uyarı). "inline": yalnızca simge + etiket (listeler için). */
-  variant?: "block" | "inline";
+  variant?: "block" | "inline" | "detail";
   /** Modelin güven puanı (0-1). Yoksa hiçbir şey gösterilmez. */
   confidence?: number | null;
 }
@@ -27,12 +27,13 @@ export function VerdictSummary({ verdict, variant = "block", confidence = null }
     );
   }
 
+  if (variant === "detail" && !m.caveat && confidence === null) return null;
   return (
     <div className={`verdict tone-${m.tone}`}>
-      <p className="verdict-label">
+      {variant !== "detail" && <p className="verdict-label">
         <Icon name={m.icon} />
         {m.label}
-      </p>
+      </p>}
       {m.caveat && <p className="verdict-caveat">{m.caveat}</p>}
       {confidence !== null && (
         <p className="verdict-confidence">

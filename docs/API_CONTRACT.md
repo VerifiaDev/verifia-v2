@@ -58,7 +58,7 @@ Backend şu an bir hata gövdesi tanımlamıyor. Arayüz iki adımda karar verir
 1. Gövde `{ "error": { "code": "…" } }` ise ve kod tanınıyorsa o kullanılır:
    `INVALID_INPUT`, `INPUT_TOO_LONG`, `URL_UNREADABLE`, `IMAGE_UNREADABLE`, `TIMEOUT`, `NETWORK`, `INTERNAL_ERROR`.
 2. Değilse HTTP durum kodunun standart anlamına bakılır:
-   `400`/`422` → `INVALID_INPUT`, `413` → `INPUT_TOO_LONG`, `408`/`504` → `TIMEOUT`, diğerleri → `INTERNAL_ERROR`.
+   `400`/`422` → `INVALID_INPUT`, `413` → `INPUT_TOO_LONG`, `408`/`504` → `TIMEOUT`, `429` → `RATE_LIMITED`, diğerleri → `INTERNAL_ERROR`.
 
 Her kod için kullanıcıya "ne oldu / ne yapabilirsiniz" metni gösterilir (`lib/format.ts`). Sunucunun `message` metni gösterilmez.
 İstek hiç ulaşmazsa (ağ, CORS) `NETWORK` gösterilir; tarayıcı bu ikisini ayırt etmeye izin vermez.
@@ -89,4 +89,11 @@ Tarayıcı çevrimdışı olduğunu bildiriyorsa aynı durum `OFFLINE` ("interne
 6. Kaynak adı, yayın tarihi ve güven puanı eklenecek mi?
 7. Hangi adreslere CORS izni verilecek?
 8. Bir iddianın incelemesi başarısız olursa backend ne döner (iddia listeden çıkar mı, ayrı bir alanla mı bildirilir)? Arayüz şu an yalnızca tanımadığı `verdict` değerini "sonucu gösterilemeyen iddia" olarak ayırır.
-9. İstek sınırı (rate limit) olacak mı? Olacaksa `429` ile mi bildirilecek? Arayüz şu an `429`'u genel sunucu hatası olarak gösterir.
+9. İstek sınırı (rate limit) olacak mı? Olacaksa `429` ile mi bildirilecek? Arayüz `429` için ayrı bir kullanım sınırı mesajı gösterir. Bekleme süresi kesinleşmediği için geri sayım gösterilmez.
+
+## UI/UX iyileştirmesi — 8 Ekim 2026
+
+- `report` yanıt alanı isteğe bağlı olarak `title`, `summary`, `input`, `prepared_at`, `scope` taşıyabilir. Eksik alanlar üretilmez; geçersiz tarih gösterilmez. Otomatik servis raporu editörün hazırladığı örnek gibi etiketlenmez.
+- Kaynaklarda isteğe bağlı `relation` (`supports`, `contradicts`, `context`), `excerpt_kind: "summary"` ve `kind` desteklenir. Bu alanlar mevcut backend tarafından sağlanmış kabul edilmez; backend ekibinin sözleşmeyi doğrulaması gerekir.
+- Servis yokken metin alanı yazılabilir; gönderim eylemi sunulmaz ve gönderim işleyicisi istek başlatmaz. Hazır örnek yazılan metni kullanmaz.
+- Gerçek gönderim açılmadan önce veri saklama, hizmet sağlayıcıları, silme ve sorumlu/iletişim bilgileri kesinleştirilmelidir.

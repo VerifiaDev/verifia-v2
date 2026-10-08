@@ -17,6 +17,10 @@ export interface RawCheckRequest {
 }
 
 export interface RawEvidence {
+  /** İsteğe bağlı; yalnızca servis açıkça sağlıyorsa gösterilir. */
+  relation?: "supports" | "contradicts" | "context";
+  excerpt_kind?: "summary";
+  kind?: string;
   id?: string;
   /** Kısa kanıt pasajı */
   text?: string;
@@ -53,7 +57,14 @@ export interface RawClaim {
 }
 
 /** İki biçim de kabul edilir: iddia listesi ya da tek iddia. */
-export type RawCheckResponse = { results: RawClaim[] } | { claims: RawClaim[] } | RawClaim;
+export interface RawReport {
+  title?: string;
+  summary?: string;
+  input?: string;
+  prepared_at?: string;
+  scope?: string;
+}
+export type RawCheckResponse = { results: RawClaim[]; report?: RawReport } | { claims: RawClaim[]; report?: RawReport } | RawClaim;
 
 /** Hata cevabının gövdesi (HTTP 4xx/5xx). */
 export interface RawErrorBody {

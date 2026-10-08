@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Analyzer } from "@/components/Analyzer";
 import { Footer } from "@/components/Footer";
 import { HowItWorks } from "@/components/HowItWorks";
-import { Icon } from "@/components/Icon";
 import { Legend } from "@/components/Legend";
 import { Navbar } from "@/components/Navbar";
 import { TrustNotes } from "@/components/TrustNotes";
+import { PrivacyNotes } from "@/components/PrivacyNotes";
 import { apiInfo } from "@/lib/api";
 import { SITE_ORIGIN } from "@/lib/site";
 
@@ -38,18 +38,11 @@ export default function HomePage() {
             </h2>
             <Legend />
           </aside>
-          {/* Dar ekran: aynı içerik kapalı bir satırda; form ile açıklamalar arasında bir ekran yer tutmasın. */}
-          <details className="more legend-disclosure">
-            <summary>
-              Sonuç türleri ne anlama gelir?
-              <Icon name="chevron" className="chevron" />
-            </summary>
-            <Legend />
-          </details>
         </div>
 
         <HowItWorks />
         <TrustNotes />
+        <PrivacyNotes />
       </main>
       <Footer />
     </>

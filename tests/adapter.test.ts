@@ -142,3 +142,18 @@ describe("proje dokümanındaki örnek cevap", () => {
     assert.equal(r.claims[0].sources[0].excerpt, "Kısa kanıt pasajı");
   });
 });
+
+it("isteğe bağlı şeffaflık alanlarını taşır, geçersiz değerleri üretmez", () => {
+  const result = parseCheckResponse({
+    claims: [{ text: "İddia", verdict: "SUPPORTED", sources: [
+      { url: "https://example.com/one", relation: "context", excerpt_kind: "summary", kind: "Görev kaydı" },
+      { url: "https://example.com/two", relation: "certain", excerpt_kind: "unknown" },
+    ] }],
+    report: { scope: "Yalnızca iki belge", prepared_at: "geçersiz tarih" },
+  });
+  assert.equal(result.claims[0].sources[0].relation, "context");
+  assert.equal(result.claims[0].sources[0].excerptKind, "summary");
+  assert.equal(result.claims[0].sources[1].relation, undefined);
+  assert.equal(result.claims[0].sources[1].excerptKind, undefined);
+  assert.deepEqual(result.report, { scope: "Yalnızca iki belge" });
+});

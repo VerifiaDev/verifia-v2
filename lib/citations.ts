@@ -14,6 +14,18 @@ export function splitIds(group: string): string[] {
     .filter(Boolean);
 }
 
+/** Ekran ve düz metin çıktısı aynı kaynak numaralarını kullanır. */
+export function numberCitations(text: string, sources: Source[]): string {
+  return text.replace(/\[([^\]]+)\]/g, (_, group: string) => {
+    const ids = splitIds(group);
+    if (!ids.length) return "[Kaynak eşleşmesi bulunamadı]";
+    return `[${ids.map((id) => {
+      const index = sources.findIndex((source) => source.id === id);
+      return index < 0 ? "Kaynak eşleşmesi bulunamadı" : String(index + 1);
+    }).join(", ")}]`;
+  });
+}
+
 /** Atıf yapılan kaynakların numaraları (1 tabanlı, `sources` sırasına göre), açıklamadaki ilk geçiş sırasıyla. */
 export function citedNumbers(explanation: string, sources: Source[]): number[] {
   const seen: number[] = [];

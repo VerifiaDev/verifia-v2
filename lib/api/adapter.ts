@@ -64,6 +64,9 @@ function parseSource(raw: unknown, index: number): Source | null {
     name: str(raw.source) ?? str(raw.title) ?? str(raw.name),
     publishedAt: str(raw.published_at),
     excerpt: str(raw.text) ?? str(raw.excerpt),
+    ...(raw.relation === "supports" || raw.relation === "contradicts" || raw.relation === "context" ? { relation: raw.relation } : {}),
+    ...(raw.excerpt_kind === "summary" || raw.excerptKind === "summary" ? { excerptKind: "summary" as const } : {}),
+    ...(str(raw.kind) ? { kind: str(raw.kind)! } : {}),
   };
 }
 
@@ -119,5 +122,14 @@ export function parseCheckResponse(body: unknown): CheckResult {
   if (claims.length === 0 && unreadable.length > 0) {
     throw new InvalidResponseError("Hiçbir iddianın sonucu tanınmadı");
   }
-  return { claims, unverifiable, unreadable };
+  const report: NonNullable<CheckResult["report"]> = {};
+  if (isRecord(body) && isRecord(body.report)) {
+    for (const key of ["title", "summary", "input", "scope"] as const) {
+      const value = str(body.report[key]);
+      if (value) report[key] = value;
+    }
+    const preparedAt = str(body.report.prepared_at) ?? str(body.report.preparedAt);
+    if (preparedAt && Number.isFinite(Date.parse(preparedAt))) report.preparedAt = preparedAt;
+  }
+  return { claims, unverifiable, unreadable, ...(Object.keys(report).length ? { report } : {}) };
 }

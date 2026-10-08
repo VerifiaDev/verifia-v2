@@ -9,13 +9,14 @@ import type { CheckRequest, InputMode } from "@/lib/types";
 
 interface Props {
   disabled?: boolean;
+  unavailable?: boolean;
+  localOnly?: boolean;
   busy?: boolean;
   readOnly?: boolean;
   onEdit?: () => void;
   onSubmit: (req: CheckRequest) => void;
   /**
-   * Formun neden kullanılamadığını anlatan notun kimliği (servis bağlı değilken).
-   * Devre dışı alan ve düğme bu nota bağlanır; ekran okuyucu "kullanılamıyor" derken nedenini de okur.
+   * Servisin durumunu açıklayan notun kimliği; giriş alanı bu nota bağlanır.
    */
   noticeId?: string;
   /** Servis bağlantıyla incelemeyi desteklemiyorsa false: "Metin / Bağlantı" seçimi hiç gösterilmez. */
@@ -38,6 +39,8 @@ const NEAR_LIMIT = 0.9;
  */
 export function VerificationInput({
   disabled = false,
+  unavailable = false,
+  localOnly = false,
   busy = false,
   readOnly = false,
   onEdit,
@@ -59,7 +62,7 @@ export function VerificationInput({
   const errId = `${uid}-err`;
 
   function submit(m: InputMode, v: string) {
-    if (disabled || busy || readOnly) return;
+    if (disabled || unavailable || busy || readOnly) return;
     const res = validateInput(m, v);
     if (!res.ok) {
       setError(res.error.message);
@@ -154,7 +157,7 @@ export function VerificationInput({
       )}
 
       <label htmlFor={fieldId} className="field-label t-h4">
-        {isText ? "İncelenecek metin" : "İncelenecek haberin bağlantısı"}
+        {isText ? "Haber metnini yapıştır" : "İncelenecek haberin bağlantısı"}
       </label>
 
       {isText ? (
@@ -192,7 +195,7 @@ export function VerificationInput({
         <p id={hintId} className="field-hint">
           {isText
             ? "İddialar ayrı ayrı incelenir."
-            : "Haberin tam adresini girin. Sayfa açılamazsa metni kopyalayıp “Metin” sekmesinden gönderebilirsiniz."}
+            : "Haberin tam adresini girin. Sayfa açılamazsa haber metnini giriş alanına kopyalayabilirsiniz."}
           {/* Sınır görünür sayaçta yazar; ekran okuyucu için ipucunun parçası olarak da okunur. */}
           {isText && <span className="sr-only"> En fazla {limit} karakter.</span>}
         </p>
@@ -208,7 +211,10 @@ export function VerificationInput({
         )}
       </div>
 
-      <div className="actions">
+      <p className="sr-only" role="status" aria-atomic="true">
+        {isText && countState === "over" ? "Karakter sınırı aşıldı. Metni kısaltın." : isText && countState === "near" ? "Karakter sınırına yaklaşıyorsunuz." : ""}
+      </p>
+      {!unavailable && <div className="actions">
         <button
           type="submit"
           className={demoteSubmit ? "btn btn-quiet" : "btn"}
@@ -217,7 +223,11 @@ export function VerificationInput({
         >
           {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
         </button>
-      </div>
+      </div>}
+      <p className="form-privacy t-meta muted">
+        {!unavailable && !localOnly && "İncelemeyi başlattığınızda içerik inceleme servisine gönderilir. "}
+        Sayfa yenilenince metin ve sonuçlar kaybolur. <a href="#gizlilik">Veri kullanımı</a>
+      </p>
 
       {userExamples.length > 0 && (
         <div className="examples">

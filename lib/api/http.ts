@@ -10,6 +10,7 @@ const KNOWN_CODES: ErrorCode[] = [
   "URL_UNREADABLE",
   "IMAGE_UNREADABLE",
   "TIMEOUT",
+  "RATE_LIMITED",
   "NETWORK",
   "INTERNAL_ERROR",
 ];
@@ -20,6 +21,7 @@ const KNOWN_CODES: ErrorCode[] = [
  * girdinizde değil" diye göstermek kullanıcıyı yanlış yönlendirir. Backend'e özgü bir varsayım yoktur.
  */
 function codeFromStatus(status: number): ErrorCode {
+  if (status === 429) return "RATE_LIMITED";
   if (status === 413) return "INPUT_TOO_LONG";
   if (status === 400 || status === 422) return "INVALID_INPUT";
   if (status === 408 || status === 504) return "TIMEOUT";

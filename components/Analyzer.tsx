@@ -7,6 +7,9 @@ import { ErrorState } from "./ErrorState";
 import { ResultView } from "./ResultView";
 import { VerificationInput } from "./VerificationInput";
 import { apiInfo } from "@/lib/api";
+import { Icon } from "./Icon";
+import { LegendDisclosure } from "./Legend";
+import type { CheckRequest } from "@/lib/types";
 
 const SERVICE_NOTE_ID = "service-note";
 
@@ -20,10 +23,42 @@ export function Analyzer() {
   const { state, start, retry, reset, showSample } = useAnalysis();
   const formWrap = useRef<HTMLDivElement>(null);
   const sampleButton = useRef<HTMLButtonElement>(null);
+  const exampleQuery = useRef(false);
   const prevPhase = useRef(state.phase);
   // "Yeni bir içerik incele" formu boşaltır (anahtar değişince alan sıfırdan kurulur).
   // "İçeriği düzenle" ve "Vazgeç" ise yazılanı korur.
   const [formKey, setFormKey] = useState(0);
+  const [submitted, setSubmitted] = useState<CheckRequest | null>(null);
+  useEffect(() => {
+    const syncExample = () => {
+      const next = new URLSearchParams(window.location.search).get("example") === "apollo-11";
+      if (next === exampleQuery.current) return;
+      exampleQuery.current = next;
+      if (next) showSample(); else reset();
+    };
+    syncExample();
+    window.addEventListener("popstate", syncExample);
+    return () => window.removeEventListener("popstate", syncExample);
+  }, [showSample, reset]);
+  function openSample() {
+    exampleQuery.current = true;
+    const url = new URL(window.location.href);
+    url.searchParams.set("example", "apollo-11");
+    url.hash = "report";
+    window.history.replaceState(null, "", url);
+    showSample();
+  }
+  function clearExampleUrl() {
+    exampleQuery.current = false;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("example");
+    url.hash = "analyzer";
+    window.history.replaceState(null, "", url);
+  }
+  function closeSample() {
+    clearExampleUrl();
+    reset();
+  }
   const startOver = () => {
     setFormKey((k) => k + 1);
     reset();
@@ -64,15 +99,12 @@ export function Analyzer() {
         {apiInfo.usingMock && (
           <p className="note note--warn" role="note">
             <strong className="note-label">Geliştirme</strong>
-            <span>Örnek kaynaklar uydurmadır; gerçek inceleme yapılmıyor.</span>
+            <span>Geliştirici senaryoları temsili veri kullanır; gerçek inceleme yapılmıyor. Apollo 11 raporu ayrıca kaynaklandırılmış hazır örnektir.</span>
           </p>
         )}
-        {apiInfo.unavailable && (
-          <p className="note note--info" role="note" id={SERVICE_NOTE_ID}>
-            <strong className="note-label">Bilgi</strong>
-            <span>İnceleme servisi henüz bağlı değil; şu an içerik incelenemiyor.</span>
-          </p>
-        )}
+        {apiInfo.unavailable && <p className="service-status t-meta" id={SERVICE_NOTE_ID}>
+          <strong>Demo sürümü.</strong> Canlı inceleme henüz bağlı değil. Yazdığınız metin gönderilmez.
+        </p>}
 
         {/* JavaScript kapalıysa form çalışmaz; sessizce hiçbir şey yapmayan bir düğme yerine nedenini söyleriz. */}
         <noscript>
@@ -85,11 +117,13 @@ export function Analyzer() {
         <div ref={formWrap} className="analyzer-input">
           <VerificationInput
             key={formKey}
-            disabled={busy || apiInfo.unavailable}
+            disabled={busy}
+            unavailable={apiInfo.unavailable}
+            localOnly={apiInfo.usingMock}
             busy={busy}
             readOnly={completed && !showcase}
             onEdit={reset}
-            onSubmit={start}
+            onSubmit={(request) => { if (exampleQuery.current) clearExampleUrl(); setSubmitted(request); void start(request); }}
             noticeId={apiInfo.unavailable ? SERVICE_NOTE_ID : undefined}
             urlSupported={apiInfo.urlSupported}
             demoteSubmit={state.phase === "error"}
@@ -97,26 +131,26 @@ export function Analyzer() {
           />
         </div>
 
-        {apiInfo.unavailable && !showcase && (
-          <div className="examples">
-            <p className="t-meta muted">Servis bağlanana kadar arayüzün ne ürettiğini örnek bir sonuçla görebilirsiniz.</p>
-            <button ref={sampleButton} type="button" className="link-btn" onClick={showSample}>
-              Örnek bir incelemeyi görüntüle
-            </button>
-          </div>
-        )}
+        {(apiInfo.unavailable || apiInfo.usingMock) && !showcase && <div className="sample-entry">
+          <button ref={sampleButton} type="button" className={apiInfo.unavailable ? "btn" : "btn btn-quiet"} onClick={openSample} disabled={busy}>
+            Kaynaklı örnek raporu aç <Icon name="chevron" />
+          </button>
+          <p className="t-meta muted">Apollo 11 · Gerçek NASA bağlantıları · Hazır örnek; yazdığınız metni incelemez.</p>
+        </div>}
 
         {busy && <AnalysisProgress phase={state.phase} onCancel={reset} />}
 
         {state.phase === "error" && <ErrorState error={state.error} onRetry={retry} onEdit={reset} />}
       </section>
 
+      {!completed && <LegendDisclosure />}
       {state.phase === "completed" && (
         <ResultView
           result={state.result}
-          onReset={showcase ? reset : startOver}
+          onReset={showcase ? closeSample : startOver}
           sample={apiInfo.usingMock || showcase}
           showcase={showcase}
+          input={showcase ? undefined : submitted?.content}
         />
       )}
     </>

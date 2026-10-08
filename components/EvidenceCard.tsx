@@ -25,6 +25,10 @@ export function EvidenceCard({ source, number, claimId }: Props) {
     source.excerpt && source.excerpt.length > EXCERPT_MAX
       ? `${source.excerpt.slice(0, EXCERPT_MAX).trimEnd()}…`
       : source.excerpt;
+  const longExcerpt = Boolean(source.excerpt && source.excerpt.length > EXCERPT_MAX);
+  const passage = (text: string) => source.excerptKind === "summary"
+    ? <div><p className="t-meta muted">Kaynağın Türkçe özeti</p><p className="evidence-excerpt">{text}</p></div>
+    : <blockquote className="evidence-excerpt">“{text}”</blockquote>;
 
   return (
     <li id={sourceAnchor(claimId, number)} className={hasMeta ? "evidence" : "evidence evidence--plain"}>
@@ -39,11 +43,16 @@ export function EvidenceCard({ source, number, claimId }: Props) {
           </p>
         )}
         {source.name && <p className="source-domain">{host}</p>}
+        {source.kind && <p className="t-meta muted">{source.kind}</p>}
       </div>
 
       <div className="evidence-body">
+        {source.relation && <p className={`evidence-relation ${source.relation === "supports" ? "tone-ok" : source.relation === "contradicts" ? "tone-bad" : "muted"}`}>{source.relation === "supports" ? "İddiayı destekliyor" : source.relation === "contradicts" ? "İddiayla çelişiyor" : "Bağlam sağlıyor"}</p>}
         {excerpt ? (
-          <blockquote className="evidence-excerpt">“{excerpt}”</blockquote>
+          longExcerpt ? <div className="expandable-excerpt">
+            <div className="excerpt-preview">{passage(excerpt)}</div>
+            <details className="more excerpt-full"><summary><span className="when-closed">Pasajın tamamını göster</span><span className="when-open">Pasajı kısalt</span><Icon name="chevron" className="chevron" /></summary>{passage(source.excerpt!)}</details>
+          </div> : passage(excerpt)
         ) : (
           <p className="muted t-meta">Bu kaynak için alıntı gelmedi.</p>
         )}

@@ -1,5 +1,13 @@
 import { VerdictSummary } from "./VerdictSummary";
 import { VERDICT_META, VERDICT_ORDER } from "@/lib/format";
+import { Icon } from "./Icon";
+
+export function LegendDisclosure() {
+  return <details className="more legend-disclosure no-print">
+    <summary>Sonuç türleri ne anlama gelir?<Icon name="chevron" className="chevron" /></summary>
+    <Legend />
+  </details>;
+}
 
 /**
  * Sonuç türlerinin açıklaması. Geniş ekranda yan sütunda sürekli görünür; dar ekranda kapalı bir

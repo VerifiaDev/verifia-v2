@@ -15,6 +15,7 @@ export function Footer() {
         </div>
         <nav aria-label="Alt menü">
           <SiteLinks className="footer-links" />
+          <ul className="footer-links"><li><a href="#gizlilik">İçeriğiniz ve gizlilik</a></li></ul>
         </nav>
       </div>
     </footer>

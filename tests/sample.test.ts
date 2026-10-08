@@ -12,10 +12,13 @@ describe("sabit örnek sonuç", () => {
     assert.ok(r.unverifiable.length >= 1, "incelenmeyen ifade");
     assert.ok(new Set(r.claims.map((c) => c.verdict)).size >= 3, "en az üç sonuç türü");
   });
-  it("kaynakları gerçek sanılamaz: adında 'uydurma' yazar ve adres example.com'dur", () => {
+  it("hazır raporun kapsamı ve metni vardır; kanıtları NASA kaynaklarına ve Türkçe özetlere bağlanır", () => {
+    assert.ok(r.report?.input);
+    assert.ok(r.report?.scope?.includes("kapsamlı bir arama yapılmadı"));
     for (const s of r.claims.flatMap((c) => c.sources)) {
-      assert.ok(s.name?.includes("uydurma"), s.name ?? "");
-      assert.equal(new URL(s.url).hostname, "example.com");
+      assert.equal(new URL(s.url).hostname, "www.nasa.gov");
+      assert.equal(s.excerptKind, "summary");
+      assert.ok(s.relation);
     }
   });
 });

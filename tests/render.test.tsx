@@ -48,7 +48,8 @@ describe("ClaimItem", () => {
   });
   it("listede olmayan atıfı bağlantıya çevirmez", () => {
     const html = render(claim({ explanation: "Şöyle [kaynak_9]." }));
-    assert.ok(html.includes("[kaynak_9]"));
+    assert.ok(html.includes("Kaynak eşleşmesi bulunamadı"));
+    assert.ok(!html.includes("[kaynak_9]"));
     assert.ok(!html.includes('href="#src-c1-9"'));
   });
   it("güvensiz bağlantıyı (javascript:) tıklanabilir yapmaz", () => {
@@ -156,7 +157,7 @@ describe("ResultView", () => {
   it("sabit örnek sonuç baştan sona örnek olarak etiketlenir ve 'kapat' ile biter", () => {
     const html = renderToStaticMarkup(<ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [] }} onReset={noop} sample showcase />);
     assert.ok(html.includes("Örnek inceleme"));
-    assert.ok(html.includes("sabit bir örnektir"));
+    assert.ok(html.includes("önceden hazırlanmıştır; canlı analiz değildir"));
     assert.ok(html.includes("Örnek veri"));
     assert.ok(html.includes("Örneği kapat"));
     assert.ok(!html.includes("Yeni bir içerik incele"));
@@ -265,7 +266,7 @@ describe("VerificationInput örnekleri", () => {
   it("geliştirici senaryosu yoksa o grubu hiç göstermez; alan etiketi 'incele' dilini kullanır", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} examples={[ex("Sonuç örneği")]} />);
     assert.ok(!html.includes("Geliştirici senaryoları"));
-    assert.ok(html.includes("İncelenecek metin"));
+    assert.ok(html.includes("Haber metnini yapıştır"));
   });
 });
 
@@ -281,7 +282,7 @@ describe("ErrorState ve AnalysisProgress", () => {
     const html = renderToStaticMarkup(<ErrorState error={{ code: "URL_UNSUPPORTED", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
     assert.ok(html.includes("henüz desteklenmiyor"));
     assert.ok(!html.includes("açılamadı"));
-    assert.ok(html.includes("“Metin” sekmesinden"));
+    assert.ok(html.includes("metin giriş alanından"));
     assert.ok(!html.includes("Yeniden dene"));
   });
   it("aşama bilgisi yokken adım listesi hiç gösterilmez; yalnızca geçen süre sayılır", () => {
@@ -327,4 +328,28 @@ describe("ErrorState ve AnalysisProgress", () => {
     const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
     assert.ok(!/dakika|saniye/.test(html));
   });
+});
+
+it("eşleşmeyen atıf geçerli komşu atfın bağlantısını engellemez", () => {
+  const html = render(claim({ explanation: "Kanıt [kaynak_1, olmayan_kaynak]." }));
+  assert.ok(html.includes('href="#src-c1-1"'));
+  assert.ok(html.includes("Kaynak eşleşmesi bulunamadı"));
+  assert.ok(!html.includes("olmayan_kaynak"));
+});
+
+it("kapalı örnek iddiada örnek etiketi ve eksik kanıt uyarısı başlıkta kalır", () => {
+  const html = renderToStaticMarkup(<ClaimItem claim={claim({ sources: [] })} index={0} total={1} expanded={false} sample />);
+  const summary = html.match(/<summary[\s\S]*?<\/summary>/)?.[0] ?? "";
+  assert.ok(summary.includes("Örnek veri"));
+  assert.ok(summary.includes("Kanıt bilgisi eksik"));
+  assert.ok(!html.includes('<details class="claim-disclosure" open'));
+});
+
+it("servis yokken metin yazılabilir ama gönderim eylemi sunulmaz", () => {
+  const html = renderToStaticMarkup(<VerificationInput unavailable urlSupported={false} onSubmit={() => { throw new Error("Gönderilmemeli"); }} />);
+  assert.ok(html.includes("<textarea"));
+  assert.ok(!/<textarea[^>]*disabled/.test(html));
+  assert.ok(!html.includes('type="submit"'));
+  assert.ok(html.includes("Sayfa yenilenince metin ve sonuçlar kaybolur"));
+  assert.ok(!html.includes("içerik inceleme servisine gönderilir"));
 });

@@ -11,7 +11,8 @@ import { API_BASE_URL } from "../config";
 import { InvalidResponseError, parseCheckResponse } from "./adapter";
 import { ApiRequestError } from "./errors";
 import { httpService } from "./http";
-import { MOCK_EXAMPLES, mockService, sampleBody } from "./mock";
+import { MOCK_EXAMPLES, mockService } from "./mock";
+import { curatedSample } from "../sample-report";
 import type { VerificationService } from "./service";
 import type { AnalysisStage, CheckRequest, CheckResult, InputMode } from "../types";
 
@@ -68,7 +69,7 @@ export const apiInfo: {
  * Gerçek cevapla aynı adapter'dan geçer. Arayüz bunu "Örnek" etiketiyle gösterir; gerçek inceleme gibi sunulmaz.
  */
 export function sampleResult(): CheckResult {
-  return parseCheckResponse(sampleBody());
+  return curatedSample();
 }
 
 export async function checkInput(

@@ -5,7 +5,7 @@ import type { Source } from "@/lib/types";
 
 /**
  * Açıklamadaki [kaynak_1] gibi atıfları, aşağıdaki kanıt listesine giden numaralı bağlantılara
- * çevirir ([1], [2]). Listede olmayan atıflar düz metin kalır: kaynak uydurulmaz.
+ * çevirir ([1], [2]). Eşleşmeyen atıfları açıkça belirtir; aynı gruptaki geçerli atıfları korur.
  */
 export function Explanation({ text, sources, claimId }: { text: string; sources: Source[]; claimId: string }) {
   const parts = text.split(/(\[[^\]]+\])/g);
@@ -17,18 +17,18 @@ export function Explanation({ text, sources, claimId }: { text: string; sources:
         if (!m) return part;
 
         const numbers = splitIds(m[1]).map((id) => sources.findIndex((s) => s.id === id) + 1);
-        if (numbers.length === 0 || numbers.some((n) => n === 0)) return part;
+        if (numbers.length === 0) return <span key={i} className="missing-citation">[Kaynak eşleşmesi bulunamadı]</span>;
 
         return (
           <span key={i}>
             [
             {numbers.map((n, j) => (
-              <span key={n}>
+              <span key={j}>
                 {j > 0 && ", "}
-                <a className="cite" href={`#${sourceAnchor(claimId, n)}`}>
+                {n === 0 ? <span className="missing-citation">Kaynak eşleşmesi bulunamadı</span> : <a className="cite" href={`#${sourceAnchor(claimId, n)}`}>
                   {n}
                   <span className="sr-only"> numaralı kaynağa git</span>
-                </a>
+                </a>}
               </span>
             ))}
             ]

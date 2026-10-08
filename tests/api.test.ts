@@ -61,6 +61,11 @@ describe("checkInput (gerçek API yolu)", () => {
     assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "URL_UNREADABLE");
   });
 
+  it("429 cevabını sunucu hatası yerine kullanım sınırı olarak gösterir", async () => {
+    globalThis.fetch = (async () => json(429, { detail: "Too many requests" })) as typeof fetch;
+    assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "RATE_LIMITED");
+  });
+
   it("tanımadığı kodu ve JSON olmayan 500 cevabını INTERNAL_ERROR yapar", async () => {
     globalThis.fetch = (async () => json(500, { error: { code: "WEIRD" } })) as typeof fetch;
     assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "INTERNAL_ERROR");

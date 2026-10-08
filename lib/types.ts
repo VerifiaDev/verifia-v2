@@ -16,12 +16,17 @@ export type ErrorCode =
   | "URL_UNSUPPORTED"
   | "IMAGE_UNREADABLE"
   | "TIMEOUT"
+  | "RATE_LIMITED"
   | "NETWORK"
   /** Tarayıcı çevrimdışı olduğunu bildiriyor (arayüzün kendi kodu; istek hiç gönderilemedi). */
   | "OFFLINE"
   | "INTERNAL_ERROR";
 
 export interface Source {
+  /** Yalnızca servis veya editör açıkça belirttiğinde gösterilir; sonuçtan türetilmez. */
+  relation?: "supports" | "contradicts" | "context";
+  excerptKind?: "summary";
+  kind?: string;
   /** Açıklamadaki atıfla eşleşen kimlik, örn. "kaynak_1" */
   id: string;
   url: string;
@@ -46,6 +51,13 @@ export interface Claim {
 }
 
 export interface CheckResult {
+  report?: {
+    title?: string;
+    summary?: string;
+    input?: string;
+    preparedAt?: string;
+    scope?: string;
+  };
   claims: Claim[];
   /** Doğrulanamaz bulunan ifadeler (görüş, tahmin vb.) */
   unverifiable: string[];
