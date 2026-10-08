@@ -44,11 +44,11 @@ Tarayıcı ──(yalnızca metin)──▶ Render: FastAPI /verify ──▶ Gr
   - Gerekirse bot koruması (ör. Cloudflare Turnstile).
 - **Test yöntemi:** Koddan doğrulandı. Canlıda yük testi bilerek yapılmadı.
 
-**K2. Tek bir inceleme sunucunun tamamını kilitliyor; kısa bir iddia 7 dakikada bile bitmedi** (backend, değiştirilmedi)
+**K2. Tek bir inceleme sunucunun tamamını kilitliyor; kısa bir iddia 10 dakikada bile bitmedi** (backend, değiştirilmedi)
 - **Sorun:**
   - "Ankara 1923'ten beri Türkiye'nin başkentidir." isteği arayüzün 90 saniyelik sınırını aştı.
-  - Aynı istek doğrudan gönderildiğinde 7 dakika içinde yanıt gelmedi.
-  - Bu sırada `/health` 15 saniyede yanıt vermedi. Aynı durum ilk denemede de görüldü: başka bir inceleme sürerken `/` ve `/health` 40 saniyede yanıt vermedi.
+  - Aynı istek doğrudan gönderildiğinde 10 dakika içinde yanıt gelmedi.
+  - Bu sırada `/health` 15 saniyede, 10. dakikada da 20 saniyede yanıt vermedi. Aynı durum ilk denemede de görüldü: başka bir inceleme sürerken `/` ve `/health` 40 saniyede yanıt vermedi.
 - **Dosya/satır:**
   - `backend/search_retrieval.py:2045-2084`: her sayfa için `requests`, gerekirse her URL için yeni bir başsız Chromium açılıyor.
   - `sentence-transformers` modeli belleğe yükleniyor.
