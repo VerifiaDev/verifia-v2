@@ -14,6 +14,9 @@ const REQ = { mode: "text" as const, content: "iddia" };
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { "Content-Type": "application/json" } });
 const okBody = { claims: [{ id: "c1", text: "t", verdict: "SUPPORTED", explanation: "e [k1]", sources: [{ id: "k1", url: "https://a.example", text: "m" }] }] };
 
+/** Bekleyen promise zincirlerinin ilerlemesini sağlar (sahte zamanlayıcı ilerletilmeden önce). */
+const flush = () => new Promise<void>((r) => setImmediate(r));
+
 async function codeOf(p: Promise<unknown>): Promise<string> {
   try {
     await p;
@@ -35,6 +38,7 @@ describe("checkInput (gerçek API yolu)", () => {
   it("başarılı cevabı çevirir ve doğru gövdeyi gönderir", async () => {
     let sent: { url: string; body: string } | undefined;
     globalThis.fetch = (async (url: string, init: RequestInit) => {
+      if (url.endsWith("/health")) return json(200, { status: "ok" });
       sent = { url, body: String(init.body) };
       return json(200, okBody);
     }) as typeof fetch;
@@ -110,13 +114,50 @@ describe("checkInput (gerçek API yolu)", () => {
   });
 
   it("zaman aşımında TIMEOUT verir", async () => {
-    globalThis.fetch = ((_: string, init: RequestInit) =>
-      new Promise((_, reject) => {
-        init.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
-      })) as typeof fetch;
+    globalThis.fetch = ((url: string, init: RequestInit) =>
+      url.endsWith("/health")
+        ? Promise.resolve(json(200, { status: "ok" }))
+        : new Promise((_, reject) => {
+            init.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+          })) as typeof fetch;
     const p = codeOf(checkInput(REQ, new AbortController().signal));
+    await flush();
     mock.timers.tick(90_000);
     assert.equal(await p, "TIMEOUT");
+  });
+
+  it("sağlık denetimi süresinde yanıt gelmezse inceleme isteğini HİÇ göndermez (SERVER_BUSY)", async () => {
+    const urls: string[] = [];
+    globalThis.fetch = ((url: string, init: RequestInit) => {
+      urls.push(url);
+      return new Promise((_, reject) => {
+        init.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    }) as typeof fetch;
+    const p = codeOf(checkInput(REQ, new AbortController().signal));
+    await flush();
+    mock.timers.tick(60_000);
+    assert.equal(await p, "SERVER_BUSY");
+    assert.deepEqual(urls, ["http://backend.test/health"]);
+  });
+
+  it("sağlık adresi hata kodu dönse de (404) incelemeyi gönderir; ağ hatasında NETWORK verir ve göndermez", async () => {
+    const urls: string[] = [];
+    globalThis.fetch = (async (url: string) => {
+      urls.push(url);
+      return url.endsWith("/health") ? json(404, { detail: "Not Found" }) : json(200, okBody);
+    }) as typeof fetch;
+    const r = await checkInput(REQ, new AbortController().signal);
+    assert.equal(r.claims.length, 1);
+    assert.deepEqual(urls, ["http://backend.test/health", "http://backend.test/verify"]);
+
+    urls.length = 0;
+    globalThis.fetch = (async (url: string) => {
+      urls.push(url);
+      throw new TypeError("fetch failed");
+    }) as typeof fetch;
+    assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "NETWORK");
+    assert.deepEqual(urls, ["http://backend.test/health"]);
   });
 
   it("kullanıcı vazgeçince TIMEOUT/NETWORK diye yanlış hata üretmez", async () => {
@@ -147,6 +188,13 @@ describe("httpService adresi", () => {
     for (const base of ["http://backend.test/", "http://backend.test//", "http://backend.test"]) {
       await httpService(base).check({ text: "iddia", input_type: "text" }, { signal: new AbortController().signal });
     }
-    assert.deepEqual(urls, ["http://backend.test/verify", "http://backend.test/verify", "http://backend.test/verify"]);
+    assert.deepEqual(urls, [
+      "http://backend.test/health",
+      "http://backend.test/verify",
+      "http://backend.test/health",
+      "http://backend.test/verify",
+      "http://backend.test/health",
+      "http://backend.test/verify",
+    ]);
   });
 });

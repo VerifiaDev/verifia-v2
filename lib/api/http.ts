@@ -1,4 +1,4 @@
-import { REQUEST_TIMEOUT_MS } from "../config";
+import { HEALTH_TIMEOUT_MS, REQUEST_TIMEOUT_MS } from "../config";
 import { ApiRequestError } from "./errors";
 import type { RawCheckRequest, RawCheckResponse } from "./contract";
 import type { ErrorCode } from "../types";
@@ -47,11 +47,45 @@ function errorFromResponse(body: unknown, status: number): ApiRequestError {
 }
 
 /**
+ * İncelemeden önce sunucunun yanıt verip vermediğine bakar (`GET /health`, backend/main.py).
+ *
+ * Neden: backend tek bir incelemeyi işlerken başka hiçbir isteğe yanıt vermeyebiliyor ve her inceleme
+ * dış servislerde (dil modeli, web araması) kota harcıyor. Kilitli sunucuya ikinci bir inceleme göndermek
+ * hem kullanıcıyı boşuna bekletir hem kotayı boşa harcar. Bu yüzden sağlık yanıtı süresinde gelmezse
+ * inceleme isteği HİÇ gönderilmez ve "sunucu yanıt vermiyor" denir.
+ *
+ * Yalnızca süre aşımı engeller. Sunucu herhangi bir HTTP yanıtı verirse (404 dahil; `/health` ileride
+ * kaldırılsa bile site çalışmaya devam etsin diye) inceleme normal şekilde gönderilir.
+ */
+async function waitForHealth(base: string, signal: AbortSignal): Promise<void> {
+  const controller = new AbortController();
+  let timedOut = false;
+  const onAbort = () => controller.abort();
+  signal.addEventListener("abort", onAbort);
+  const timer = setTimeout(() => {
+    timedOut = true;
+    controller.abort();
+  }, HEALTH_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${base}/health`, { method: "GET", cache: "no-store", signal: controller.signal });
+    await res.body?.cancel().catch(() => {});
+  } catch (err) {
+    if (timedOut) throw new ApiRequestError("SERVER_BUSY", "Sunucu sağlık denetimine yanıt vermedi.");
+    if (signal.aborted) throw err; // kullanıcı vazgeçti
+    throw new ApiRequestError("NETWORK", "Sunucuya ulaşılamadı.");
+  } finally {
+    clearTimeout(timer);
+    signal.removeEventListener("abort", onAbort);
+  }
+}
+
+/**
  * Gerçek servis: `POST {baseUrl}/verify` (backend/main.py, teyitli)  →  tek istek, tek cevap.
  *
  * Backend yalnızca `{ text }` kabul eder. Bağlantı (URL) desteği henüz yok: bağlantıyı iddia gibi
  * göndermek anlamsız sonuç verirdi, bu yüzden "url" modu açık bir hata olarak döner
  * (URL_UNSUPPORTED: "sayfa açılamadı" değil, "bu özellik henüz yok").
+ * Önce `GET /health` ile sunucunun yanıt verdiği denetlenir (bkz. waitForHealth).
  * Backend aşama bilgisi vermediği için `onStage` çağrılmaz.
  */
 export function httpService(baseUrl: string): VerificationService {
@@ -63,6 +97,8 @@ export function httpService(baseUrl: string): VerificationService {
       if (req.input_type === "url") {
         throw new ApiRequestError("URL_UNSUPPORTED", "Bağlantı ile doğrulama henüz desteklenmiyor.");
       }
+      await waitForHealth(base, signal);
+
       const controller = new AbortController();
       let timedOut = false;
       const onAbort = () => controller.abort();

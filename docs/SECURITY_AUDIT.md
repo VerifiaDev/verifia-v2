@@ -64,6 +64,7 @@ Tarayıcı ──(yalnızca metin)──▶ Render: FastAPI /verify ──▶ Gr
   - İddiaları paralel ve sınırlı işleme.
   - Kuyruk + iş kimliği (iş başlat, durumu sorgula) yaklaşımı.
 - **Test yöntemi:** Yukarıdaki istek tarayıcıdan zamanlandı. Aynı anda `/health` çağrıldı.
+- **Frontend'de yapılan (hafifletme, çözüm değil):** Her incelemeden önce `GET /health` en fazla 60 saniye beklenir. Yanıt gelmezse inceleme isteği hiç gönderilmez ve "Sunucu şu an yanıt vermiyor" gösterilir. Böylece arayüzden yapılan "Yeniden dene" tıklamaları kilitli sunucuya yeni pahalı istekler yığmaz. Doğrudan API'ye istek atan betikleri durdurmaz; asıl çözüm backend'dedir. Test: `tests/api.test.ts` → "sağlık denetimi süresinde yanıt gelmezse…".
 
 ### 🟠 YÜKSEK
 

@@ -19,6 +19,8 @@ export type ErrorCode =
   | "NETWORK"
   /** Tarayıcı çevrimdışı olduğunu bildiriyor (arayüzün kendi kodu; istek hiç gönderilemedi). */
   | "OFFLINE"
+  /** Sunucu sağlık denetimine süresinde yanıt vermedi; inceleme isteği hiç gönderilmedi (arayüzün kendi kodu). */
+  | "SERVER_BUSY"
   | "INTERNAL_ERROR";
 
 export interface Source {

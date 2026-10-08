@@ -19,6 +19,13 @@
   kullanıcıya "bağlantıyla inceleme henüz desteklenmiyor" hatası (`URL_UNSUPPORTED`, arayüzün kendi kodu) gösterilir.
   Eski öneri `input_type: "text" | "url"` alanıydı; backend bunu kabul edene kadar gönderilmez.
 
+### Ön denetim: `GET /health`
+
+Frontend her incelemeden önce `GET {BASE}/health` çağırır ve en fazla 60 saniye bekler (`HEALTH_TIMEOUT_MS`).
+Yanıt gelmezse inceleme isteği **gönderilmez** ve kullanıcıya `SERVER_BUSY` ("Sunucu şu an yanıt vermiyor") gösterilir.
+Sebep: backend bir incelemeyi işlerken başka isteklere yanıt vermeyebiliyor; kilitli sunucuya ikinci bir pahalı istek
+göndermek kotayı boşa harcar (bkz. docs/SECURITY_AUDIT.md, K2). Herhangi bir HTTP yanıtı (404 dahil) gelirse inceleme gönderilir.
+
 ## Başarılı cevap (HTTP 200)
 
 Backend'in (koddan okunan) şekli:
@@ -70,7 +77,7 @@ Tanınmayan gövde için eski şekil (`{ "error": { "code" } }`) ve HTTP durum k
 (`413` → `INPUT_TOO_LONG`, `408`/`504` → `TIMEOUT`, diğerleri → `INTERNAL_ERROR`).
 Her kod için kullanıcıya "ne oldu / ne yapabilirsiniz" metni gösterilir (`lib/format.ts`). Sunucunun `message` metni gösterilmez.
 İstek hiç ulaşmazsa (ağ, CORS) `NETWORK` gösterilir; tarayıcı bu ikisini ayırt etmeye izin vermez.
-Tarayıcı çevrimdışı olduğunu bildiriyorsa `OFFLINE` gösterilir. `OFFLINE` ve `URL_UNSUPPORTED` arayüzün kendi kodlarıdır.
+Tarayıcı çevrimdışı olduğunu bildiriyorsa `OFFLINE` gösterilir. `OFFLINE`, `URL_UNSUPPORTED` ve `SERVER_BUSY` arayüzün kendi kodlarıdır.
 
 **Önemli:** backend tek iddia bile hata verirse (arama ya da model) bütün isteği `500 VERIFY_FAILED` ile bitirir;
 kısmi sonuç döndürmez. İddialar sırayla işlenir, süre iddia sayısıyla artar.
