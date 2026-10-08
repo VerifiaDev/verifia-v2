@@ -105,8 +105,9 @@ export function ResultView({ result, onReset, sample = false, showcase = false }
       <div className="result-foot">
         {!showcase && (
           <p className="muted t-meta">
-            Bu sonuç otomatik bir ön değerlendirmedir. Karar vermeden önce yukarıdaki kaynakları kendiniz de kontrol
-            edin.
+            {claims.length > 0
+              ? "Bu sonuç otomatik bir ön değerlendirmedir. Karar vermeden önce yukarıdaki kaynakları kendiniz de kontrol edin."
+              : "Bu sonuç otomatik bir ön değerlendirmedir."}
           </p>
         )}
         <button type="button" className="btn btn-quiet" onClick={onReset}>

@@ -191,7 +191,7 @@ export function VerificationInput({
       <div className="field-foot">
         <p id={hintId} className="field-hint">
           {isText
-            ? "İddialar ayrı ayrı incelenir."
+            ? "İddialar ayrı ayrı incelenir. Metin, incelenmek için sunucumuza ve yapay zekâ ile web araması yapan dış servislere gönderilir; kişisel bilgi (ad, telefon, adres, kimlik numarası) içeren metin yapıştırmayın."
             : "Haberin tam adresini girin. Sayfa açılamazsa metni kopyalayıp “Metin” sekmesinden gönderebilirsiniz."}
           {/* Sınır görünür sayaçta yazar; ekran okuyucu için ipucunun parçası olarak da okunur. */}
           {isText && <span className="sr-only"> En fazla {limit} karakter.</span>}

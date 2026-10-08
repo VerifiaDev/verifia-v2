@@ -30,6 +30,7 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 1. `.env.local` dosyası açın: `NEXT_PUBLIC_API_BASE_URL=https://backend-adresi` (backend'in yayın adresi; backend'de `FRONTEND_ORIGIN` sitenin adresiyle ayarlı olmalı; boşsa: geliştirmede mock, yayın derlemesinde "servis bağlı değil" bilgisi). `NEXT_PUBLIC_` değişkenleri derleme sırasında koda gömülür; Vercel'de değiştirince yeniden dağıtım gerekir.
 2. Backend'in cevabı beklenenden farklıysa yalnızca `lib/api/contract.ts` ve `lib/api/adapter.ts` değişir; bileşenlere dokunulmaz.
 3. Sözleşmenin tamamı ve backend sahibine sorular: **[docs/API_CONTRACT.md](docs/API_CONTRACT.md)**.
+4. Güvenlik, gizlilik ve yayına hazırlık denetimi: **[docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)**.
 
 `confidence` (0-1 arası) gelirse sonuçta "Modelin güven puanı: %91" olarak, doğruluk olasılığı olmadığı notuyla gösterilir; gelmezse hiçbir şey gösterilmez. Kanıt başına `score` gösterilmez.
 

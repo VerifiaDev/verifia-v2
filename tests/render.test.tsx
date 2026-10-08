@@ -242,6 +242,14 @@ describe("VerificationInput örnekleri", () => {
     assert.ok(html.includes("En fazla 10.000 karakter."));
     assert.ok(!html.includes("→"));
   });
+  it("metnin dış servislere gittiğini söyler ve kişisel bilgi yapıştırılmamasını ister (alanın açıklamasına bağlı)", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
+    const hint = html.match(/<p id="([^"]+)" class="field-hint">([\s\S]*?)<\/p>/);
+    assert.ok(hint, "ipucu paragrafı bulunamadı");
+    assert.ok(hint[2].includes("dış servislere gönderilir"));
+    assert.ok(hint[2].includes("kişisel bilgi"));
+    assert.match(html, new RegExp(`<textarea[^>]*aria-describedby="${hint[1]}"`));
+  });
   it("girdi türü grubunu tek kez adlandırır (fieldset + legend; ikinci bir radiogroup etiketi yok)", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
     assert.equal((html.match(/Girdi türü/g) ?? []).length, 1);
