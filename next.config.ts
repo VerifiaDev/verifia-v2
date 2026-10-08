@@ -51,11 +51,31 @@ const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
+/**
+ * Sitenin backend'in CORS izni olan ASIL adresi ve oraya yönlendirilen diğer adresler.
+ *
+ * Neden: backend yalnızca izin verdiği kökenden gelen isteklere yanıt verir (backend/main.py, `allowed_origins`;
+ * şu an yalnızca verify-test-swart.vercel.app). Site Vercel'in başka bir adresinden (ör. verify-test-efee2.vercel.app)
+ * açılırsa tarayıcı her isteği engeller ve kullanıcı "Sunucuya ulaşılamadı" görür. Bu adresler asıl adrese yönlendirilir.
+ * Alan adı alınınca: alan adı backend'in `FRONTEND_ORIGIN` ayarına eklenmeli, sonra burası güncellenmeli.
+ */
+export const CANONICAL_HOST = "verify-test-swart.vercel.app";
+export const REDIRECT_HOSTS = ["verify-test-efee2.vercel.app"];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
+  },
+  async redirects() {
+    // Geçici (307): alan adı alındığında asıl adres değişecek; tarayıcılar kalıcı olarak önbelleğe almasın.
+    return REDIRECT_HOSTS.map((host) => ({
+      source: "/:path*",
+      has: [{ type: "host" as const, value: host }],
+      destination: `https://${CANONICAL_HOST}/:path*`,
+      permanent: false,
+    }));
   },
 };
 

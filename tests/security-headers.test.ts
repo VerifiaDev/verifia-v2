@@ -33,3 +33,18 @@ describe("güvenlik başlıkları", () => {
     assert.equal(directive("default-src"), "default-src 'self'");
   });
 });
+
+describe("adres yönlendirmesi (backend CORS yalnızca asıl adrese izin verir)", () => {
+  it("izinsiz Vercel adresi asıl adrese geçici olarak yönlendirilir; asıl adres yönlendirilmez", async () => {
+    const mod = await import("../next.config");
+    const rules = await mod.default.redirects!();
+    assert.ok(rules.length >= 1);
+    for (const r of rules) {
+      const host = (r.has?.[0] as { value?: string } | undefined)?.value;
+      assert.notEqual(host, mod.CANONICAL_HOST);
+      assert.equal(r.destination, `https://${mod.CANONICAL_HOST}/:path*`);
+      assert.equal(r.permanent, false);
+    }
+    assert.ok(rules.some((r) => (r.has?.[0] as { value?: string } | undefined)?.value === "verify-test-efee2.vercel.app"));
+  });
+});
