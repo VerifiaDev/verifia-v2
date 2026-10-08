@@ -60,6 +60,7 @@ export function VerificationInput({
   const fieldId = `${uid}-field`;
   const hintId = `${uid}-hint`;
   const errId = `${uid}-err`;
+  const privacyId = `${uid}-privacy`;
 
   function submit(m: InputMode, v: string) {
     if (disabled || unavailable || busy || readOnly) return;
@@ -107,7 +108,7 @@ export function VerificationInput({
 
   const isText = mode === "text";
   const length = value.trim().length;
-  const describedBy = [hintId, error ? errId : null, noticeId].filter(Boolean).join(" ");
+  const describedBy = [hintId, privacyId, error ? errId : null, noticeId].filter(Boolean).join(" ");
   const countState = length > MAX_INPUT_LENGTH ? "over" : length >= MAX_INPUT_LENGTH * NEAR_LIMIT ? "near" : "ok";
   const limit = MAX_INPUT_LENGTH.toLocaleString("tr-TR");
 
@@ -224,8 +225,12 @@ export function VerificationInput({
           {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
         </button>
       </div>}
-      <p className="form-privacy t-meta muted">
-        {!unavailable && !localOnly && "İncelemeyi başlattığınızda içerik inceleme servisine gönderilir. "}
+      {/* Gizlilik: içerik backend üzerinden dil modeli ve web araması servislerine gider (backend/main.py).
+          Metin alanının açıklamasına bağlıdır (aria-describedby), ekran okuyucu da duyurur. */}
+      <p id={privacyId} className="form-privacy t-meta muted">
+        {!unavailable &&
+          !localOnly &&
+          "İncelemeyi başlattığınızda içerik, inceleme servisine ve onun kullandığı yapay zekâ ile web araması servislerine gönderilir; kişisel bilgi (ad, telefon, adres, kimlik numarası) eklemeyin. "}
         Sayfa yenilenince metin ve sonuçlar kaybolur. <a href="#gizlilik">Veri kullanımı</a>
       </p>
 

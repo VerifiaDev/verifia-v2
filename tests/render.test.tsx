@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AnalysisProgress } from "@/components/AnalysisProgress";
+import { AnalysisProgress, maxWaitLabel } from "@/components/AnalysisProgress";
 import { Brand } from "@/components/Brand";
 import { ClaimItem } from "@/components/ClaimItem";
 import { ErrorState } from "@/components/ErrorState";
@@ -239,9 +239,18 @@ describe("VerificationInput örnekleri", () => {
   });
   it("sayaç sınırı görünür biçimde taşır; düğme metninde ok işareti yoktur", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
-    assert.match(html, /class="field-count tnum" data-state="ok"[^>]*>0 \/ 5\.000</);
-    assert.ok(html.includes("En fazla 5.000 karakter."));
+    assert.match(html, /class="field-count tnum" data-state="ok"[^>]*>0 \/ 3\.000</);
+    assert.ok(html.includes("En fazla 3.000 karakter."));
     assert.ok(!html.includes("→"));
+  });
+  it("içeriğin dış servislere gittiğini söyler ve kişisel bilgi yapıştırılmamasını ister (alanın açıklamasına bağlı)", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
+    const note = html.match(/<p id="([^"]+)" class="form-privacy[^"]*">([\s\S]*?)<\/p>/);
+    assert.ok(note, "gizlilik notu bulunamadı");
+    assert.ok(note[2].includes("yapay zekâ ile web araması servislerine gönderilir"));
+    assert.ok(note[2].includes("kişisel bilgi"));
+    const described = html.match(/<textarea[^>]*aria-describedby="([^"]+)"/)?.[1].split(" ") ?? [];
+    assert.ok(described.includes(note[1]), "not, metin alanının açıklamasına bağlı değil");
   });
   it("girdi türü grubunu tek kez adlandırır (fieldset + legend; ikinci bir radiogroup etiketi yok)", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
@@ -324,9 +333,13 @@ describe("ErrorState ve AnalysisProgress", () => {
     const staged = renderToStaticMarkup(<AnalysisProgress phase="retrieving_evidence" onCancel={() => {}} />);
     assert.match(staged, /<p class="sr-only" role="status">Kaynaklar aranıyor \(adım 2 \/ 3\)<\/p>/);
   });
-  it("bekleme metni belirsiz bir süre vaat etmez", () => {
+  it("bekleme metni belirsiz bir süre vaat etmez; yalnızca arayüzün kesin üst sınırını söyler", () => {
     const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
-    assert.ok(!/dakika|saniye/.test(html));
+    assert.ok(!/birkaç|yaklaşık|genellikle|saniye/.test(html));
+    assert.equal((html.match(/dakika/g) ?? []).length, 1);
+    assert.ok(html.includes("en geç 2,5 dakika sonra"));
+    assert.equal(maxWaitLabel(150_000), "2,5 dakika");
+    assert.equal(maxWaitLabel(60_000), "1 dakika");
   });
 });
 

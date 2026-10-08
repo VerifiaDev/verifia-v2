@@ -1,7 +1,8 @@
 # API sözleşmesi (frontend'in anladığı hâli)
 
-> **Durum: kısmen teyitli.** Yol ve cevabın genel şekli backend'den (`backend/main.py`, 2 Ekim) alındı.
-> Aşağıda "teyit edilmemiş" diye işaretlenen her şey frontend'in varsayımıdır; backend sahibi doğrulayana kadar öyle kalır.
+> **Durum: büyük ölçüde teyitli.** Yol, istek, cevap, hata gövdesi, metin sınırı ve CORS listesi backend koddan okundu
+> (`MertBulut11/verify`, `backend/main.py`, `87ec895`, 8 Ekim). Kod okumaktır; canlı bir backend ile deneme değildir.
+> "Teyit edilmemiş" diye işaretlenen her şey hâlâ frontend'in varsayımıdır.
 > Kodda karşılığı: `lib/api/contract.ts` (şekiller), `lib/api/adapter.ts` (çeviri), `lib/api/http.ts` (istek).
 
 ## İstek
@@ -12,24 +13,36 @@
 { "text": "İncelenecek metin" }
 ```
 
+- Backend: `text` zorunlu, 1–10 000 karakter (`VerifyRequest`); boşluklar kırpılınca boşsa `400 EMPTY_TEXT`.
+- Arayüz bilerek **3.000 karakterle** sınırlar (`MAX_INPUT_LENGTH`): uzun metin daha çok iddia, bekleme ve kota demek.
 - Frontend yalnızca `text` gönderir. Adresin sonundaki `/` atılır.
 - **Bağlantı (URL) ile inceleme backend'de yok.** Arayüzdeki "Bağlantı" sekmesi gerçek servise istek göndermez;
   kullanıcıya "bağlantıyla inceleme henüz desteklenmiyor" hatası (`URL_UNSUPPORTED`, arayüzün kendi kodu) gösterilir.
   Eski öneri `input_type: "text" | "url"` alanıydı; backend bunu kabul edene kadar gönderilmez.
 
+### Ön denetim: `GET /health`
+
+Frontend her incelemeden önce `GET {BASE}/health` çağırır ve en fazla 60 saniye bekler (`HEALTH_TIMEOUT_MS`).
+Yanıt gelmezse inceleme isteği **gönderilmez** ve kullanıcıya `SERVER_BUSY` ("Sunucu şu an yanıt vermiyor") gösterilir.
+Sebep: backend bir incelemeyi işlerken başka isteklere yanıt vermeyebiliyor; kilitli sunucuya ikinci bir pahalı istek
+göndermek kotayı boşa harcar (bkz. docs/SECURITY_AUDIT.md, K2). Herhangi bir HTTP yanıtı (404 dahil) gelirse inceleme gönderilir.
+
 ## Başarılı cevap (HTTP 200)
 
-Backend'in bildirdiği şekil:
+Backend'in (koddan okunan) şekli:
 
 ```json
-{ "results": [ {
+{ "status": "ok", "results": [ {
     "claim_id": "…", "claim": "…", "is_verifiable": true, "verdict": "SUPPORTED",
-    "explanation": "…", "used_sources": [ … ],
-    "sources": [ { "id": "source_1", "url": "https://…", "text": "…" } ]
+    "explanation": "…", "used_sources": ["source_1"],
+    "sources": [ { "id": "source_1", "title": "…", "site_name": "…", "domain": "…", "url": "https://…",
+                   "published_date": null, "retrieval_score": 0.8, "text": "…" } ]
 } ] }
 ```
 
-Güven puanı, kaynak adı ve yayın tarihi bu cevapta yoktur; arayüz bunları göstermez ve uydurmaz.
+Doğrulanamayan iddiada `is_verifiable: false`, `verdict: null`, `explanation: null`, `sources: []` gelir.
+Güven puanı yoktur; arayüz uydurmaz. `title` yoksa backend "Kaynak" yazar; arayüz bu yedek etiketi ad olarak göstermez.
+Başlık alan adıyla aynıysa da gösterilmez (alan adı zaten ayrı satırdadır). `retrieval_score` ve `used_sources` okunmaz.
 
 Adapter ayrıca iki eski biçimi de kabul eder (mock bunları kullanır): `{ "claims": [ … ] }` ve tek iddialı
 `{ "claim", "verdict", "explanation", "confidence", "evidence": [ … ] }`.
@@ -42,9 +55,9 @@ Adapter ayrıca iki eski biçimi de kabul eder (mock bunları kullanır): `{ "cl
 | `explanation` | hayır | Köşeli parantezli atıflar (`[source_1]`) kaynak listesindeki `id` ile eşleşirse numaralı bağlantıya çevrilir. Eşleşmeyen atıf düz metin kalır |
 | `sources` ya da `evidence` | hayır | Kaynak listesi. Boşsa "Kaynak bulunamadı" gösterilir |
 | `sources[].url` | evet | Yoksa o kaynak atılır. `http`/`https` dışındaki adresler tıklanabilir yapılmaz |
-| `sources[].source` / `title` / `name` | hayır | Kaynak adı; yoksa alan adı gösterilir |
+| `sources[].title` (ya da `source` / `name`) | hayır | Kaynak adı olarak sayfa başlığı; yoksa alan adı gösterilir |
 | `sources[].text` | hayır | Kısa alıntı (360 karakterden uzunsa kesilir) |
-| `sources[].published_at` | hayır | ISO tarih; yoksa tarih gösterilmez. Kaynak adı da yoksa satır tek sütun olur |
+| `sources[].published_date` (ya da `published_at`) | hayır | Biçimi koddan belli değil; tarih olarak okunamıyorsa gösterilmez; yoksa tarih gösterilmez. Kaynak adı da yoksa satır tek sütun olur |
 | `confidence` | hayır | 0 ile 1 arası sayı. "Modelin güven puanı: %91" diye, doğruluk olasılığı olmadığı notuyla gösterilir. Yoksa ya da 0-1 dışındaysa hiçbir şey gösterilmez |
 | `used_sources` | hayır | **Şu an okunmuyor** (aşağıdaki soru 3) |
 | `sources[].score` | hayır | Gösterilmez |
@@ -53,16 +66,33 @@ Açıklamada hiç atıf yoksa arayüz kaynaklara "dayandığımız kanıtlar" de
 
 ## Hata cevabı (HTTP 4xx / 5xx)
 
-Backend şu an bir hata gövdesi tanımlamıyor. Arayüz iki adımda karar verir:
+Backend (koddan okundu): `{ "status": "error", "error": "<KOD>", "message": "<Türkçe metin>" }`
 
-1. Gövde `{ "error": { "code": "…" } }` ise ve kod tanınıyorsa o kullanılır:
-   `INVALID_INPUT`, `INPUT_TOO_LONG`, `URL_UNREADABLE`, `IMAGE_UNREADABLE`, `TIMEOUT`, `NETWORK`, `INTERNAL_ERROR`.
-2. Değilse HTTP durum kodunun standart anlamına bakılır:
-   `400`/`422` → `INVALID_INPUT`, `413` → `INPUT_TOO_LONG`, `408`/`504` → `TIMEOUT`, `429` → `RATE_LIMITED`, diğerleri → `INTERNAL_ERROR`.
+| HTTP | `error` | Arayüzde |
+|---|---|---|
+| 422 | `VALIDATION_ERROR` | `INVALID_INPUT` (boş, eksik ya da 10 000 karakterden uzun; backend bunları ayırmaz) |
+| 400 | `EMPTY_TEXT` | `INVALID_INPUT` |
+| 500 | `VERIFY_FAILED` | `INTERNAL_ERROR` |
 
+Backend henüz göndermeyen ama `docs/BACKEND_TODO.md`'de önerilen kodlar da şimdiden tanınır:
+`TEXT_TOO_LONG` → `INPUT_TOO_LONG`, `RATE_LIMITED` → `RATE_LIMITED`, `BUSY` → `SERVER_BUSY`,
+`DAILY_QUOTA_EXCEEDED` → `QUOTA_EXCEEDED`, `UPSTREAM_UNAVAILABLE` → `SERVICE_UNAVAILABLE`.
+Gövdede kod yoksa durum koduna bakılır: `429` → `RATE_LIMITED`, `502`/`503` → `SERVICE_UNAVAILABLE`.
+
+Tanınmayan gövde için eski şekil (`{ "error": { "code" } }`) ve HTTP durum kodunun standart anlamı yedek olarak kalır
+(`413` → `INPUT_TOO_LONG`, `408`/`504` → `TIMEOUT`, diğerleri → `INTERNAL_ERROR`).
 Her kod için kullanıcıya "ne oldu / ne yapabilirsiniz" metni gösterilir (`lib/format.ts`). Sunucunun `message` metni gösterilmez.
 İstek hiç ulaşmazsa (ağ, CORS) `NETWORK` gösterilir; tarayıcı bu ikisini ayırt etmeye izin vermez.
-Tarayıcı çevrimdışı olduğunu bildiriyorsa aynı durum `OFFLINE` ("internet bağlantısı yok") olarak gösterilir. `OFFLINE` ve `URL_UNSUPPORTED` arayüzün kendi kodlarıdır; backend bunları göndermez.
+Tarayıcı çevrimdışı olduğunu bildiriyorsa `OFFLINE` gösterilir. `OFFLINE`, `URL_UNSUPPORTED` ve `SERVER_BUSY` arayüzün kendi kodlarıdır.
+
+**Önemli:** backend tek iddia bile hata verirse (arama ya da model) bütün isteği `500 VERIFY_FAILED` ile bitirir;
+kısmi sonuç döndürmez. İddialar sırayla işlenir, süre iddia sayısıyla artar.
+
+## CORS (koddan okundu)
+
+İzinli kökenler: `https://verify-test-swart.vercel.app`, `http://localhost:3000`, `http://localhost:5173`, ayrıca
+`FRONTEND_ORIGIN` ortam değişkeni. Vercel'in diğer adresi (`verify-test-efee2.vercel.app`) ya da alınacak alan adı için
+backend'de `FRONTEND_ORIGIN` ayarlanmalıdır; yoksa tarayıcı isteği engeller ve arayüz "Sunucuya ulaşılamadı" gösterir.
 
 ## Süre ve aşamalar
 
@@ -73,23 +103,25 @@ Tarayıcı çevrimdışı olduğunu bildiriyorsa aynı durum `OFFLINE` ("interne
 
 | Varsayım | Kodda | Yanlışsa ne olur |
 |---|---|---|
-| Metin sınırı 5.000 karakter | `lib/config.ts` → `MAX_INPUT_LENGTH` | Sınır daha yüksekse kullanıcı gereksiz engellenir; daha düşükse backend hatası gösterilir |
-| İstek en fazla 90 saniye sürer | `lib/config.ts` → `REQUEST_TIMEOUT_MS` | Daha uzun süren incelemeler "zaman aşımı" olarak görünür |
-| Atıflar `[source_1]` biçiminde ve `sources[].id` ile aynı | `lib/citations.ts` | Atıflar bağlantıya çevrilmez; kaynaklar "Bulunan kaynaklar" olarak listelenir |
-| Doğrulama hatası `400`/`422`, aşırı uzun girdi `413` döner | `lib/api/http.ts` | Yanlış hata metni gösterilir |
-| Backend, sitenin adresine CORS izni verir (`POST`, `Content-Type`) | — | Her istek "Sunucuya ulaşılamadı" olarak görünür |
+| İstek en fazla 90 saniye sürer (backend süre sınırı koymuyor; iddialar sırayla işleniyor) | `lib/config.ts` → `REQUEST_TIMEOUT_MS` | Daha uzun süren incelemeler "zaman aşımı" olarak görünür |
+| Atıflar `[source_1]` biçiminde (kodda istem `[kaynak_id]` der, kimlikler `source_N`) | `lib/citations.ts` | Model başka biçim yazarsa atıf bağlantıya çevrilmez; kaynaklar "Bulunan kaynaklar" olarak listelenir |
+| `published_date` biçimi | `lib/format.ts` | Okunamayan tarih gösterilmez |
+| Backend'in yayınlandığı adres | `NEXT_PUBLIC_API_BASE_URL` | Ayarlanmazsa yayında "servis bağlı değil" gösterilir |
+
+Teyit edilenler (koddan): `POST /verify`, `{text}`, 10 000 karakter, URL desteği yok, `results` şekli, hata gövdesi, CORS listesi.
 
 ## Backend sahibine sorular
 
-1. Bağlantı (URL) ile inceleme gelecek mi? Gelecekse istek şekli ne olacak (`input_type` mı, ayrı yol mu)?
-2. Metin sınırı ve en uzun yanıt süresi nedir?
-3. `used_sources` tam olarak neyi gösterir (açıklamada kullanılan kaynak kimlikleri mi) ve değerleri `sources[].id` ile aynı mı?
-4. Açıklamadaki atıfların biçimi nedir?
-5. Hata durumunda hangi durum kodları ve gövde döner? Yukarıdaki `{ "error": { "code" } }` şekli uygun mu?
-6. Kaynak adı, yayın tarihi ve güven puanı eklenecek mi?
-7. Hangi adreslere CORS izni verilecek?
-8. Bir iddianın incelemesi başarısız olursa backend ne döner (iddia listeden çıkar mı, ayrı bir alanla mı bildirilir)? Arayüz şu an yalnızca tanımadığı `verdict` değerini "sonucu gösterilemeyen iddia" olarak ayırır.
-9. İstek sınırı (rate limit) olacak mı? Olacaksa `429` ile mi bildirilecek? Arayüz `429` için ayrı bir kullanım sınırı mesajı gösterir. Bekleme süresi kesinleşmediği için geri sayım gösterilmez.
+1. Bağlantı (URL) ile inceleme gelecek mi? Gelecekse istek şekli ne olacak?
+2. En uzun yanıt süresi nedir? İddialar paralel işlenecek mi? (Şimdi sırayla; çok iddialı metin uzun sürer.)
+3. Tek iddia başarısız olursa bütün istek yerine yalnızca o iddia hata olarak dönebilir mi?
+4. `422 VALIDATION_ERROR` boş/eksik ve aşırı uzun metni ayırt etmiyor; ayrı kodlar eklenebilir mi (`TEXT_TOO_LONG`)?
+5. `published_date` hangi biçimde (ISO 8601 mi)?
+6. Alan adı ve `FRONTEND_ORIGIN`: yayın adresi netleşince CORS'a eklenecek mi?
+7. İstek sınırı (rate limit) olacak mı? Olacaksa `429` ile mi bildirilecek? Arayüz `429` için ayrı bir kullanım sınırı mesajı gösterir; bekleme süresi kesinleşmediği için geri sayım gösterilmez.
+8. Backend'in yayın adresi nedir ve `/health` herkese açık mı?
+9. `used_sources` tam olarak neyi gösterir ve değerleri `sources[].id` ile aynı mı? Anlam kesinleşmeden kaynak ilişkileri bundan tahmin edilmez.
+10. Kaynak rolü (`relation`), kaynak türü ve rapor alanları (`report`) eklenecek mi? (Aşağıdaki bölüm.)
 
 ## UI/UX iyileştirmesi — 8 Ekim 2026
 

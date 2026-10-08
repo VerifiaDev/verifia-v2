@@ -1,7 +1,7 @@
 /**
  * Backend (FastAPI) ile arayüz arasındaki HAM sözleşme. Telde giden şekil budur.
  *
- * DURUM: Kısmen teyitli. Yol ve `results` şekli backend'den alındı; gerisi "bizim anlayışımız"dır.
+ * DURUM: Büyük ölçüde teyitli (backend/main.py, MertBulut11/verify 87ec895). Teyitsiz kalanlar docs/API_CONTRACT.md'de.
  * Backend değişirse yalnızca bu dosya ve `adapter.ts` güncellenir; arayüze dokunulmaz.
  * Ayrıntılı açıklama: docs/API_CONTRACT.md
  */
@@ -32,6 +32,11 @@ export interface RawEvidence {
   score?: number;
   /** ISO tarih */
   published_at?: string | null;
+  /** Gerçek backend: yayın tarihi (biçimi teyitsiz; geçersizse gösterilmez), alan adı ve arama puanı (okunmaz). */
+  published_date?: string | null;
+  site_name?: string | null;
+  domain?: string | null;
+  retrieval_score?: number | null;
 }
 
 export interface RawClaim {
@@ -44,7 +49,7 @@ export interface RawClaim {
   claim?: string;
   text?: string;
   /** SUPPORTED | REFUTED | CONFLICTING(_EVIDENCE) | NOT ENOUGH EVIDENCE (yazım farkları adapter'da toparlanır) */
-  verdict?: string;
+  verdict?: string | null;
   /** İçinde [kaynak_1] gibi atıflar olabilir */
   explanation?: string;
   /** 0 ile 1 arası. Arayüz "modelin güven puanı" olarak gösterir; yoksa hiçbir şey göstermez. */
@@ -67,6 +72,6 @@ export interface RawReport {
 export type RawCheckResponse = { results: RawClaim[]; report?: RawReport } | { claims: RawClaim[]; report?: RawReport } | RawClaim;
 
 /** Hata cevabının gövdesi (HTTP 4xx/5xx). */
-export interface RawErrorBody {
-  error: { code: string; message: string };
-}
+export type RawErrorBody =
+  | { status: "error"; error: string; message: string } // gerçek backend
+  | { error: { code: string; message: string } };

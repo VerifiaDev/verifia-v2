@@ -20,6 +20,12 @@ export type ErrorCode =
   | "NETWORK"
   /** Tarayıcı çevrimdışı olduğunu bildiriyor (arayüzün kendi kodu; istek hiç gönderilemedi). */
   | "OFFLINE"
+  /** Sunucu sağlık denetimine süresinde yanıt vermedi; inceleme isteği hiç gönderilmedi (arayüzün kendi kodu). */
+  | "SERVER_BUSY"
+  /** Günlük toplam inceleme sınırı doldu. */
+  | "QUOTA_EXCEEDED"
+  /** Arama ya da yapay zekâ servisi geçici olarak kullanılamıyor (HTTP 502/503). */
+  | "SERVICE_UNAVAILABLE"
   | "INTERNAL_ERROR";
 
 export interface Source {

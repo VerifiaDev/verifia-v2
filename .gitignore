@@ -2,6 +2,9 @@ node_modules
 .next
 out
 next-env.d.ts
-.env*.local
+# Ortam değişkenleri: yalnızca örnek dosya depoya girer.
+.env
+.env.*
+!.env.example
 *.tsbuildinfo
 .DS_Store
