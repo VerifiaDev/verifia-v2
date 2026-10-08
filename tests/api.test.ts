@@ -70,6 +70,12 @@ describe("checkInput (gerçek API yolu)", () => {
       [422, "VALIDATION_ERROR", "INVALID_INPUT"],
       [400, "EMPTY_TEXT", "INVALID_INPUT"],
       [500, "VERIFY_FAILED", "INTERNAL_ERROR"],
+      // docs/BACKEND_TODO.md'de önerilen kodlar
+      [413, "TEXT_TOO_LONG", "INPUT_TOO_LONG"],
+      [429, "RATE_LIMITED", "RATE_LIMITED"],
+      [429, "BUSY", "SERVER_BUSY"],
+      [429, "DAILY_QUOTA_EXCEEDED", "QUOTA_EXCEEDED"],
+      [503, "UPSTREAM_UNAVAILABLE", "SERVICE_UNAVAILABLE"],
     ];
     for (const [status, error, expected] of cases) {
       globalThis.fetch = (async () => json(status, { status: "error", error, message: "x" })) as typeof fetch;
@@ -92,7 +98,10 @@ describe("checkInput (gerçek API yolu)", () => {
       [413, null, "INPUT_TOO_LONG"],
       [504, null, "TIMEOUT"],
       [408, null, "TIMEOUT"],
-      [503, null, "INTERNAL_ERROR"],
+      [503, null, "SERVICE_UNAVAILABLE"],
+      [502, null, "SERVICE_UNAVAILABLE"],
+      [429, { detail: "Too Many Requests" }, "RATE_LIMITED"],
+      [500, null, "INTERNAL_ERROR"],
       [404, { detail: "Not Found" }, "INTERNAL_ERROR"],
     ];
     for (const [status, body, expected] of cases) {

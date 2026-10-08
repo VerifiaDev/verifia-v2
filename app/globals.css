@@ -734,8 +734,13 @@ textarea.field {
   line-height: var(--lh-small);
 }
 .field-hint,
-.field-count {
+.field-count,
+.field-note {
   color: var(--ink-2);
+}
+.field-note {
+  grid-column: 1 / -1;
+  max-width: var(--measure);
 }
 .field-count {
   text-align: right;

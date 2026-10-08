@@ -14,6 +14,7 @@
 ```
 
 - Backend: `text` zorunlu, 1–10 000 karakter (`VerifyRequest`); boşluklar kırpılınca boşsa `400 EMPTY_TEXT`.
+- Arayüz bilerek **3.000 karakterle** sınırlar (`MAX_INPUT_LENGTH`): uzun metin daha çok iddia, bekleme ve kota demek.
 - Frontend yalnızca `text` gönderir. Adresin sonundaki `/` atılır.
 - **Bağlantı (URL) ile inceleme backend'de yok.** Arayüzdeki "Bağlantı" sekmesi gerçek servise istek göndermez;
   kullanıcıya "bağlantıyla inceleme henüz desteklenmiyor" hatası (`URL_UNSUPPORTED`, arayüzün kendi kodu) gösterilir.
@@ -72,6 +73,11 @@ Backend (koddan okundu): `{ "status": "error", "error": "<KOD>", "message": "<T�
 | 422 | `VALIDATION_ERROR` | `INVALID_INPUT` (boş, eksik ya da 10 000 karakterden uzun; backend bunları ayırmaz) |
 | 400 | `EMPTY_TEXT` | `INVALID_INPUT` |
 | 500 | `VERIFY_FAILED` | `INTERNAL_ERROR` |
+
+Backend henüz göndermeyen ama `docs/BACKEND_TODO.md`'de önerilen kodlar da şimdiden tanınır:
+`TEXT_TOO_LONG` → `INPUT_TOO_LONG`, `RATE_LIMITED` → `RATE_LIMITED`, `BUSY` → `SERVER_BUSY`,
+`DAILY_QUOTA_EXCEEDED` → `QUOTA_EXCEEDED`, `UPSTREAM_UNAVAILABLE` → `SERVICE_UNAVAILABLE`.
+Gövdede kod yoksa durum koduna bakılır: `429` → `RATE_LIMITED`, `502`/`503` → `SERVICE_UNAVAILABLE`.
 
 Tanınmayan gövde için eski şekil (`{ "error": { "code" } }`) ve HTTP durum kodunun standart anlamı yedek olarak kalır
 (`413` → `INPUT_TOO_LONG`, `408`/`504` → `TIMEOUT`, diğerleri → `INTERNAL_ERROR`).

@@ -21,6 +21,12 @@ export type ErrorCode =
   | "OFFLINE"
   /** Sunucu sağlık denetimine süresinde yanıt vermedi; inceleme isteği hiç gönderilmedi (arayüzün kendi kodu). */
   | "SERVER_BUSY"
+  /** Sunucu istek sınırına takıldık (HTTP 429). */
+  | "RATE_LIMITED"
+  /** Günlük toplam inceleme sınırı doldu. */
+  | "QUOTA_EXCEEDED"
+  /** Arama ya da yapay zekâ servisi geçici olarak kullanılamıyor (HTTP 502/503). */
+  | "SERVICE_UNAVAILABLE"
   | "INTERNAL_ERROR";
 
 export interface Source {

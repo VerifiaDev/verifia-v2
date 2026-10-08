@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { BusyPhase } from "@/hooks/useAnalysis";
+import { HEALTH_TIMEOUT_MS, REQUEST_TIMEOUT_MS } from "@/lib/config";
 
 interface Props {
   onCancel: () => void;
@@ -23,6 +24,15 @@ const STEPS = ["İddialar çıkarılıyor", "Kaynaklar aranıyor", "Kanıtlar ka
 
 /** Bu kadar saniyeden sonra "hâlâ sürüyor, vazgeçebilirsiniz" notu eklenir. */
 const LONG_WAIT_SECONDS = 30;
+
+/**
+ * Arayüzün en fazla bekleyeceği süre (sunucu denetimi + inceleme). Bir vaat değil, üst sınırdır:
+ * bu süre dolarsa kullanıcıya zaman aşımı söylenir. 150 sn → "2,5 dakika".
+ */
+export function maxWaitLabel(ms: number = HEALTH_TIMEOUT_MS + REQUEST_TIMEOUT_MS): string {
+  const minutes = Math.round((ms / 60_000) * 2) / 2;
+  return `${String(minutes).replace(".", ",")} dakika`;
+}
 
 /** 75 → "1:15". Sözcük kullanılmaz: süre vaat etmez, yalnızca sayar. */
 function clock(seconds: number): string {
@@ -57,7 +67,10 @@ export function AnalysisProgress({ onCancel, phase }: Props) {
       <h2 ref={headingRef} tabIndex={-1} className="t-h3 focus-target">
         İçerik inceleniyor
       </h2>
-      <p>Bu işlem iddia sayısına göre zaman alabilir. Sayfayı kapatmadan bekleyin.</p>
+      <p>
+        Bu işlem iddia sayısına göre zaman alabilir. Sunucu bir süredir kullanılmadıysa önce açılması gerekir. Yanıt
+        gelmezse en geç {maxWaitLabel()} sonra bunu bildiririz; sayfayı kapatmadan bekleyin.
+      </p>
       {activeStep !== undefined && (
         <ol className="progress-steps">
           {STEPS.map((s, i) => (

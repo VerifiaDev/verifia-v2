@@ -96,7 +96,25 @@ export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: 
   },
   SERVER_BUSY: {
     title: "Sunucu şu an yanıt vermiyor",
-    what: "İnceleme sunucusu başka bir incelemeyle meşgul ya da yeniden başlıyor olabilir. İçeriğiniz gönderilmedi; yazdığınız metin yerinde duruyor.",
+    what: "İnceleme sunucusu başka bir incelemeyle meşgul ya da yeniden başlıyor olabilir. İçeriğiniz incelenmedi; yazdığınız metin yerinde duruyor.",
+    todo: ["Birkaç dakika sonra yeniden deneyin."],
+    retry: true,
+  },
+  RATE_LIMITED: {
+    title: "Çok fazla istek gönderildi",
+    what: "Kısa sürede çok sayıda inceleme başlatıldı; istek sayısı sınırlıdır. İçeriğiniz incelenmedi; yazdığınız metin yerinde duruyor.",
+    todo: ["Birkaç dakika bekleyip yeniden deneyin."],
+    retry: true,
+  },
+  QUOTA_EXCEEDED: {
+    title: "Bugünkü inceleme sınırı doldu",
+    what: "Sistemin günlük toplam inceleme sınırına ulaşıldı. İçeriğiniz incelenmedi.",
+    todo: ["Yarın yeniden deneyin."],
+    retry: false,
+  },
+  SERVICE_UNAVAILABLE: {
+    title: "İnceleme servisi geçici olarak kullanılamıyor",
+    what: "Arama ya da yapay zekâ servislerinden biri şu an yanıt vermiyor. Bu, girdinizden kaynaklanan bir sorun değil.",
     todo: ["Birkaç dakika sonra yeniden deneyin."],
     retry: true,
   },

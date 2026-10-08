@@ -57,6 +57,7 @@ export function VerificationInput({
   const fieldId = `${uid}-field`;
   const hintId = `${uid}-hint`;
   const errId = `${uid}-err`;
+  const privacyId = `${uid}-privacy`;
 
   function submit(m: InputMode, v: string) {
     if (disabled || busy || readOnly) return;
@@ -104,7 +105,7 @@ export function VerificationInput({
 
   const isText = mode === "text";
   const length = value.trim().length;
-  const describedBy = [hintId, error ? errId : null, noticeId].filter(Boolean).join(" ");
+  const describedBy = [hintId, privacyId, error ? errId : null, noticeId].filter(Boolean).join(" ");
   const countState = length > MAX_INPUT_LENGTH ? "over" : length >= MAX_INPUT_LENGTH * NEAR_LIMIT ? "near" : "ok";
   const limit = MAX_INPUT_LENGTH.toLocaleString("tr-TR");
 
@@ -191,7 +192,7 @@ export function VerificationInput({
       <div className="field-foot">
         <p id={hintId} className="field-hint">
           {isText
-            ? "İddialar ayrı ayrı incelenir. Metin, incelenmek için sunucumuza ve yapay zekâ ile web araması yapan dış servislere gönderilir; kişisel bilgi (ad, telefon, adres, kimlik numarası) içeren metin yapıştırmayın."
+            ? "İddialar ayrı ayrı incelenir."
             : "Haberin tam adresini girin. Sayfa açılamazsa metni kopyalayıp “Metin” sekmesinden gönderebilirsiniz."}
           {/* Sınır görünür sayaçta yazar; ekran okuyucu için ipucunun parçası olarak da okunur. */}
           {isText && <span className="sr-only"> En fazla {limit} karakter.</span>}
@@ -201,6 +202,12 @@ export function VerificationInput({
             {length.toLocaleString("tr-TR")} / {limit}
           </p>
         )}
+        {/* Gizlilik: gönderilen içerik backend üzerinden dil modeli ve web araması servislerine gider
+            (backend/main.py). Sayaçla aynı satıra sıkışmasın diye tam genişlikte, ayrı satırdadır. */}
+        <p id={privacyId} className="field-note">
+          Gönderdiğiniz içerik, incelenmek için sunucumuza ve yapay zekâ ile web araması yapan dış servislere iletilir.
+          Kişisel bilgi (ad, telefon, adres, kimlik numarası) içeren metin yapıştırmayın.
+        </p>
         {error && (
           <p id={errId} className="field-error" role="alert">
             {error}

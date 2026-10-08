@@ -14,11 +14,21 @@ const KNOWN_CODES: ErrorCode[] = [
   "INTERNAL_ERROR",
 ];
 
-/** backend/main.py'nin hata kodları. VALIDATION_ERROR hem boş hem 10 000 karakterden uzun metinde döner (ayrılamaz). */
+/**
+ * Backend hata kodları → arayüz kodları.
+ * İlk üçü backend/main.py'de VAR (VALIDATION_ERROR hem boş hem 10.000 karakterden uzun metinde döner).
+ * Diğerleri docs/BACKEND_TODO.md'de ÖNERİLEN kodlardır; backend eklediği gün doğru mesaj gösterilsin diye
+ * şimdiden tanınır. Eklenmezlerse hiçbir etkileri yoktur (durum koduna bakılır).
+ */
 const BACKEND_CODES: Record<string, ErrorCode> = {
   VALIDATION_ERROR: "INVALID_INPUT",
   EMPTY_TEXT: "INVALID_INPUT",
   VERIFY_FAILED: "INTERNAL_ERROR",
+  TEXT_TOO_LONG: "INPUT_TOO_LONG",
+  RATE_LIMITED: "RATE_LIMITED",
+  BUSY: "SERVER_BUSY",
+  DAILY_QUOTA_EXCEEDED: "QUOTA_EXCEEDED",
+  UPSTREAM_UNAVAILABLE: "SERVICE_UNAVAILABLE",
 };
 
 /**
@@ -30,6 +40,8 @@ function codeFromStatus(status: number): ErrorCode {
   if (status === 413) return "INPUT_TOO_LONG";
   if (status === 400 || status === 422) return "INVALID_INPUT";
   if (status === 408 || status === 504) return "TIMEOUT";
+  if (status === 429) return "RATE_LIMITED";
+  if (status === 502 || status === 503) return "SERVICE_UNAVAILABLE";
   return "INTERNAL_ERROR";
 }
 
