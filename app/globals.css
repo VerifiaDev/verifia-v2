@@ -1475,9 +1475,10 @@ a.btn {
     align-items: center;
     min-height: var(--target);
   }
+  /* Atıf [1] dokunmatikte en az 24 px genişlik: yatay dolgu 12 px; negatif kenar boşluğu satır akışını korur. */
   .cite {
-    padding: var(--space-3) var(--space-2);
-    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-1));
+    padding: var(--space-3);
+    margin: calc(-1 * var(--space-3)) calc(-1 * var(--space-2));
   }
   .claim-back {
     padding-block: var(--space-3);
