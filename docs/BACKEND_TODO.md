@@ -2,6 +2,15 @@
 
 Kaynak: kod okuması ve 8 Ekim 2026 canlı testleri. Frontend bu listeyi beklemeden çalışıyor; değişen sözleşme olursa frontend'e haber verilmeli.
 
+## 8 Ekim 22:57 güncellemesi: `retrieval_demo_lite` (fe03519)
+Yeni hafif modül iyi bir adım ama henüz kullanılmıyor: `backend/main.py` hâlâ eski `backend/search_retrieval.py`'yi içe aktarıyor; `Dockerfile` ve `requirements.txt` değişmedi. Lite modülün kendi testleri 4/4 geçti; çıktı biçimi backend ve frontend ile uyumlu.
+- **Çözülen (modül içinde):** Playwright/Chromium, sentence-transformers, CrossEncoder yok. Tavily `basic` + 3 sorgu → iddia başına 3 kredi (eskiden en fazla 10). `print`ler yalnızca debug modunda.
+- **Yapılması gereken:** `main.py` lite modülü kullansın; `requirements.txt`'ten playwright, sentence-transformers, numpy çıksın; `Dockerfile`'dan `playwright install` silinsin.
+- **Kısmen:** sayfa başına 8 sn sınır var ama sayfalar sırayla iniyor (en fazla 8 × 8 sn ≈ 64 sn/iddia). Öneri: 3–4 sayfa, paralel indirme, iddia başına 20 sn tavan.
+- **Aynı kalan:** `_fetch_page` (satır 727-772) özel IP engeli, 2 MB okuma sınırı, 3 yönlendirme sınırı yok.
+- **Yeni risk:** Tavily hatası/kota bitmesi `except Exception: continue` (satır 532) ile yutuluyor → kaynak listesi boş → model "yeterli kanıt yok" diyor. Servis hatası yanlış sonuç gibi görünür. Tüm sorgular başarısızsa hata fırlatılmalı (`UPSTREAM_UNAVAILABLE`, 503).
+- **Değişmeyen:** `main.py` aynı — istek/kota sınırı, CORS, `/docs`, tek iddia hatası, hata kodları açık.
+
 ## Değişmemesi gerekenler (frontend bunlara bağlı)
 - `POST /verify`, gövde `{ "text": "..." }`
 - Yanıt `{ "status": "ok", "results": [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ { id, title, domain, url, published_date, text } ] } ] }`
