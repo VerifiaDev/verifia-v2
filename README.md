@@ -31,6 +31,7 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 2. Backend'in cevabı beklenenden farklıysa yalnızca `lib/api/contract.ts` ve `lib/api/adapter.ts` değişir; bileşenlere dokunulmaz.
 3. Sözleşmenin tamamı ve backend sahibine sorular: **[docs/API_CONTRACT.md](docs/API_CONTRACT.md)**.
 4. Güvenlik, gizlilik ve yayına hazırlık denetimi: **[docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)**.
+5. Backend için önerilen değişiklikler (kod okumasından): **[docs/BACKEND_TODO.md](docs/BACKEND_TODO.md)**.
 
 `confidence` (0-1 arası) gelirse sonuçta "Modelin güven puanı: %91" olarak, doğruluk olasılığı olmadığı notuyla gösterilir; gelmezse hiçbir şey gösterilmez. Kanıt başına `score` gösterilmez.
 
