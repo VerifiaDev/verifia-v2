@@ -131,7 +131,9 @@ export function Analyzer() {
           />
         </div>
 
-        {(apiInfo.unavailable || apiInfo.usingMock) && !showcase && <div className="sample-entry">
+        {/* Hazır örnek rapor her modda sunulur (canlıda da): backend'e istek göndermez, kota harcamaz ve
+            açıldığında "Önceden hazırlanmış örnek rapor. Canlı analiz değildir." etiketini taşır. */}
+        {!showcase && <div className="sample-entry">
           <button ref={sampleButton} type="button" className={apiInfo.unavailable ? "btn" : "btn btn-quiet"} onClick={openSample} disabled={busy}>
             Kaynaklı örnek raporu aç <Icon name="chevron" />
           </button>
