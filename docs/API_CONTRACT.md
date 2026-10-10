@@ -22,7 +22,7 @@
 ```
 
 - Backend: `text` zorunlu, 1–10 000 karakter (`VerifyRequest`); boşluklar kırpılınca boşsa `400 EMPTY_TEXT`.
-- Arayüz bilerek **3.000 karakterle** sınırlar (`MAX_INPUT_LENGTH`): uzun metin daha çok iddia, bekleme ve kota demek.
+- Arayüz de **10.000 karakterle** sınırlar (`MAX_INPUT_LENGTH`, 10 Ekim: backend sınırıyla eşitlendi). Uzun metin çok iddia demektir; backend_v2 en çok 8 iddiayı inceler, kalanı `skipped` bildirir.
 - Frontend yalnızca `text` gönderir. Adresin sonundaki `/` atılır.
 - **Bağlantı (URL) ile inceleme backend'de yok.** Arayüzdeki "Bağlantı" sekmesi gerçek servise istek göndermez;
   kullanıcıya "bağlantıyla inceleme henüz desteklenmiyor" hatası (`URL_UNSUPPORTED`, arayüzün kendi kodu) gösterilir.

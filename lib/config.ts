@@ -6,11 +6,12 @@ export const SITE_TAGLINE = "Kanıtı görün. Kararı siz verin.";
 export const REPO_URL = "";
 
 /**
- * Arayüzün metin sınırı. Backend 10.000 karaktere kadar kabul ediyor (backend/main.py, `max_length=10000`);
- * arayüz bilerek daha düşük tutar: uzun metin daha çok iddia, daha uzun bekleme ve daha çok dış servis
- * kotası demek (docs/SECURITY_AUDIT.md, K1-K2). Backend sınırının altında kaldığı sürece güvenle değiştirilebilir.
+ * Arayüzün metin sınırı = backend'in kabul ettiği sınır (backend_v2/app/main.py, `max_length=10000`).
+ * Backend sınırı değişirse burası da değişmelidir; bunun üstü sunucuda 422 (VALIDATION_ERROR) olur.
+ * Not: uzun metin daha çok iddia demektir. Backend en çok 8 iddiayı inceler, kalanı "atlandı" olarak bildirir
+ * ve toplam süreyi 45 saniyeyle sınırlar; arayüz bunları "İncelenemeyen iddialar" bölümünde gösterir.
  */
-export const MAX_INPUT_LENGTH = 3_000;
+export const MAX_INPUT_LENGTH = 10_000;
 
 /** Tek istek bu süreden uzun sürerse vazgeçilir (ms). Çok iddialı metinlerde uzun sürebilir. */
 export const REQUEST_TIMEOUT_MS = 90_000;
