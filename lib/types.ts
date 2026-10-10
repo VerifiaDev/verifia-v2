@@ -56,6 +56,12 @@ export interface Claim {
   confidence: number | null;
 }
 
+/** Backend iddiayı buldu ama sonuç üretemedi (yeni backend: iddia başına `status`). Hüküm gösterilmez. */
+export interface UnfinishedClaim {
+  text: string;
+  reason: "timeout" | "error" | "skipped";
+}
+
 export interface CheckResult {
   report?: {
     title?: string;
@@ -72,6 +78,8 @@ export interface CheckResult {
    * Arayüz bunlar için hüküm göstermez; diğer iddiaların sonucu yine gösterilir (kısmi sonuç).
    */
   unreadable: string[];
+  /** İncelenemeyen iddialar (süre aşımı, hata, çok iddia nedeniyle atlanma). Yoksa boş sayılır. */
+  unfinished?: UnfinishedClaim[];
 }
 
 /** Backend'in bildirebileceği gerçek işlem aşamaları. Bildirmezse hiçbiri kullanılmaz. */

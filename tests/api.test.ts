@@ -81,6 +81,10 @@ describe("checkInput (gerçek API yolu)", () => {
       [429, "BUSY", "SERVER_BUSY"],
       [429, "DAILY_QUOTA_EXCEEDED", "QUOTA_EXCEEDED"],
       [503, "UPSTREAM_UNAVAILABLE", "SERVICE_UNAVAILABLE"],
+      // backend_v2 (MertBulut11/verify-v2)
+      [504, "EXTRACTION_TIMEOUT", "TIMEOUT"],
+      [502, "EXTRACTION_FAILED", "SERVICE_UNAVAILABLE"],
+      [503, "CONFIG_ERROR", "SERVICE_UNAVAILABLE"],
     ];
     for (const [status, error, expected] of cases) {
       globalThis.fetch = (async () => json(status, { status: "error", error, message: "x" })) as typeof fetch;

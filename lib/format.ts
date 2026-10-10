@@ -183,3 +183,10 @@ export const CLAIM_LIST_ID = "iddia-listesi";
 export function claimAnchor(claimId: string): string {
   return `claim-${claimId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
 }
+
+/** İncelenemeyen iddiaların nedeni (backend_v2 iddia `status` değeri). Hüküm değildir. */
+export const UNFINISHED_REASON: Record<"timeout" | "error" | "skipped", string> = {
+  timeout: "süre sınırı içinde incelenemedi",
+  error: "incelenirken bir hata oluştu",
+  skipped: "metinde çok iddia olduğu için incelenmedi",
+};

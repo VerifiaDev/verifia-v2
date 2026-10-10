@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { ClaimItem } from "./ClaimItem";
 import { ClaimList } from "./ClaimList";
 import type { CheckResult } from "@/lib/types";
-import { VERDICT_META, VERDICT_ORDER, CLAIM_LIST_ID, claimAnchor, sourceAnchor } from "@/lib/format";
+import { VERDICT_META, VERDICT_ORDER, CLAIM_LIST_ID, UNFINISHED_REASON, claimAnchor, sourceAnchor } from "@/lib/format";
 import { Icon } from "./Icon";
 import { ReportTools } from "./ReportTools";
 import { formatDate } from "@/lib/format";
@@ -27,6 +27,7 @@ interface Props {
 export function ResultView({ result, onReset, sample = false, showcase = false, input }: Props) {
   const headingRef = useRef<HTMLHeadingElement>(null);
   const { claims, unverifiable, unreadable } = result;
+  const unfinished = result.unfinished ?? [];
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(claims[0] ? [claims[0].id] : []));
   const [listOpen, setListOpen] = useState(false);
   const [target, setTarget] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
       <div className="result-head">
         <p className="result-kicker">{showcase ? "Örnek inceleme" : "İnceleme sonucu"}</p>
         <h2 id="result-title" ref={headingRef} tabIndex={-1} className="t-h2 result-title">
-          {result.report?.title ?? (claims.length === 0 ? "İncelenebilir iddia bulunamadı" : `${claims.length} iddia incelendi`)}
+          {result.report?.title ?? (claims.length === 0 ? (unfinished.length > 0 ? "İddialar incelenemedi" : "İncelenebilir iddia bulunamadı") : `${claims.length} iddia incelendi`)}
         </h2>
         {result.report?.preparedAt && <p className="report-byline t-meta muted">{showcase ? "Hazır örnek" : "İnceleme tarihi"} · <time dateTime={result.report.preparedAt}>{formatDate(result.report.preparedAt)}</time></p>}
 
@@ -93,6 +94,14 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
         {result.report?.summary && <details className="more report-brief"><summary>Kısa değerlendirmeyi oku <Icon name="chevron" className="chevron" /></summary><p>{result.report.summary}</p></details>}
         {(result.report?.input ?? input) && <details className="more report-input"><summary>İncelenen metni gör <Icon name="chevron" /></summary><p>{result.report?.input ?? input}</p></details>}
 
+        {unfinished.length > 0 && (
+          <p className="note note--warn" role="note">
+            <strong className="note-label">Eksik</strong>
+            <span>
+              {unfinished.length} iddia incelenemedi; bu iddialar aşağıda ayrıca listelenir. Bu, iddiaların doğru ya da yanlış olduğu anlamına gelmez.
+            </span>
+          </p>
+        )}
         {/* Eksik sonuç başta söylenir: uzun bir sayfanın sonundaki liste gözden kaçabilir. */}
         {unreadable.length > 0 && (
           <p className="note note--warn" role="note">
@@ -115,10 +124,17 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
       </div>
 
       {claims.length === 0 ? (
-        <div className="state">
-          <p>Gönderdiğiniz içerikte kaynaklarla kontrol edilebilecek somut bir iddia bulunamadı.</p>
-          <p className="muted">Tarih, sayı, kişi ya da olay içeren bir cümleyle yeniden deneyin.</p>
-        </div>
+        unfinished.length > 0 ? (
+          <div className="state">
+            <p>İddialar bulundu ama hiçbiri için sonuç üretilemedi.</p>
+            <p className="muted">Biraz sonra yeniden deneyin ya da metni kısaltın.</p>
+          </div>
+        ) : (
+          <div className="state">
+            <p>Gönderdiğiniz içerikte kaynaklarla kontrol edilebilecek somut bir iddia bulunamadı.</p>
+            <p className="muted">Tarih, sayı, kişi ya da olay içeren bir cümleyle yeniden deneyin.</p>
+          </div>
+        )
       ) : (
         <div className="claims">
           {claims.map((c, i) => (
@@ -131,6 +147,24 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
               })} />
           ))}
         </div>
+      )}
+
+      {unfinished.length > 0 && (
+        <section className="unverifiable" aria-labelledby="unfinished-title">
+          <h3 id="unfinished-title" className="t-h4">
+            İncelenemeyen iddialar ({unfinished.length})
+          </h3>
+          <p className="muted t-meta">
+            Bu iddialar için sonuç üretilemedi. Bu, doğru ya da yanlış oldukları anlamına gelmez; yeniden deneyebilirsiniz.
+          </p>
+          <ul>
+            {unfinished.map((u, i) => (
+              <li key={i}>
+                {u.text} <span className="muted">({UNFINISHED_REASON[u.reason]})</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
 
       {unreadable.length > 0 && (

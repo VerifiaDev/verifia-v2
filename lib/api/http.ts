@@ -30,6 +30,10 @@ const BACKEND_CODES: Record<string, ErrorCode> = {
   BUSY: "SERVER_BUSY",
   DAILY_QUOTA_EXCEEDED: "QUOTA_EXCEEDED",
   UPSTREAM_UNAVAILABLE: "SERVICE_UNAVAILABLE",
+  // backend_v2 (MertBulut11/verify-v2): iddia ayrıştırma ve yapılandırma hataları
+  EXTRACTION_TIMEOUT: "TIMEOUT",
+  EXTRACTION_FAILED: "SERVICE_UNAVAILABLE",
+  CONFIG_ERROR: "SERVICE_UNAVAILABLE",
 };
 
 /**

@@ -37,6 +37,7 @@ type Scenario =
   | "conflicting"
   | "opinion"
   | "partial"
+  | "unfinished"
   | "error_url"
   | "error_timeout"
   | "error_server"
@@ -51,6 +52,7 @@ function pickScenario(req: RawCheckRequest): Scenario {
   if (t.includes("#yetersiz")) return "not_enough";
   if (t.includes("#celiski")) return "conflicting";
   if (t.includes("#gorus")) return "opinion";
+  if (t.includes("#incelenemedi")) return "unfinished";
   if (t.includes("#eksik")) return "partial";
   if (t.includes("#dogru")) return "supported";
   if (t.includes("#yanlis")) return "refuted";
@@ -72,6 +74,16 @@ function buildBody(s: Scenario): RawCheckResponse {
     case "partial":
       // Kısmi sonuç: ikinci iddianın sonuç değeri arayüzün tanımadığı bir etiket.
       return { claims: [supported, { ...refuted, id: "claim_okunamayan", verdict: "TANINMAYAN_ETIKET" }] };
+    case "unfinished":
+      // backend_v2 biçimi: iddia başına durum. Süre aşımı ve atlanan iddiada karar yoktur.
+      return {
+        results: [
+          supported,
+          { claim_id: "claim_zaman", claim: "İkinci iddia zamanında incelenemedi.", is_verifiable: true, verdict: null, status: "timeout", explanation: "Bu iddia zamanında incelenemedi.", used_sources: [], sources: [] },
+          { claim_id: "claim_atlanan", claim: "Üçüncü iddia atlandı.", is_verifiable: true, verdict: null, status: "skipped", explanation: "Metinde çok sayıda iddia olduğu için bu iddia incelenmedi.", used_sources: [], sources: [] },
+        ],
+        partial: true,
+      };
     default:
       return { claims: [refuted, supported, notEnough, opinion] };
   }

@@ -108,6 +108,32 @@ describe("parseCheckResponse", () => {
     assert.deepEqual(r.unverifiable, ["D"]);
   });
 
+  it("backend_v2: durumu ok olmayan iddia hüküm taşımaz, 'incelenemeyen' listesine girer", () => {
+    const r = parseCheckResponse({
+      status: "ok",
+      partial: true,
+      results: [
+        { claim_id: "c1", claim: "A", is_verifiable: true, verdict: "SUPPORTED", explanation: "x", used_sources: [], sources: [], status: "ok" },
+        { claim_id: "c2", claim: "B", is_verifiable: true, verdict: null, status: "timeout", explanation: "Bu iddia zamanında incelenemedi." },
+        { claim_id: "c3", claim: "C", is_verifiable: true, verdict: null, status: "skipped" },
+        { claim_id: "c4", claim: "D", is_verifiable: true, verdict: null, status: "error" },
+      ],
+    });
+    assert.deepEqual(r.claims.map((c) => c.text), ["A"]);
+    assert.deepEqual(r.unfinished, [
+      { text: "B", reason: "timeout" },
+      { text: "C", reason: "skipped" },
+      { text: "D", reason: "error" },
+    ]);
+    assert.deepEqual(r.unreadable, []);
+  });
+
+  it("backend_v2: hiçbir iddia incelenemediyse de geçerli cevaptır (hata sayılmaz)", () => {
+    const r = parseCheckResponse({ status: "ok", partial: true, results: [{ claim_id: "c1", claim: "A", is_verifiable: true, verdict: null, status: "timeout" }] });
+    assert.equal(r.claims.length, 0);
+    assert.equal(r.unfinished?.length, 1);
+  });
+
   it("okunabilen hiçbir iddia yokken sonucu tanınmayan iddia varsa cevap geçersizdir ('iddia bulunamadı' denmez)", () => {
     assert.throws(() => parseCheckResponse({ results: [{ claim: "B", verdict: "MOSTLY_TRUE" }, { claim: "D", is_verifiable: false }] }), InvalidResponseError);
   });

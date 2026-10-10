@@ -5,6 +5,14 @@
 > "Teyit edilmemiş" diye işaretlenen her şey hâlâ frontend'in varsayımıdır.
 > Kodda karşılığı: `lib/api/contract.ts` (şekiller), `lib/api/adapter.ts` (çeviri), `lib/api/http.ts` (istek).
 
+> **10 Ekim güncellemesi — backend_v2 (`MertBulut11/verify-v2`, `backend_v2/`, `1d907e8`):** kod okundu, canlı deneme yapılmadı.
+> - Yol/istek aynı: `POST /verify` `{ "text" }` (en çok 10 000 karakter). Cevap: `{ status:"ok", results:[…], partial, timings }`.
+> - **Yeni:** her iddiada `status` (`ok` | `error` | `timeout` | `skipped`). `ok` dışında `verdict` **null** gelir; arayüz bunu hüküm olarak değil "İncelenemeyen iddialar" olarak gösterir (`unfinished`). Üst düzey `partial`, `timings`, iddiadaki `cached`, `timings_ms`, `error_code`, `failed_stage`, `detail` okunmaz.
+> - Hata gövdesi `{ status:"error", error:"KOD", message, detail? }`; yeni kodlar: `EXTRACTION_TIMEOUT` (504), `EXTRACTION_FAILED` (502), `CONFIG_ERROR` (503), `VALIDATION_ERROR` (422), `EMPTY_TEXT` (400), `VERIFY_FAILED` (500).
+> - Kaynak biçimi aynı (`id: "source_N"`, `url`, `text`); başlık/tarih/güven puanı hâlâ yok. CORS listesinde `https://verify-test-swart.vercel.app` var.
+> - **Kullanılmayan fırsat:** `POST /verify/stream` (SSE) gerçek aşamaları ve iddiaları geldikçe verir; arayüz henüz tek istekle çalışıyor.
+> - Backend'in yayın adresi değişirse Vercel'de `NEXT_PUBLIC_API_BASE_URL` güncellenip yeniden dağıtılmalıdır.
+
 ## İstek
 
 `POST {NEXT_PUBLIC_API_BASE_URL}/verify` — `Content-Type: application/json`

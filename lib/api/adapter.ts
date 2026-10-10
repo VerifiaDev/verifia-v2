@@ -16,6 +16,9 @@
  *  B) Tek iddia (proje dokümanındaki örnek):
  *     { claim, verdict, explanation, confidence, evidence: [ {text, source, url, score, published_at} ] }
  *
+ * Yeni backend (verify-v2): iddia başına `status` ("ok" | "error" | "timeout" | "skipped"). "ok" dışındakiler
+ * `unfinished` listesine girer (hüküm yok); üst düzey `partial` ve `timings` okunmaz.
+ *
  * Kısmi sonuç: bir iddianın `verdict` değeri tanınmıyorsa o iddia `unreadable` listesine girer, diğerleri gösterilir.
  * Okunabilen hiçbir iddia kalmazsa cevap geçersiz sayılır.
  *
@@ -23,7 +26,7 @@
  * 0-1 dışında) yok sayılır, tahmin edilmez. `score` (kanıt başına) okunmaz.
  * Ham şekiller için bkz. contract.ts. Bu dosya bilerek başka dosyalardan YALNIZCA tip alır (kolay test için).
  */
-import type { CheckResult, Claim, Source, Verdict } from "../types";
+import type { CheckResult, Claim, Source, UnfinishedClaim, Verdict } from "../types";
 
 export class InvalidResponseError extends Error {}
 
@@ -87,13 +90,22 @@ function parseSource(raw: unknown, index: number): Source | null {
   };
 }
 
-function parseClaim(raw: unknown, index: number): Claim | { unverifiableText: string } | { unreadableText: string } {
+function parseClaim(
+  raw: unknown,
+  index: number,
+): Claim | { unverifiableText: string } | { unreadableText: string } | { unfinished: UnfinishedClaim } {
   if (!isRecord(raw)) throw new InvalidResponseError(`claims[${index}] nesne değil`);
 
   const text = str(raw.text) ?? str(raw.claim);
   if (!text) throw new InvalidResponseError(`claims[${index}] için iddia metni eksik`);
 
   if (raw.is_verifiable === false) return { unverifiableText: text };
+
+  // Yeni backend: durumu "ok" olmayan iddiada karar yoktur; sonuç gibi değil "incelenemedi" olarak gösterilir.
+  const status = str(raw.status)?.toLowerCase();
+  if (status === "timeout" || status === "error" || status === "skipped") {
+    return { unfinished: { text, reason: status } };
+  }
 
   // Sonuç değeri tanınmıyorsa yalnızca bu iddia "okunamadı" sayılır; diğer iddialar yine gösterilir.
   // (Tek bozuk satır yüzünden bütün incelemeyi "sunucu hatası" diye atmak, kullanıcının beklediği sonucu boşa harcardı.)
@@ -128,10 +140,12 @@ export function parseCheckResponse(body: unknown): CheckResult {
   const claims: Claim[] = [];
   const unverifiable: string[] = [];
   const unreadable: string[] = [];
+  const unfinished: UnfinishedClaim[] = [];
   list.forEach((raw, i) => {
     const parsed = parseClaim(raw, i);
     if ("unverifiableText" in parsed) unverifiable.push(parsed.unverifiableText);
     else if ("unreadableText" in parsed) unreadable.push(parsed.unreadableText);
+    else if ("unfinished" in parsed) unfinished.push(parsed.unfinished);
     else claims.push(parsed);
   });
   // Okunabilen hiçbir sonuç yoksa cevap geçersizdir: "incelenebilir iddia bulunamadı" demek yanlış olurdu
@@ -148,5 +162,11 @@ export function parseCheckResponse(body: unknown): CheckResult {
     const preparedAt = str(body.report.prepared_at) ?? str(body.report.preparedAt);
     if (preparedAt && Number.isFinite(Date.parse(preparedAt))) report.preparedAt = preparedAt;
   }
-  return { claims, unverifiable, unreadable, ...(Object.keys(report).length ? { report } : {}) };
+  return {
+    claims,
+    unverifiable,
+    unreadable,
+    ...(unfinished.length ? { unfinished } : {}),
+    ...(Object.keys(report).length ? { report } : {}),
+  };
 }

@@ -43,6 +43,11 @@ export interface RawClaim {
   id?: string;
   /** Gerçek backend iddia kimliğini `claim_id` olarak verir. */
   claim_id?: string;
+  /**
+   * Yeni backend (verify-v2): iddia başına durum. "ok" dışında (error | timeout | skipped) `verdict` null gelir
+   * ve `explanation` kısa bir açıklamadır; arayüz bunu hüküm olarak değil "incelenemedi" olarak gösterir.
+   */
+  status?: string;
   /** Gerçek backend: açıklamada gerçekten kullanılan kaynak kimlikleri (arayüz şimdilik atıflardan okur). */
   used_sources?: string[];
   /** İddia metni; bazı biçimlerde `text` */
@@ -69,7 +74,7 @@ export interface RawReport {
   prepared_at?: string;
   scope?: string;
 }
-export type RawCheckResponse = { results: RawClaim[]; report?: RawReport } | { claims: RawClaim[]; report?: RawReport } | RawClaim;
+export type RawCheckResponse = { results: RawClaim[]; report?: RawReport; partial?: boolean } | { claims: RawClaim[]; report?: RawReport } | RawClaim;
 
 /** Hata cevabının gövdesi (HTTP 4xx/5xx). */
 export type RawErrorBody =

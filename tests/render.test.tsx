@@ -175,6 +175,23 @@ describe("ResultView", () => {
 });
 
 describe("kısmi sonuç", () => {
+  it("incelenemeyen iddiaları nedeniyle listeler ve hüküm yazmaz", () => {
+    const html = renderToStaticMarkup(
+      <ResultView result={{ claims: [claim()], unverifiable: [], unreadable: [], unfinished: [{ text: "Geç kalan iddia", reason: "timeout" }, { text: "Atlanan iddia", reason: "skipped" }] }} onReset={() => {}} />,
+    );
+    assert.ok(html.includes("2 iddia incelenemedi"));
+    assert.ok(html.includes("İncelenemeyen iddialar (2)"));
+    assert.ok(html.includes("Geç kalan iddia"));
+    assert.ok(html.includes("süre sınırı içinde incelenemedi"));
+    assert.ok(html.includes("metinde çok iddia olduğu için incelenmedi"));
+  });
+  it("hiçbir iddia incelenemediyse 'iddia bulunamadı' demez", () => {
+    const html = renderToStaticMarkup(
+      <ResultView result={{ claims: [], unverifiable: [], unreadable: [], unfinished: [{ text: "A", reason: "error" }] }} onReset={() => {}} />,
+    );
+    assert.ok(html.includes("İddialar incelenemedi"));
+    assert.ok(!html.includes("somut bir iddia bulunamadı"));
+  });
   it("sonucu okunamayan iddiaları başta uyarıyla, sonda ayrı listeyle gösterir; hüküm yazmaz", () => {
     const html = renderToStaticMarkup(
       <ResultView result={{ claims: [claim()], unverifiable: [], unreadable: ["Okunamayan iddia"] }} onReset={() => {}} />,

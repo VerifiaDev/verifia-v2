@@ -47,6 +47,12 @@ describe("mockService", () => {
     assert.equal(r.unreadable.length, 1);
   });
 
+  it("#incelenemedi backend_v2 biçimini verir: bir iddia gösterilir, ikisi incelenemedi listesinde", async () => {
+    const r = parseCheckResponse((await run("#incelenemedi x")).raw);
+    assert.equal(r.claims.length, 1);
+    assert.deepEqual(r.unfinished?.map((u) => u.reason), ["timeout", "skipped"]);
+  });
+
   it("hata senaryoları ApiRequestError fırlatır", async () => {
     await assert.rejects(run("#hata-ag x"), (e: { code?: string }) => e.code === "NETWORK");
   });
