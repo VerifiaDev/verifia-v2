@@ -20,6 +20,20 @@ describe("analysisReducer", () => {
     const done = analysisReducer(busy, { type: "done", result });
     assert.equal(analysisReducer(done, { type: "stage", phase: "verifying" }).phase, "completed");
   });
+  it("sunucu beklenirken 'waiting_server' olur; yanıt gelince 'submitting'e döner", () => {
+    const busy = analysisReducer(idle, { type: "start" });
+    const waiting = analysisReducer(busy, { type: "server_wait", waiting: true });
+    assert.equal(waiting.phase, "waiting_server");
+    assert.equal(isBusy(waiting), true);
+    assert.equal(analysisReducer(waiting, { type: "server_wait", waiting: false }).phase, "submitting");
+  });
+  it("bekleme bildirimi vazgeçilmiş, bitmiş ya da aşaması bildirilmiş istekte durumu değiştirmez", () => {
+    assert.equal(analysisReducer(idle, { type: "server_wait", waiting: true }).phase, "idle");
+    const done = analysisReducer(idle, { type: "done", result });
+    assert.equal(analysisReducer(done, { type: "server_wait", waiting: true }).phase, "completed");
+    const staged = analysisReducer(analysisReducer(idle, { type: "start" }), { type: "stage", phase: "verifying" });
+    assert.equal(analysisReducer(staged, { type: "server_wait", waiting: false }).phase, "verifying");
+  });
   it("hata ve sıfırlama", () => {
     const e = analysisReducer(idle, { type: "fail", error: { code: "NETWORK", message: "m" } });
     assert.equal(e.phase, "error");

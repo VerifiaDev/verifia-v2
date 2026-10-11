@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { ApiRequestError, checkInput, sampleResult } from "@/lib/api";
+import { ApiRequestError, checkInput, sampleResult, warmUp } from "@/lib/api";
 import type { AnalysisStage, ApiError, CheckRequest, CheckResult } from "@/lib/types";
 
 /**
@@ -12,7 +12,11 @@ import type { AnalysisStage, ApiError, CheckRequest, CheckResult } from "@/lib/t
  * Parantez içindeki üç aşama YALNIZCA backend gerçekten aşama bilgisi verirse kullanılır
  * (`onStage` ile). Bilgi gelmezse `submitting` içinde kalırız; sahte ilerleme gösterilmez.
  */
-export type BusyPhase = "submitting" | AnalysisStage;
+/**
+ * `waiting_server`: istek gönderildi ama sunucu sağlık denetimine henüz yanıt vermedi (uyuyor ya da meşgul).
+ * Bu sırada hiçbir şey incelenmiyor; arayüz "inceleniyor" yerine bunu söyler. Gerçek bilgidir, tahmin değildir.
+ */
+export type BusyPhase = "submitting" | "waiting_server" | AnalysisStage;
 
 export type AnalysisState =
   | { phase: "idle" }
@@ -24,6 +28,7 @@ export type AnalysisState =
 export type AnalysisAction =
   | { type: "start" }
   | { type: "stage"; phase: AnalysisStage }
+  | { type: "server_wait"; waiting: boolean }
   | { type: "done"; result: CheckResult; sample?: boolean }
   | { type: "fail"; error: ApiError }
   | { type: "reset" };
@@ -31,6 +36,7 @@ export type AnalysisAction =
 export function isBusy(state: AnalysisState): state is { phase: BusyPhase } {
   return (
     state.phase === "submitting" ||
+    state.phase === "waiting_server" ||
     state.phase === "extracting_claims" ||
     state.phase === "retrieving_evidence" ||
     state.phase === "verifying"
@@ -53,6 +59,10 @@ export function analysisReducer(state: AnalysisState, action: AnalysisAction): A
     case "stage":
       // Aşama bilgisi yalnızca devam eden bir istekte anlamlıdır; geç gelen bilgi yok sayılır.
       return isBusy(state) ? { phase: action.phase } : state;
+    case "server_wait":
+      // Yalnızca inceleme henüz başlamamışken anlamlıdır; geç gelen bildirim başka bir durumu ezmez.
+      if (state.phase !== "submitting" && state.phase !== "waiting_server") return state;
+      return { phase: action.waiting ? "waiting_server" : "submitting" };
     case "done":
       return action.sample
         ? { phase: "completed", result: action.result, sample: true }
@@ -81,6 +91,11 @@ export function useAnalysis() {
   const controller = useRef<AbortController | null>(null);
   const lastRequest = useRef<CheckRequest | null>(null);
 
+  // Sayfa açılınca sunucu uyandırılır; kullanıcı metnini yapıştırana kadar açılmış olur. Kota harcamaz; yalnızca gerçek servis bağlıyken istek gider.
+  useEffect(() => {
+    warmUp();
+  }, []);
+
   useEffect(() => {
     return () => {
       runId.current += 1;
@@ -98,9 +113,16 @@ export function useAnalysis() {
     dispatch({ type: "start" });
 
     try {
-      const result = await checkInput(req, ctrl.signal, (phase) => {
-        if (runId.current === myRun) dispatch({ type: "stage", phase });
-      });
+      const result = await checkInput(
+        req,
+        ctrl.signal,
+        (phase) => {
+          if (runId.current === myRun) dispatch({ type: "stage", phase });
+        },
+        (waiting) => {
+          if (runId.current === myRun) dispatch({ type: "server_wait", waiting });
+        },
+      );
       if (runId.current !== myRun) return;
       dispatch({ type: "done", result });
     } catch (err) {

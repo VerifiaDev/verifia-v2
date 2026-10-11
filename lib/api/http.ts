@@ -1,4 +1,4 @@
-import { HEALTH_TIMEOUT_MS, REQUEST_TIMEOUT_MS } from "../config";
+import { HEALTH_TIMEOUT_MS, REQUEST_TIMEOUT_MS, SERVER_WAIT_NOTICE_MS } from "../config";
 import { ApiRequestError } from "./errors";
 import type { RawCheckRequest, RawCheckResponse } from "./contract";
 import type { ErrorCode } from "../types";
@@ -74,24 +74,32 @@ function errorFromResponse(body: unknown, status: number): ApiRequestError {
  * Yalnızca süre aşımı engeller. Sunucu herhangi bir HTTP yanıtı verirse (404 dahil; `/health` ileride
  * kaldırılsa bile site çalışmaya devam etsin diye) inceleme normal şekilde gönderilir.
  */
-async function waitForHealth(base: string, signal: AbortSignal): Promise<void> {
+async function waitForHealth(base: string, signal: AbortSignal, onServerWait?: (waiting: boolean) => void): Promise<void> {
   const controller = new AbortController();
   let timedOut = false;
+  let noticed = false;
   const onAbort = () => controller.abort();
   signal.addEventListener("abort", onAbort);
   const timer = setTimeout(() => {
     timedOut = true;
     controller.abort();
   }, HEALTH_TIMEOUT_MS);
+  // Yanıt gecikirse arayüz "inceleniyor" demesin: henüz hiçbir şey incelenmiyor, sunucu bekleniyor.
+  const notice = setTimeout(() => {
+    noticed = true;
+    onServerWait?.(true);
+  }, SERVER_WAIT_NOTICE_MS);
   try {
     const res = await fetch(`${base}/health`, { method: "GET", cache: "no-store", signal: controller.signal });
     await res.body?.cancel().catch(() => {});
+    if (noticed) onServerWait?.(false);
   } catch (err) {
     if (timedOut) throw new ApiRequestError("SERVER_BUSY", "Sunucu sağlık denetimine yanıt vermedi.");
     if (signal.aborted) throw err; // kullanıcı vazgeçti
     throw new ApiRequestError("NETWORK", "Sunucuya ulaşılamadı.");
   } finally {
     clearTimeout(timer);
+    clearTimeout(notice);
     signal.removeEventListener("abort", onAbort);
   }
 }
@@ -110,11 +118,21 @@ export function httpService(baseUrl: string): VerificationService {
   const base = baseUrl.replace(/\/+$/, "");
   return {
     supportsUrl: false,
-    async check(req: RawCheckRequest, { signal }): Promise<RawCheckResponse> {
+    /**
+     * Barındırma hizmeti boşta kalan sunucuyu uyutuyor; uyanması dakikaları bulabiliyor (11 Ekim 2026 ölçümü:
+     * ilk `/health` yanıtı yaklaşık 132 saniye). Sayfa açılınca gönderilen bu hafif istek, kullanıcı metnini
+     * yapıştırırken sunucunun açılmasını sağlar. Kota harcamaz; yanıtı beklenmez, hatası yok sayılır.
+     */
+    warmUp(): void {
+      fetch(`${base}/health`, { method: "GET", cache: "no-store" })
+        .then((res) => res.body?.cancel())
+        .catch(() => {});
+    },
+    async check(req: RawCheckRequest, { signal, onServerWait }): Promise<RawCheckResponse> {
       if (req.input_type === "url") {
         throw new ApiRequestError("URL_UNSUPPORTED", "Bağlantı ile doğrulama henüz desteklenmiyor.");
       }
-      await waitForHealth(base, signal);
+      await waitForHealth(base, signal, onServerWait);
 
       const controller = new AbortController();
       let timedOut = false;

@@ -72,12 +72,18 @@ export function sampleResult(): CheckResult {
   return curatedSample();
 }
 
+/** Sayfa açılınca çağrılır: uyuyan sunucuyu uyandırır (yalnızca gerçek servis bağlıyken bir şey yapar). */
+export function warmUp(): void {
+  service.warmUp?.();
+}
+
 export async function checkInput(
   req: CheckRequest,
   signal: AbortSignal,
   onStage?: (stage: AnalysisStage) => void,
+  onServerWait?: (waiting: boolean) => void,
 ): Promise<CheckResult> {
-  const raw = await service.check({ text: req.content, input_type: req.mode }, { signal, onStage });
+  const raw = await service.check({ text: req.content, input_type: req.mode }, { signal, onStage, onServerWait });
   try {
     return parseCheckResponse(raw);
   } catch (err) {

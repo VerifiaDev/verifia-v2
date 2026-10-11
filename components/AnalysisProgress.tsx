@@ -15,6 +15,7 @@ interface Props {
 
 const ACTIVE_STEP: Record<BusyPhase, number | undefined> = {
   submitting: undefined,
+  waiting_server: undefined,
   extracting_claims: 0,
   retrieving_evidence: 1,
   verifying: 2,
@@ -27,11 +28,20 @@ const LONG_WAIT_SECONDS = 30;
 
 /**
  * Arayüzün en fazla bekleyeceği süre (sunucu denetimi + inceleme). Bir vaat değil, üst sınırdır:
- * bu süre dolarsa kullanıcıya zaman aşımı söylenir. 150 sn → "2,5 dakika".
+ * bu süre dolarsa kullanıcıya zaman aşımı söylenir. 240 sn → "4 dakika".
  */
 export function maxWaitLabel(ms: number = HEALTH_TIMEOUT_MS + REQUEST_TIMEOUT_MS): string {
   const minutes = Math.round((ms / 60_000) * 2) / 2;
   return `${String(minutes).replace(".", ",")} dakika`;
+}
+
+/**
+ * 30. saniyeden sonra gösterilen not. Sunucunun yanıtı beklenirken gösterilmez: o sırada inceleme
+ * başlamamıştır, "inceleme sürüyor" demek yanlış olurdu (durumu başlık ve üstteki paragraf zaten anlatır).
+ */
+export function longWaitNote(phase: BusyPhase, elapsedSeconds: number): string | null {
+  if (phase === "waiting_server" || elapsedSeconds < LONG_WAIT_SECONDS) return null;
+  return "İnceleme sürüyor. Beklemeye devam edebilir ya da vazgeçip daha kısa bir metinle yeniden deneyebilirsiniz.";
 }
 
 /** 75 → "1:15". Sözcük kullanılmaz: süre vaat etmez, yalnızca sayar. */
@@ -47,6 +57,8 @@ function clock(seconds: number): string {
  */
 export function AnalysisProgress({ onCancel, phase }: Props) {
   const activeStep = ACTIVE_STEP[phase];
+  /** Sunucu henüz yanıt vermedi: inceleme başlamadı; "inceleniyor" demek yanlış olurdu. */
+  const waitingServer = phase === "waiting_server";
   const headingRef = useRef<HTMLHeadingElement>(null);
   const [elapsed, setElapsed] = useState(0);
 
@@ -65,12 +77,20 @@ export function AnalysisProgress({ onCancel, phase }: Props) {
   return (
     <div className="state analysis-progress">
       <h2 ref={headingRef} tabIndex={-1} className="t-h3 focus-target">
-        İçerik inceleniyor
+        {waitingServer ? "Sunucunun yanıtı bekleniyor" : "İçerik inceleniyor"}
       </h2>
-      <p>
-        Bu işlem iddia sayısına göre zaman alabilir. Sunucu bir süredir kullanılmadıysa önce açılması gerekir. Yanıt
-        gelmezse en geç {maxWaitLabel()} sonra bunu bildiririz; sayfayı kapatmadan bekleyin.
-      </p>
+      {waitingServer ? (
+        <p>
+          İnceleme sunucusu henüz yanıt vermedi; bir süredir kullanılmadıysa yeniden açılıyor olabilir. Yanıt verince
+          inceleme kendiliğinden başlar. Yanıt gelmezse en geç {maxWaitLabel()} sonra bunu bildiririz; sayfayı
+          kapatmadan bekleyin.
+        </p>
+      ) : (
+        <p>
+          Bu işlem iddia sayısına göre zaman alabilir. Sunucu bir süredir kullanılmadıysa önce açılması gerekir. Yanıt
+          gelmezse en geç {maxWaitLabel()} sonra bunu bildiririz; sayfayı kapatmadan bekleyin.
+        </p>
+      )}
       {activeStep !== undefined && (
         <ol className="progress-steps">
           {STEPS.map((s, i) => (
@@ -82,16 +102,12 @@ export function AnalysisProgress({ onCancel, phase }: Props) {
         </ol>
       )}
       <p className="sr-only" role="status">
-        {activeStep !== undefined ? `${STEPS[activeStep]} (adım ${activeStep + 1} / ${STEPS.length})` : ""}
+        {waitingServer ? "Sunucunun yanıtı bekleniyor." : activeStep !== undefined ? `${STEPS[activeStep]} (adım ${activeStep + 1} / ${STEPS.length})` : ""}
       </p>
       <p className="progress-elapsed muted t-meta">
         Geçen süre: <span className="tnum">{clock(elapsed)}</span>
       </p>
-      {elapsed >= LONG_WAIT_SECONDS && (
-        <p className="t-meta">
-          İnceleme sürüyor. Beklemeye devam edebilir ya da vazgeçip daha kısa bir metinle yeniden deneyebilirsiniz.
-        </p>
-      )}
+      {longWaitNote(phase, elapsed) && <p className="t-meta">{longWaitNote(phase, elapsed)}</p>}
       <button type="button" className="btn btn-quiet" onClick={onCancel}>
         Vazgeç
       </button>

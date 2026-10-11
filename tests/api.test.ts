@@ -4,9 +4,10 @@ import { afterEach, before, beforeEach, describe, it, mock } from "node:test";
 // API_BASE_URL modül yüklenirken okunur; import'tan ÖNCE ayarlanmalı.
 process.env.NEXT_PUBLIC_API_BASE_URL = "http://backend.test";
 let checkInput: typeof import("@/lib/api").checkInput;
+let warmUp: typeof import("@/lib/api").warmUp;
 let ApiRequestError: typeof import("@/lib/api/errors").ApiRequestError;
 before(async () => {
-  ({ checkInput } = await import("@/lib/api"));
+  ({ checkInput, warmUp } = await import("@/lib/api"));
   ({ ApiRequestError } = await import("@/lib/api/errors"));
 });
 
@@ -154,9 +155,55 @@ describe("checkInput (gerçek API yolu)", () => {
     }) as typeof fetch;
     const p = codeOf(checkInput(REQ, new AbortController().signal));
     await flush();
-    mock.timers.tick(60_000);
+    mock.timers.tick(150_000);
     assert.equal(await p, "SERVER_BUSY");
     assert.deepEqual(urls, ["http://backend.test/health"]);
+  });
+
+  it("uyuyan sunucu 132 saniyede yanıt verirse vazgeçmez; incelemeyi gönderir (11 Ekim ölçümü)", async () => {
+    const urls: string[] = [];
+    globalThis.fetch = ((url: string, init: RequestInit) => {
+      urls.push(url);
+      if (!url.endsWith("/health")) return Promise.resolve(json(200, okBody));
+      return new Promise((resolve, reject) => {
+        setTimeout(() => resolve(json(200, { status: "ok" })), 132_000);
+        init.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    }) as typeof fetch;
+    const p = checkInput(REQ, new AbortController().signal);
+    await flush();
+    mock.timers.tick(132_000);
+    const r = await p;
+    assert.equal(r.claims.length, 1);
+    assert.deepEqual(urls, ["http://backend.test/health", "http://backend.test/verify"]);
+  });
+
+  it("sağlık yanıtı 5 saniyede gelmezse beklendiğini bildirir; yanıt gelince bildirimi kaldırır", async () => {
+    const waits: boolean[] = [];
+    globalThis.fetch = ((url: string, init: RequestInit) => {
+      if (!url.endsWith("/health")) return Promise.resolve(json(200, okBody));
+      return new Promise((resolve, reject) => {
+        setTimeout(() => resolve(json(200, { status: "ok" })), 40_000);
+        init.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    }) as typeof fetch;
+    const p = checkInput(REQ, new AbortController().signal, undefined, (waiting) => waits.push(waiting));
+    await flush();
+    mock.timers.tick(4_999);
+    assert.deepEqual(waits, []);
+    mock.timers.tick(1);
+    assert.deepEqual(waits, [true]);
+    mock.timers.tick(35_000);
+    await p;
+    assert.deepEqual(waits, [true, false]);
+  });
+
+  it("sağlık yanıtı hemen gelirse bekleme bildirilmez", async () => {
+    const waits: boolean[] = [];
+    globalThis.fetch = (async (url: string) => (url.endsWith("/health") ? json(200, { status: "ok" }) : json(200, okBody))) as typeof fetch;
+    await checkInput(REQ, new AbortController().signal, undefined, (waiting) => waits.push(waiting));
+    mock.timers.tick(10_000);
+    assert.deepEqual(waits, []);
   });
 
   it("sağlık adresi hata kodu dönse de (404) incelemeyi gönderir; ağ hatasında NETWORK verir ve göndermez", async () => {
@@ -187,6 +234,32 @@ describe("checkInput (gerçek API yolu)", () => {
     const p = checkInput(REQ, user.signal);
     user.abort();
     await assert.rejects(p, (e: unknown) => !(e instanceof ApiRequestError));
+  });
+});
+
+describe("ön ısıtma (sayfa açılınca uyuyan sunucuyu uyandırır)", () => {
+  const realFetch = globalThis.fetch;
+  afterEach(() => {
+    globalThis.fetch = realFetch;
+  });
+
+  it("yalnızca GET /health gönderir; inceleme isteği göndermez", async () => {
+    const calls: { url: string; method?: string }[] = [];
+    globalThis.fetch = (async (url: string, init?: RequestInit) => {
+      calls.push({ url, method: init?.method });
+      return json(200, { status: "ok" });
+    }) as typeof fetch;
+    warmUp();
+    await flush();
+    assert.deepEqual(calls, [{ url: "http://backend.test/health", method: "GET" }]);
+  });
+
+  it("sunucuya ulaşılamasa da hata fırlatmaz (sayfa açılışı bozulmaz)", async () => {
+    globalThis.fetch = (async () => {
+      throw new TypeError("fetch failed");
+    }) as typeof fetch;
+    assert.doesNotThrow(() => warmUp());
+    await flush(); // yakalanmamış bir ret burada testi düşürürdü
   });
 });
 

@@ -20,9 +20,15 @@ export const REQUEST_TIMEOUT_MS = 90_000;
 
 /**
  * İncelemeden önce sunucunun `/health` yanıtı en fazla bu kadar beklenir (ms). Uyuyan bir sunucunun
- * uyanmasına yetecek kadar uzun; kilitli bir sunucuya pahalı inceleme isteğini yığmayacak kadar kısa.
+ * uyanmasına yetecek kadar uzun olmalı: 11 Ekim 2026'da canlıda ilk yanıt yaklaşık 132 saniyede geldi; eski
+ * 60 saniyelik sınır bu süreyi karşılamıyordu. Sayfa açılınca gönderilen ön ısıtma
+ * isteği sayesinde kullanıcı çoğu zaman bu sürenin tamamını beklemez. Sunucu daha hızlı açılır hâle gelince
+ * (backend_v2, sürekli açık plan) düşürülmelidir: kilitli bir sunucuda kullanıcı bu kadar bekletilir.
  */
-export const HEALTH_TIMEOUT_MS = 60_000;
+export const HEALTH_TIMEOUT_MS = 150_000;
+
+/** Sağlık yanıtı bu kadar gecikirse (ms) kullanıcıya "inceleniyor" değil "sunucunun yanıtı bekleniyor" denir. */
+export const SERVER_WAIT_NOTICE_MS = 5_000;
 
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 

@@ -30,7 +30,8 @@
 
 ### Ön denetim: `GET /health`
 
-Frontend her incelemeden önce `GET {BASE}/health` çağırır ve en fazla 60 saniye bekler (`HEALTH_TIMEOUT_MS`).
+Frontend sayfa açılınca sunucuyu uyandırmak için bir kez `GET {BASE}/health` gönderir (ön ısıtma; yanıtı beklenmez).
+Her incelemeden önce de `GET {BASE}/health` çağırır ve en fazla 150 saniye bekler (`HEALTH_TIMEOUT_MS`; 11 Ekim ölçümünde uyuyan sunucu yaklaşık 132 saniyede yanıt verdi). Yanıt 5 saniyeden uzun sürerse arayüz "Sunucunun yanıtı bekleniyor" der.
 Yanıt gelmezse inceleme isteği **gönderilmez** ve kullanıcıya `SERVER_BUSY` ("Sunucu şu an yanıt vermiyor") gösterilir.
 Sebep: backend bir incelemeyi işlerken başka isteklere yanıt vermeyebiliyor; kilitli sunucuya ikinci bir pahalı istek
 göndermek kotayı boşa harcar (bkz. docs/SECURITY_AUDIT.md, K2). Herhangi bir HTTP yanıtı (404 dahil) gelirse inceleme gönderilir.

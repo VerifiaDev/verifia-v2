@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
-import { AnalysisProgress, maxWaitLabel } from "@/components/AnalysisProgress";
+import { AnalysisProgress, longWaitNote, maxWaitLabel } from "@/components/AnalysisProgress";
 import { Brand } from "@/components/Brand";
 import { ClaimItem } from "@/components/ClaimItem";
 import { ErrorState } from "@/components/ErrorState";
@@ -356,11 +356,25 @@ describe("ErrorState ve AnalysisProgress", () => {
     const staged = renderToStaticMarkup(<AnalysisProgress phase="retrieving_evidence" onCancel={() => {}} />);
     assert.match(staged, /<p class="sr-only" role="status">Kaynaklar aranıyor \(adım 2 \/ 3\)<\/p>/);
   });
+  it("sunucu beklenirken 'inceleniyor' demez; yanıtın beklendiğini söyler ve bunu ekran okuyucuya duyurur", () => {
+    const html = renderToStaticMarkup(<AnalysisProgress phase="waiting_server" onCancel={() => {}} />);
+    assert.match(html, /<h2[^>]*>Sunucunun yanıtı bekleniyor<\/h2>/);
+    assert.ok(!html.includes("İçerik inceleniyor"));
+    assert.match(html, /<p class="sr-only" role="status">Sunucunun yanıtı bekleniyor\.<\/p>/);
+    assert.ok(!html.includes("<ol"));
+    assert.ok(html.includes("Geçen süre:") && html.includes("Vazgeç"));
+  });
+  it("uzun bekleme notu 30. saniyede çıkar; sunucu beklenirken 'inceleme sürüyor' denmez", () => {
+    assert.equal(longWaitNote("submitting", 29), null);
+    assert.ok(longWaitNote("submitting", 30)?.startsWith("İnceleme sürüyor."));
+    assert.ok(longWaitNote("verifying", 75)?.startsWith("İnceleme sürüyor."));
+    assert.equal(longWaitNote("waiting_server", 75), null);
+  });
   it("bekleme metni belirsiz bir süre vaat etmez; yalnızca arayüzün kesin üst sınırını söyler", () => {
     const html = renderToStaticMarkup(<AnalysisProgress phase="submitting" onCancel={() => {}} />);
     assert.ok(!/birkaç|yaklaşık|genellikle|saniye/.test(html));
     assert.equal((html.match(/dakika/g) ?? []).length, 1);
-    assert.ok(html.includes("en geç 2,5 dakika sonra"));
+    assert.ok(html.includes("en geç 4 dakika sonra"));
     assert.equal(maxWaitLabel(150_000), "2,5 dakika");
     assert.equal(maxWaitLabel(60_000), "1 dakika");
   });
