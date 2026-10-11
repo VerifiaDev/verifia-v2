@@ -1081,7 +1081,12 @@ a.btn {
   max-width: var(--measure);
   overflow-wrap: anywhere;
 }
+/* Tek rakamlı atıf 7 px genişliğindedir; tıklama alanı yatayda dolguyla en az 24 px olur (ölçüm: 25,5 px). Negatif
+   kenar boşluğu satır akışını korur (metin kaymaz). Yan yana atıflarda ([1, 2]) alanlar aradaki virgül boşluğunda
+   üst üste biner; aşağıdaki dokunmatik kuralında da böyledir. */
 .cite {
+  padding-inline: calc(var(--space-2) + 1px);
+  margin-inline: calc(-1 * (var(--space-2) + 1px));
   font-weight: 700;
   text-decoration: none;
 }
