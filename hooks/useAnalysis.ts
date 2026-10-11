@@ -37,6 +37,15 @@ export function isBusy(state: AnalysisState): state is { phase: BusyPhase } {
   );
 }
 
+/**
+ * "Kaynaklı örnek raporu aç" girişi gösterilsin mi? Sonuç ekrandayken gösterilmez: örnek, tek sonuç durumunun
+ * üzerine yazar ve gerçek sonuç hiçbir yerde saklanmadığı için kullanıcı incelemeyi baştan başlatmak zorunda kalırdı.
+ * Örnek açıkken de yinelenmez. "Yeni bir içerik incele" ya da "Örneği kapat" sonrası giriş geri gelir.
+ */
+export function sampleEntryVisible(state: AnalysisState): boolean {
+  return state.phase !== "completed";
+}
+
 export function analysisReducer(state: AnalysisState, action: AnalysisAction): AnalysisState {
   switch (action.type) {
     case "start":

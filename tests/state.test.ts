@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { analysisReducer, isBusy, type AnalysisState } from "@/hooks/useAnalysis";
+import { analysisReducer, isBusy, sampleEntryVisible, type AnalysisState } from "@/hooks/useAnalysis";
 
 const idle: AnalysisState = { phase: "idle" };
 const result = { claims: [], unverifiable: [], unreadable: [] };
@@ -47,5 +47,18 @@ describe("örnek sonuç ve çevrimdışı hatası", () => {
     assert.equal(toApiError(net, true).code, "NETWORK");
     assert.equal(toApiError(new ApiRequestError("TIMEOUT", "x"), false).code, "TIMEOUT");
     assert.equal(toApiError(new Error("x"), true).code, "INTERNAL_ERROR");
+  });
+});
+
+describe("hazır örnek girişi", () => {
+  it("gerçek sonuç ekrandayken sunulmaz: tek tıkla sonucu silerdi ve sonuç saklanmıyor", () => {
+    const real = analysisReducer(idle, { type: "done", result });
+    assert.equal(sampleEntryVisible(real), false);
+  });
+  it("sonuç yokken (boş, bekleme, hata) sunulur; örnek açıkken yinelenmez", () => {
+    assert.equal(sampleEntryVisible(idle), true);
+    assert.equal(sampleEntryVisible({ phase: "submitting" }), true);
+    assert.equal(sampleEntryVisible({ phase: "error", error: { code: "NETWORK", message: "m" } }), true);
+    assert.equal(sampleEntryVisible(analysisReducer(idle, { type: "done", result, sample: true })), false);
   });
 });

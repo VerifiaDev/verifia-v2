@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { isBusy, useAnalysis } from "@/hooks/useAnalysis";
+import { isBusy, sampleEntryVisible, useAnalysis } from "@/hooks/useAnalysis";
 import { AnalysisProgress } from "./AnalysisProgress";
 import { ErrorState } from "./ErrorState";
 import { ResultView } from "./ResultView";
@@ -132,8 +132,9 @@ export function Analyzer() {
         </div>
 
         {/* Hazır örnek rapor her modda sunulur (canlıda da): backend'e istek göndermez, kota harcamaz ve
-            açıldığında "Önceden hazırlanmış örnek rapor. Canlı analiz değildir." etiketini taşır. */}
-        {!showcase && <div className="sample-entry">
+            açıldığında "Önceden hazırlanmış örnek rapor. Canlı analiz değildir." etiketini taşır.
+            Sonuç ekrandayken sunulmaz (bkz. sampleEntryVisible). */}
+        {sampleEntryVisible(state) && <div className="sample-entry">
           <button ref={sampleButton} type="button" className={apiInfo.unavailable ? "btn" : "btn btn-quiet"} onClick={openSample} disabled={busy}>
             Kaynaklı örnek raporu aç <Icon name="chevron" />
           </button>
