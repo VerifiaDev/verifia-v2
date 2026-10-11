@@ -7,6 +7,7 @@ import { Navbar } from "@/components/Navbar";
 import { TrustNotes } from "@/components/TrustNotes";
 import { PrivacyNotes } from "@/components/PrivacyNotes";
 import { apiInfo } from "@/lib/api";
+import { jsonLdText, siteJsonLd } from "@/lib/seo";
 import { SITE_ORIGIN } from "@/lib/site";
 
 // Aynı içerik birden çok adresten sunulduğu için ana sayfa tek bir asıl adrese (canonical) işaret eder.
@@ -15,6 +16,8 @@ export const metadata: Metadata = SITE_ORIGIN ? { alternates: { canonical: "/" }
 export default function HomePage() {
   return (
     <>
+      {/* Arama motorları için yapılandırılmış veri; çalıştırılan bir betik değildir (içerik: lib/seo.ts). */}
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLdText(siteJsonLd()) }} />
       <Navbar />
       <main id="main">
         <div className="container layout">
