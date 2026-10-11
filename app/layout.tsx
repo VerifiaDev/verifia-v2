@@ -27,7 +27,7 @@ const fontSans = localFont({
   adjustFontFallback: "Arial",
 });
 
-const TITLE = `${SITE_NAME} — kanıt temelli iddia incelemesi`;
+const TITLE = `${SITE_NAME} | Kanıt temelli iddia incelemesi`;
 const DESCRIPTION = `${SITE_TAGLINE} Bir haber metni ya da iddia ekleyin; iddiaları ve ilgili kaynakları birlikte inceleyin.`;
 
 // Paylaşım görseli: app/opengraph-image.png ve app/twitter-image.png (dosya adı kuralıyla kendiliğinden eklenir).

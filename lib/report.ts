@@ -5,7 +5,7 @@ import { numberCitations } from "./citations";
 /** Ekrandaki değerlendirme ve kaynaklar, çıktı alınırken de birlikte kalır. */
 export function reportText(result: CheckResult, input?: string, sample = false): string {
   return [
-    `verify — ${result.report?.title ?? "İddia inceleme raporu"}`,
+    `verify: ${result.report?.title ?? "İddia inceleme raporu"}`,
     sample ? (result.report ? "Önceden hazırlanmış örnek rapor. Canlı analiz değildir." : "Uydurma örnek veriler. Gerçek inceleme değildir.") : "Otomatik ön değerlendirme. Kaynakları kendiniz de kontrol edin.",
     result.report?.preparedAt ? `Hazırlanma tarihi: ${result.report.preparedAt}` : "",
     (result.report?.input ?? input) ? `İncelenen içerik:\n${result.report?.input ?? input}` : "",
