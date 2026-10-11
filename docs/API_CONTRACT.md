@@ -5,11 +5,18 @@
 > "Teyit edilmemiş" diye işaretlenen her şey hâlâ frontend'in varsayımıdır.
 > Kodda karşılığı: `lib/api/contract.ts` (şekiller), `lib/api/adapter.ts` (çeviri), `lib/api/http.ts` (istek).
 
+> **11 Ekim denetimi (canlıda doğrulandı):** `https://verify-wb28.onrender.com` üzerinde çalışan backend hâlâ **1.0.0**
+> (`GET /openapi.json` → `info.version: "1.0.0"`; `GET /health` → `{"status":"ok","service":"verify-backend"}`;
+> `POST /verify/stream` → 404). Aşağıdaki backend_v2 notları canlıda **geçerli değildir**; v2 yayına alınınca
+> `GET /openapi.json` sürümü 2.0.0 olmalıdır. Canlı hata gövdeleri sözleşmeyle aynı: boş gövde, yanlış tip, bozuk JSON ve
+> 10.001 karakter `422 VALIDATION_ERROR`; yalnız boşluk `400 EMPTY_TEXT`. Uyuyan sunucunun ilk `/health` yanıtı
+> yaklaşık 132 saniyede geldi (tek ölçüm). Gerçek bir inceleme isteği bu denetimde gönderilmedi.
+
 > **10 Ekim güncellemesi — backend_v2 (`MertBulut11/verify-v2`, `backend_v2/`, `1d907e8`):** kod okundu, canlı deneme yapılmadı.
 > - Yol/istek aynı: `POST /verify` `{ "text" }` (en çok 10 000 karakter). Cevap: `{ status:"ok", results:[…], partial, timings }`.
 > - **Yeni:** her iddiada `status` (`ok` | `error` | `timeout` | `skipped`). `ok` dışında `verdict` **null** gelir; arayüz bunu hüküm olarak değil "İncelenemeyen iddialar" olarak gösterir (`unfinished`). Üst düzey `partial`, `timings`, iddiadaki `cached`, `timings_ms`, `error_code`, `failed_stage`, `detail` okunmaz.
 > - Hata gövdesi `{ status:"error", error:"KOD", message, detail? }`; yeni kodlar: `EXTRACTION_TIMEOUT` (504), `EXTRACTION_FAILED` (502), `CONFIG_ERROR` (503), `VALIDATION_ERROR` (422), `EMPTY_TEXT` (400), `VERIFY_FAILED` (500).
-> - Kaynak biçimi aynı (`id: "source_N"`, `url`, `text`); başlık/tarih/güven puanı hâlâ yok. CORS listesinde `https://verify-test-swart.vercel.app` var.
+> - Kaynak biçimi aynı (`id: "source_N"`, `url`, `text`); varsayılan `lite` arayıcı ayrıca `title`, `domain`, `published_date` ve `retrieval_score` verir (`retrieval_demo_lite/search_retrieval_lite.py`, kaynak sözlüğü; 11 Ekim'de koddan düzeltildi). Güven puanı yok. `published_date` arama servisinin verdiği değerdir; arayüz yalnızca ISO 8601 ve RFC 2822 biçimlerini gösterir. CORS listesinde `https://verify-test-swart.vercel.app` var.
 > - **Kullanılmayan fırsat:** `POST /verify/stream` (SSE) gerçek aşamaları ve iddiaları geldikçe verir; arayüz henüz tek istekle çalışıyor.
 > - Backend'in yayın adresi değişirse Vercel'de `NEXT_PUBLIC_API_BASE_URL` güncellenip yeniden dağıtılmalıdır.
 
