@@ -3,7 +3,7 @@
 import { useId, useRef, useState } from "react";
 import { MAX_INPUT_LENGTH } from "@/lib/config";
 import { INPUT_MODES } from "@/lib/format";
-import { validateInput } from "@/lib/input";
+import { isSubmitShortcut, validateInput } from "@/lib/input";
 import type { ExampleInput } from "@/lib/api";
 import type { CheckRequest, InputMode } from "@/lib/types";
 
@@ -170,6 +170,11 @@ export function VerificationInput({
           value={value}
           disabled={disabled}
           onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (!isSubmitShortcut({ key: e.key, ctrlKey: e.ctrlKey, metaKey: e.metaKey, isComposing: e.nativeEvent.isComposing })) return;
+            e.preventDefault();
+            submit(mode, value);
+          }}
           aria-invalid={error ? true : undefined}
           aria-describedby={describedBy}
           placeholder="Haber metni, paylaşım ya da tek bir iddia yapıştırın."
@@ -221,6 +226,7 @@ export function VerificationInput({
           className={demoteSubmit ? "btn btn-quiet" : "btn"}
           disabled={disabled || busy}
           aria-describedby={noticeId}
+          aria-keyshortcuts="Control+Enter Meta+Enter"
         >
           {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
         </button>

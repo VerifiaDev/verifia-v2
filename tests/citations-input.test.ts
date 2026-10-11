@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { citedNumbers, numberCitations, splitIds } from "@/lib/citations";
-import { validateInput } from "@/lib/input";
+import { isSubmitShortcut, validateInput } from "@/lib/input";
 import { MAX_INPUT_LENGTH } from "@/lib/config";
 import type { Source } from "@/lib/types";
 
@@ -60,5 +60,17 @@ describe("validateInput", () => {
   it("girdiyi kırpıp gönderir", () => {
     const r = validateInput("text", "  merhaba  ");
     assert.ok(r.ok && r.request.content === "merhaba");
+  });
+});
+
+describe("gönderim kısayolu", () => {
+  it("Ctrl+Enter ve Cmd+Enter gönderir; yalın Enter metin alanında yeni satır olarak kalır", () => {
+    assert.equal(isSubmitShortcut({ key: "Enter", ctrlKey: true, metaKey: false }), true);
+    assert.equal(isSubmitShortcut({ key: "Enter", ctrlKey: false, metaKey: true }), true);
+    assert.equal(isSubmitShortcut({ key: "Enter", ctrlKey: false, metaKey: false }), false);
+    assert.equal(isSubmitShortcut({ key: "a", ctrlKey: true, metaKey: false }), false);
+  });
+  it("yazım yöntemi (IME) birleştirme sürerken göndermez", () => {
+    assert.equal(isSubmitShortcut({ key: "Enter", ctrlKey: true, metaKey: false, isComposing: true }), false);
   });
 });
