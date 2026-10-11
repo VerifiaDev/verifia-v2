@@ -6,12 +6,14 @@ export const SITE_TAGLINE = "Kanıtı görün. Kararı siz verin.";
 export const REPO_URL = "";
 
 /**
- * Arayüzün metin sınırı = backend'in kabul ettiği sınır (backend_v2/app/main.py, `max_length=10000`).
- * Backend sınırı değişirse burası da değişmelidir; bunun üstü sunucuda 422 (VALIDATION_ERROR) olur.
- * Not: uzun metin daha çok iddia demektir. Backend en çok 8 iddiayı inceler, kalanı "atlandı" olarak bildirir
- * ve toplam süreyi 45 saniyeyle sınırlar; arayüz bunları "İncelenemeyen iddialar" bölümünde gösterir.
+ * Arayüzün metin sınırı. Backend 10.000 karakter kabul eder (`max_length=10000`), ama arayüz bilerek daha azını
+ * gönderir: 11 Ekim 2026'da canlıdaki backend hâlâ 1.0.0 sürümüydü (`GET /openapi.json`). O sürüm iddia sayısını ve
+ * toplam süreyi sınırlamıyor, iddiaları sırayla işliyor; uzun metin arayüzün süre sınırını aşıyor ve sunucu işi
+ * sürdürüp kota harcıyor.
+ * backend_v2 (en çok 8 iddia, 45 saniye; fazlası "atlandı" olarak bildirilir) canlıya çıkınca 10_000'e yükseltilebilir;
+ * önce `GET /openapi.json` içinde sürümün 2.0.0 olduğu doğrulanmalıdır.
  */
-export const MAX_INPUT_LENGTH = 10_000;
+export const MAX_INPUT_LENGTH = 3_000;
 
 /** Tek istek bu süreden uzun sürerse vazgeçilir (ms). Çok iddialı metinlerde uzun sürebilir. */
 export const REQUEST_TIMEOUT_MS = 90_000;

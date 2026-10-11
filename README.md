@@ -69,7 +69,7 @@ Sakin, editoryal, kanıt odaklı. Yapı ince çizgilerle kurulur; gölge, gradya
 Ek bağımlılık yok.
 
 ## Açık sorular (backend sahibine)
-Backend sözleşmesi koddan okundu (`MertBulut11/verify`, `87ec895`): `POST /verify`, 10 000 karakter (arayüz de aynı sınırı kullanır), hata gövdesi, CORS listesi. Teyitsiz kalanlar: azami süre (şimdilik 90 sn), atıf biçimi, tarih biçimi, tek iddia hatasında davranış. Tam liste ve sorular: [docs/API_CONTRACT.md](docs/API_CONTRACT.md).
+Backend sözleşmesi koddan okundu (`MertBulut11/verify`, `87ec895`): `POST /verify`, 10 000 karakter (arayüz backend_v2 canlıya çıkana kadar 3.000 ile sınırlar), hata gövdesi, CORS listesi. Teyitsiz kalanlar: azami süre (şimdilik 90 sn), atıf biçimi, tarih biçimi, tek iddia hatasında davranış. Tam liste ve sorular: [docs/API_CONTRACT.md](docs/API_CONTRACT.md).
 GitHub bağlantısı için `lib/config.ts` içindeki `REPO_URL` doldurulur.
 
 ## Apollo 11 rapor önizlemesi (8 Ekim 2026)
