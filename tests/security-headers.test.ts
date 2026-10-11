@@ -47,4 +47,14 @@ describe("adres yönlendirmesi (backend CORS yalnızca asıl adrese izin verir)"
     }
     assert.ok(rules.some((r) => (r.has?.[0] as { value?: string } | undefined)?.value === "verify-test-efee2.vercel.app"));
   });
+  it("yayın derlemesinin dal takma adı (git-main) da asıl adrese yönlendirilir", async () => {
+    // 11 Ekim denetimi: bu adreste form açıktı ama backend'e giden her istek CORS'a takılıyordu.
+    const mod = await import("../next.config");
+    const rules = await mod.default.redirects!();
+    const rule = rules.find((r) => (r.has?.[0] as { value?: string } | undefined)?.value === "verify-test-git-main-efee2.vercel.app");
+    assert.ok(rule, "git-main adresi için yönlendirme kuralı yok");
+    assert.equal(rule.source, "/:path*");
+    assert.equal(rule.destination, "https://verify-test-swart.vercel.app/:path*");
+    assert.equal((rule.has?.[0] as { type?: string }).type, "host");
+  });
 });

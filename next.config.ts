@@ -58,9 +58,13 @@ const securityHeaders = [
  * şu an yalnızca verify-test-swart.vercel.app). Site Vercel'in başka bir adresinden (ör. verify-test-efee2.vercel.app)
  * açılırsa tarayıcı her isteği engeller ve kullanıcı "Sunucuya ulaşılamadı" görür. Bu adresler asıl adrese yönlendirilir.
  * Alan adı alınınca: alan adı backend'in `FRONTEND_ORIGIN` ayarına eklenmeli, sonra burası güncellenmeli.
+ *
+ * `verify-test-git-main-efee2`: yayın derlemesinin dal takma adı (11 Ekim denetiminde CORS hatası burada görüldü).
+ * Her dağıtımın kendi adresi (verify-test-<kimlik>-efee2) bilerek yönlendirilmez: belirli bir dağıtımı incelemek
+ * ve geri almak için gerekir. Diğer dalların önizlemelerinde backend adresi tanımlı değildir; form zaten kapalıdır.
  */
 export const CANONICAL_HOST = "verify-test-swart.vercel.app";
-export const REDIRECT_HOSTS = ["verify-test-efee2.vercel.app"];
+export const REDIRECT_HOSTS = ["verify-test-efee2.vercel.app", "verify-test-git-main-efee2.vercel.app"];
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
