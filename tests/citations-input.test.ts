@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { citedNumbers, splitIds } from "@/lib/citations";
+import { citedNumbers, numberCitations, splitIds } from "@/lib/citations";
 import { validateInput } from "@/lib/input";
 import { MAX_INPUT_LENGTH } from "@/lib/config";
 import type { Source } from "@/lib/types";
@@ -14,6 +14,21 @@ describe("citations", () => {
   it("citedNumbers yalnızca listedeki kaynakları numaralar", () => {
     const s = [src("kaynak_1"), src("kaynak_2")];
     assert.deepEqual(citedNumbers("a [kaynak_2] b [kaynak_1, kaynak_9] c [kaynak_2]", s), [2, 1]);
+  });
+  it("numberCitations atıf olmayan köşeli parantezleri aynen bırakır; yalnızca kimlik biçimindekileri çevirir", () => {
+    const s = [src("kaynak_1"), src("kaynak_2")];
+    assert.equal(
+      numberCitations("TÜİK [2023] verisi [kaynak_2], alıntı [...] ve [sic]; olmayan [kaynak_9].", s),
+      "TÜİK [2023] verisi [2], alıntı [...] ve [sic]; olmayan [Kaynak eşleşmesi bulunamadı].",
+    );
+  });
+  it("kimliği alt çizgisiz olan kaynak da listede varsa atıf sayılır", () => {
+    assert.equal(numberCitations("e [k1] ve [k9]", [src("k1")]), "e [1] ve [k9]");
+  });
+  it("atıf sayılmayan parantezdeki kimlik 'dayanılan kaynak' olarak sayılmaz (ekranla tutarlı)", () => {
+    const s = [src("kaynak_1")];
+    assert.deepEqual(citedNumbers("x [kaynak_1, 2023]", s), []);
+    assert.equal(numberCitations("x [kaynak_1, 2023]", s), "x [kaynak_1, 2023]");
   });
 });
 

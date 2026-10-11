@@ -52,6 +52,12 @@ describe("ClaimItem", () => {
     assert.ok(!html.includes("[kaynak_9]"));
     assert.ok(!html.includes('href="#src-c1-9"'));
   });
+  it("atıf olmayan köşeli parantezli metni silmez; 'kaynak eşleşmesi bulunamadı' demez", () => {
+    const html = render(claim({ explanation: "TÜİK [2023] verisi ve alıntı [...] ile [sic] [kaynak_1]." }));
+    assert.ok(html.includes("TÜİK [2023] verisi ve alıntı [...] ile [sic] "));
+    assert.ok(!html.includes("Kaynak eşleşmesi bulunamadı"));
+    assert.ok(html.includes('href="#src-c1-1"'));
+  });
   it("güvensiz bağlantıyı (javascript:) tıklanabilir yapmaz", () => {
     const html = render(claim({ sources: [source(1, { url: "javascript:alert(1)" })] }));
     assert.ok(!html.includes('href="javascript:'));

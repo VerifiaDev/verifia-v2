@@ -60,7 +60,7 @@ Adapter ayrıca iki eski biçimi de kabul eder (mock bunları kullanır): `{ "cl
 | `claim` ya da `text` | evet | İddia metni. Yoksa cevap geçersiz sayılır |
 | `verdict` | evet (`is_verifiable: false` değilse) | `SUPPORTED`, `REFUTED`, `CONFLICTING` (ya da `CONFLICTING_EVIDENCE`), `NOT ENOUGH EVIDENCE` (ya da `NOT_ENOUGH_EVIDENCE`). Tanınmayan ya da eksik değerde yalnızca o iddia "Sonucu gösterilemeyen iddialar" bölümüne düşer, diğer iddialar gösterilir (kısmi sonuç). Okunabilen hiçbir iddia kalmazsa cevap geçersiz sayılır |
 | `is_verifiable` | hayır | `false` ise iddia "İncelenmeyen ifadeler" bölümünde gösterilir |
-| `explanation` | hayır | Köşeli parantezli atıflar (`[source_1]`) kaynak listesindeki `id` ile eşleşirse numaralı bağlantıya çevrilir. Eşleşmeyen atıf düz metin kalır |
+| `explanation` | hayır | Köşeli parantezli atıflar (`[source_1]`) kaynak listesindeki `id` ile eşleşirse numaralı bağlantıya çevrilir. Kimlik biçiminde olup (harf + alt çizgi, ör. `source_9`, `kaynak_1`) listede bulunmayan atıf "Kaynak eşleşmesi bulunamadı" olarak gösterilir. Atıf olmayan köşeli parantezli metin (`[2023]`, `[...]`, `[1]`) olduğu gibi kalır |
 | `sources` ya da `evidence` | hayır | Kaynak listesi. Boşsa "Kaynak bulunamadı" gösterilir |
 | `sources[].url` | evet | Yoksa o kaynak atılır. `http`/`https` dışındaki adresler tıklanabilir yapılmaz |
 | `sources[].title` (ya da `source` / `name`) | hayır | Kaynak adı olarak sayfa başlığı; yoksa alan adı gösterilir |
