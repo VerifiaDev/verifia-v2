@@ -28,6 +28,7 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const { claims, unverifiable, unreadable } = result;
   const unfinished = result.unfinished ?? [];
+  const preparedDate = formatDate(result.report?.preparedAt ?? null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(claims[0] ? [claims[0].id] : []));
   const [listOpen, setListOpen] = useState(false);
   const [target, setTarget] = useState<string | null>(null);
@@ -81,7 +82,8 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
         <h2 id="result-title" ref={headingRef} tabIndex={-1} className="t-h2 result-title">
           {result.report?.title ?? (claims.length === 0 ? (unfinished.length > 0 ? "İddialar incelenemedi" : "İncelenebilir iddia bulunamadı") : `${claims.length} iddia incelendi`)}
         </h2>
-        {result.report?.preparedAt && <p className="report-byline t-meta muted">{showcase ? "Hazır örnek" : "İnceleme tarihi"} · <time dateTime={result.report.preparedAt}>{formatDate(result.report.preparedAt)}</time></p>}
+        {/* Tarih yalnızca kesin okunabiliyorsa gösterilir (bkz. formatDate); okunamıyorsa satır hiç çizilmez. */}
+        {preparedDate && <p className="report-byline t-meta muted">{showcase ? "Hazır örnek" : "İnceleme tarihi"} · <time dateTime={result.report?.preparedAt}>{preparedDate}</time></p>}
 
         {showcase && (
           <p className="note note--warn" role="note">

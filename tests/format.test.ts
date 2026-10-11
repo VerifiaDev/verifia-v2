@@ -18,4 +18,15 @@ describe("formatDate", () => {
     assert.equal(formatDate("dün"), null);
     assert.equal(formatDate("2023-13-45"), null);
   });
+  it("gün ve ayı belirsiz biçimleri tahmin etmez (yanlış ama inandırıcı bir tarih göstermez)", () => {
+    // "05.10.2026" Türkçe yazımda 5 Ekim'dir; JavaScript bunu 10 Mayıs diye okur.
+    assert.equal(formatDate("05.10.2026"), null);
+    assert.equal(formatDate("05/10/2026"), null);
+    assert.equal(formatDate("5 Ekim 2026"), null);
+  });
+  it("ISO 8601 tarih-saat ve RFC 2822 biçimlerini gösterir", () => {
+    assert.equal(formatDate("2026-10-05T12:00:00Z"), "5 Ekim 2026");
+    assert.equal(formatDate("2026-10-05T15:30:00+03:00"), "5 Ekim 2026");
+    assert.equal(formatDate("Mon, 05 Oct 2026 12:00:00 GMT"), "5 Ekim 2026");
+  });
 });

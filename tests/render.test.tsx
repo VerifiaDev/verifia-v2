@@ -389,3 +389,11 @@ it("servis yokken metin yazılabilir ama gönderim eylemi sunulmaz", () => {
   assert.ok(html.includes("Sayfa yenilenince metin ve sonuçlar kaybolur"));
   assert.ok(!html.includes("içerik inceleme servisine gönderilir"));
 });
+
+it("okunamayan rapor tarihi için boş 'İnceleme tarihi' satırı çizilmez", () => {
+  const base = { claims: [], unverifiable: [], unreadable: [] };
+  const ambiguous = renderToStaticMarkup(<ResultView result={{ ...base, report: { preparedAt: "05.10.2026" } }} onReset={() => {}} />);
+  assert.ok(!ambiguous.includes("İnceleme tarihi"));
+  const iso = renderToStaticMarkup(<ResultView result={{ ...base, report: { preparedAt: "2026-10-05" } }} onReset={() => {}} />);
+  assert.ok(iso.includes("İnceleme tarihi") && iso.includes("5 Ekim 2026"));
+});

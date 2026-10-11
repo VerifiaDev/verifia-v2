@@ -140,17 +140,26 @@ const DATE_PARTS = { day: "numeric", month: "long", year: "numeric" } as const;
 const dateFmt = new Intl.DateTimeFormat("tr-TR", DATE_PARTS);
 const dateFmtUtc = new Intl.DateTimeFormat("tr-TR", { ...DATE_PARTS, timeZone: "UTC" });
 const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+/** ISO 8601 tarih-saat: 2026-10-05T12:00:00Z, 2026-10-05T15:30:00+03:00, 2026-10-05 12:00 */
+const ISO_DATE_TIME = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:?\d{2})?$/;
+/** RFC 2822 (haber kaynaklarının ve arama servislerinin yaygın biçimi): Mon, 05 Oct 2026 12:00:00 GMT */
+const RFC_2822 = /^([A-Za-z]{3},\s*)?\d{1,2}\s+[A-Za-z]{3}\s+\d{4}\s+\d{2}:\d{2}(:\d{2})?(\s*(GMT|UTC|Z|[+-]\d{4}))?$/;
 
 /**
  * "2023-03-14" → "14 Mart 2023". Tarih yoksa ya da bozuksa null.
  * Yalnızca tarih içeren değer (saat yok) UTC gece yarısı sayılır; okuyanın saat diliminde gösterilirse
  * UTC'nin batısında bir gün geri kayar. Bu yüzden o biçim UTC'de yazılır.
+ * Yalnızca gün ve ayı kesin olan biçimler okunur. "05.10.2026" gibi değerleri JavaScript ay/gün sırasıyla
+ * yorumlayıp yanlış ama inandırıcı bir tarih üretir; bunlar tahmin edilmez, gösterilmez.
  */
 export function formatDate(iso: string | null): string | null {
   if (!iso) return null;
-  const d = new Date(iso);
+  const value = iso.trim();
+  const dateOnly = DATE_ONLY.test(value);
+  if (!dateOnly && !ISO_DATE_TIME.test(value) && !RFC_2822.test(value)) return null;
+  const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
-  return (DATE_ONLY.test(iso.trim()) ? dateFmtUtc : dateFmt).format(d);
+  return (dateOnly ? dateFmtUtc : dateFmt).format(d);
 }
 
 /** Kaynağın alan adı; kaynak adıyla birlikte, onun yerine değil. */
