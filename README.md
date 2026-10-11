@@ -74,6 +74,6 @@ GitHub bağlantısı için `lib/config.ts` içindeki `REPO_URL` doldurulur.
 
 ## Apollo 11 rapor önizlemesi (8 Ekim 2026)
 
-Sabit ürün örneği artık `lib/sample-report.ts` içindeki, gerçek NASA kaynaklarına bağlanan editör raporudur. Geliştirme senaryolarındaki uydurma kaynaklar (`lib/api/mock/`) bundan ayrıdır. Örnekteki kaynak pasajları Türkçe özet olarak gösterilir; arama yapılmış veya API çalışmış gibi sunulmaz. `?example=apollo-11` hazır raporu doğrudan açar.
+Sabit ürün örneği artık `lib/sample-report.ts` içindeki, gerçek NASA kaynaklarına bağlanan editör raporudur. Geliştirme senaryolarındaki uydurma kaynaklar (`lib/api/mock/`) bundan ayrıdır. Örnekteki kaynak pasajları Türkçe özet olarak gösterilir; arama yapılmış veya API çalışmış gibi sunulmaz. `?example=apollo-11` hazır raporu ana sayfada açar; `/ornek/apollo-11` aynı raporun JavaScript olmadan da okunan, paylaşılabilir sayfasıdır ("Örnek bağlantısını kopyala" bu adresi verir).
 
 Rapor araçları metni ve kaynakları birlikte kopyalar; yazdırma/PDF kaydetme tarayıcının yazdırma menüsünü açar. Gerçek raporlar sunucuda saklanmadığı için onlara paylaşım bağlantısı üretilmez. Geri bildirim aracı gönderim yapmayan bir taslak sunar. Gizlilik ve API ile ilgili açık kararlar: `docs/REPORT_DESIGN.md`.

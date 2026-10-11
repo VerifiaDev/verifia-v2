@@ -2,6 +2,14 @@
 export const SITE_NAME = "verify";
 export const SITE_TAGLINE = "Kanıtı görün. Kararı siz verin.";
 
+/** Hazır örnek raporun kendi sayfası (app/ornek/apollo-11). Paylaşım bağlantısı ve site haritası burayı gösterir. */
+export const SAMPLE_REPORT_PATH = "/ornek/apollo-11";
+
+/** Örnek raporun paylaşılacak tam adresi; `origin` sitenin adresidir (tarayıcıda `window.location.origin`). */
+export function sampleReportUrl(origin: string): string {
+  return `${origin}${SAMPLE_REPORT_PATH}`;
+}
+
 /** Doldurulursa navbar ve footer'da "GitHub" bağlantısı görünür. Boşsa görünmez. */
 export const REPO_URL = "";
 

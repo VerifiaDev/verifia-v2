@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { CheckResult } from "@/lib/types";
 import { reportText } from "@/lib/report";
+import { sampleReportUrl } from "@/lib/config";
 import { Icon } from "./Icon";
 
 export function ReportTools({ result, input, sample = false, showcase = false }: {
@@ -59,11 +60,9 @@ export function ReportTools({ result, input, sample = false, showcase = false }:
       <div className="report-actions" aria-label="Rapor araçları">
         <button type="button" className="btn btn-quiet" disabled={copying} onClick={() => void copy(reportText(result, input, sample), "Rapor kaynaklarıyla birlikte kopyalandı.")}>Raporu kopyala</button>
         <button type="button" className="btn btn-quiet" onClick={() => window.print()}>Yazdır / PDF kaydet</button>
+        {/* Bağlantı, raporun kendi sayfasını gösterir: JavaScript olmadan ve bağlantı önizlemelerinde de açılır. */}
         {showcase && <button type="button" className="btn btn-quiet" disabled={copying} onClick={() => {
-          const url = new URL(window.location.href);
-          url.search = "?example=apollo-11";
-          url.hash = "report";
-          void copy(url.toString(), "Örnek raporun bağlantısı kopyalandı.");
+          void copy(sampleReportUrl(window.location.origin), "Örnek raporun bağlantısı kopyalandı.");
         }}>Örnek bağlantısını kopyala</button>}
       </div>
       <p role="status" aria-atomic="true" className="t-meta muted"><span key={notice.sequence}>{notice.text}</span></p>

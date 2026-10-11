@@ -1,4 +1,4 @@
-import { SITE_NAME, SITE_TAGLINE } from "./config";
+import { SAMPLE_REPORT_PATH, SITE_NAME, SITE_TAGLINE } from "./config";
 import { SITE_ORIGIN } from "./site";
 
 /**
@@ -8,7 +8,7 @@ import { SITE_ORIGIN } from "./site";
  */
 
 /** Site haritasına giren sayfalar. Yeni bir sayfa eklenince buraya da eklenir; arama motoruna kapalı sayfalar eklenmez. */
-const INDEXED_PATHS = ["/"];
+const INDEXED_PATHS = ["/", SAMPLE_REPORT_PATH];
 
 export function robotsRules(origin: string | null = SITE_ORIGIN): { rules: { userAgent: string; allow: string }; sitemap?: string } {
   return { rules: { userAgent: "*", allow: "/" }, ...(origin ? { sitemap: `${origin}/sitemap.xml` } : {}) };
