@@ -1540,6 +1540,41 @@ a.btn {
   margin-top: var(--space-5);
 }
 
+/* ---------- Yasal sayfalar (gizlilik politikası, kullanım koşulları) ---------- */
+
+.legal {
+  max-width: var(--measure);
+}
+.legal > * + * {
+  margin-top: var(--space-4);
+}
+.legal h2 {
+  margin-top: var(--space-7);
+  font-size: var(--text-xl);
+  line-height: var(--lh-heading, 1.25);
+}
+.legal ul {
+  padding-left: var(--space-5);
+  list-style: disc;
+}
+.legal li + li {
+  margin-top: var(--space-2);
+}
+.legal-missing {
+  color: var(--bad);
+  font-weight: 600;
+}
+.legal-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 var(--space-5);
+}
+.legal-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--target);
+}
+
 /* ---------- Footer ---------- */
 
 .site-footer {

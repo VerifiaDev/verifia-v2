@@ -1,6 +1,7 @@
 import { Brand } from "./Brand";
 import { SiteLinks } from "./SiteLinks";
 import { SITE_TAGLINE } from "@/lib/config";
+import { PRIVACY_PATH, TERMS_PATH } from "@/lib/legal";
 
 export function Footer() {
   return (
@@ -15,7 +16,14 @@ export function Footer() {
         </div>
         <nav aria-label="Alt menü">
           <SiteLinks className="footer-links" />
-          <ul className="footer-links"><li><a href="#gizlilik">İçeriğiniz ve gizlilik</a></li></ul>
+          <ul className="footer-links">
+            <li>
+              <a href={PRIVACY_PATH}>Gizlilik politikası</a>
+            </li>
+            <li>
+              <a href={TERMS_PATH}>Kullanım koşulları</a>
+            </li>
+          </ul>
         </nav>
       </div>
     </footer>
