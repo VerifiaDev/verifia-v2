@@ -1,4 +1,5 @@
 import { Section } from "./Section";
+import { ProcessDemo } from "./ProcessDemo";
 
 /**
  * Backend'in gerçek akışı (MertBulut11/verify, backend/main.py ve ai_engine.py). Burada yazan her şey koddan
@@ -26,6 +27,7 @@ const STEPS = [
 export function HowItWorks() {
   return (
     <Section id="nasil" title="Nasıl çalışır?">
+      <ProcessDemo />
       <ol className="how-list">
         {STEPS.map((s, i) => (
           <li key={s.t}>

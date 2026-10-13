@@ -1327,6 +1327,147 @@ a.btn {
 
 /* ---------- Nasıl çalışır ---------- */
 
+/* Canlandırma (components/ProcessDemo.tsx): metin, iddialara ayrılır; kaynak ve sonuç sırayla gelir.
+   Varsayılan hâl son hâldir; hareket yalnızca data-phase="play" sırasında, bir kez çalışır. */
+.demo {
+  margin-bottom: var(--space-6);
+  padding: var(--space-5);
+  background: var(--surface);
+  border: var(--border) solid var(--rule);
+  border-radius: var(--radius);
+}
+.demo-label {
+  color: var(--ink-2);
+  font-size: var(--text-xs);
+  font-weight: 600;
+}
+.demo-text {
+  margin-top: var(--space-2);
+  max-width: var(--measure);
+  font-family: var(--serif);
+  font-size: var(--text-lg);
+  line-height: 1.6;
+}
+.demo-s--claim {
+  text-decoration: underline;
+  text-decoration-color: var(--accent);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+}
+.demo-s--opinion {
+  color: var(--ink-2);
+  text-decoration: underline dotted;
+  text-decoration-color: var(--ink-2);
+  text-underline-offset: 0.25em;
+}
+.demo-rows {
+  margin-top: var(--space-5);
+  border-top: var(--border) solid var(--rule);
+}
+.demo-row {
+  display: grid;
+  gap: var(--space-1);
+  padding-block: var(--space-3);
+  border-bottom: var(--border) solid var(--rule);
+}
+.demo-claim {
+  font-weight: 600;
+}
+/* Dar ekran: kaynak ve sonuç, iddianın altında tek satır (sığmazsa alt alta; üst üste binmez). */
+.demo-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--space-1) var(--space-4);
+}
+.demo-src,
+.demo-verdict {
+  white-space: nowrap;
+}
+.demo-row--opinion .demo-claim {
+  color: var(--ink-2);
+  font-weight: 400;
+}
+.demo-src {
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+.demo-verdict {
+  font-size: var(--text-sm);
+}
+/* Geniş ekran: iddia, kaynak ve sonuç üç hizalı sütun. */
+@media (min-width: 48rem) {
+  .demo-row {
+    grid-template-columns: minmax(0, 1fr) 8.5rem 14rem;
+    align-items: baseline;
+    column-gap: var(--space-4);
+  }
+  .demo-meta {
+    display: contents;
+  }
+}
+.demo-caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3) var(--space-4);
+  margin-top: var(--space-4);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+}
+.demo[data-phase="armed"] .demo-s {
+  text-decoration-color: transparent;
+}
+.demo[data-phase="armed"] .demo-row,
+.demo[data-phase="armed"] .demo-src,
+.demo[data-phase="armed"] .demo-verdict {
+  opacity: 0;
+}
+/* Zaman çizelgesi (toplam ~4,8 sn; ProcessDemo.tsx'teki DURATION_MS ile aynı):
+   0,15-1,15 sn alt çizgiler, 1,2-2,2 sn satırlar, 2,4-3,45 sn kaynaklar, 3,6-4,65 sn sonuçlar. */
+.demo[data-phase="play"] .demo-s {
+  animation: demo-underline 400ms var(--ease-out) both;
+  animation-delay: calc(150ms + var(--i) * 200ms);
+}
+.demo[data-phase="play"] .demo-row {
+  animation: demo-enter 350ms var(--ease-out) both;
+  animation-delay: calc(1200ms + var(--i) * 220ms);
+}
+.demo[data-phase="play"] .demo-src {
+  animation: demo-fade 300ms var(--ease-out) both;
+  animation-delay: calc(2400ms + var(--i) * 250ms);
+}
+.demo[data-phase="play"] .demo-verdict {
+  animation: demo-fade 350ms var(--ease-out) both;
+  animation-delay: calc(3600ms + var(--i) * 350ms);
+}
+@keyframes demo-underline {
+  from {
+    text-decoration-color: transparent;
+  }
+}
+@keyframes demo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes demo-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (max-width: 30rem) {
+  .demo {
+    padding: var(--space-4);
+  }
+  .demo-text {
+    font-size: var(--text-md);
+  }
+}
+
 .how-list {
   display: grid;
   gap: var(--space-6) var(--space-7);
