@@ -46,4 +46,4 @@
 
 ## Onay kapsamı
 
-Yerel rapor deneyimi ve sayfa düzeni onaya sunulur. Canlı analiz API'si bağlanmış değildir. Yayın için kullanıcının bu tasarımın son hâlini açıkça onaylaması beklenir.
+Rapor tasarımı 8 Ekim 2026'da kullanıcı onayıyla yayına alındı ve canlı inceleme servisine (Render) bağlı çalışıyor. Hazır örnek rapor canlı sitede de sunulur (ana sayfadaki düğme ve `/ornek/apollo-11`).

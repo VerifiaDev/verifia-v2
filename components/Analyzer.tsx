@@ -45,7 +45,9 @@ export function Analyzer() {
     const url = new URL(window.location.href);
     url.searchParams.set("example", "apollo-11");
     url.hash = "report";
-    window.history.replaceState(null, "", url);
+    // Yeni geçmiş kaydı: tarayıcının "Geri" tuşu örneği kapatıp forma döner (siteden çıkmaz).
+    // Geri gelindiğinde adreste `example` kalmaz; yukarıdaki popstate dinleyicisi örneği kapatır.
+    window.history.pushState(null, "", url);
     showSample();
   }
   function clearExampleUrl() {
