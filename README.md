@@ -32,6 +32,7 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 3. Sözleşmenin tamamı ve backend sahibine sorular: **[docs/API_CONTRACT.md](docs/API_CONTRACT.md)**.
 4. Güvenlik, gizlilik ve yayına hazırlık denetimi: **[docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)**.
 5. Backend için önerilen değişiklikler (kod okumasından): **[docs/BACKEND_TODO.md](docs/BACKEND_TODO.md)**.
+   Gizlilik sayfasının Render, Groq ve Tavily belgeleriyle karşılaştırması: **[docs/GIZLILIK_VERI_ISLEME.md](docs/GIZLILIK_VERI_ISLEME.md)**.
 6. Frontend ile backend'i birlikte, gerçek tarayıcıda denemek (anahtar gerekmez):
 
    ```bash
