@@ -1,0 +1,313 @@
+"""
+Concurrency, memory and performance tests (offline: fake LLM and fake search, no keys).
+
+What these protect:
+  * many requests at once: all succeed, they overlap (no hidden global lock), and the
+    answers never get mixed up between requests
+  * a request stuck on a slow claim does not slow down the others, and still answers
+    within TOTAL_TIMEOUT
+  * /health stays fast while verifications are running (the frontend calls it before
+    every submit, docs/API_CONTRACT.md)
+  * memory does not grow with the number of requests; the cache stays bounded
+  * disconnected streams do not leave tasks behind, even many at once
+  * the backend's own overhead per request stays small
+
+The thresholds are generous on purpose (shared CI runners are slow and noisy): they catch
+a regression such as an accidental lock or an unbounded list, not a few milliseconds.
+For numbers against a real server use `python loadtest.py` (see README, "Yük testi").
+"""
+
+from __future__ import annotations
+
+import asyncio
+import gc
+import json
+import statistics
+import time
+import tracemalloc
+from types import SimpleNamespace as NS
+
+import httpx
+import pytest
+
+from contract import validate_verify_response
+
+pytestmark = pytest.mark.perf
+
+
+class EchoBackend:
+    """Fake steps where the answer depends on the input, so mixed-up responses are visible.
+
+    Each request text becomes `n` claims "<text> #k". Claims containing ASILI hang.
+    Tracks how many retrieval calls run at the same time, overall and per request text.
+    """
+
+    def __init__(self, n_claims: int = 2, delay: float = 0.0) -> None:
+        self.n_claims = n_claims
+        self.delay = delay
+        self.active = 0
+        self.peak = 0
+        self.active_by_req: dict = {}
+        self.peak_by_req: dict = {}
+        self.started = 0
+        self.cancelled = 0
+
+    async def extract(self, text):
+        return NS(claims=[NS(id=f"c{k + 1}", text=f"{text} #{k + 1}", is_verifiable=True)
+                          for k in range(self.n_claims)])
+
+    async def retrieve(self, claim_text):
+        req = claim_text.rsplit(" #", 1)[0]
+        self.started += 1
+        self.active += 1
+        self.peak = max(self.peak, self.active)
+        self.active_by_req[req] = self.active_by_req.get(req, 0) + 1
+        self.peak_by_req[req] = max(self.peak_by_req.get(req, 0), self.active_by_req[req])
+        try:
+            if "ASILI" in claim_text:
+                await asyncio.sleep(999)
+            await asyncio.sleep(self.delay)
+        except asyncio.CancelledError:
+            self.cancelled += 1
+            raise
+        finally:
+            self.active -= 1
+            self.active_by_req[req] -= 1
+        return [{"id": "source_1", "title": f"Kaynak: {claim_text}", "domain": "a.example.com",
+                 "url": "https://a.example.com/1", "published_date": None, "text": f"kanıt: {claim_text}"}]
+
+    async def verify(self, claim_text, sources):
+        return NS(verdict="SUPPORTED", explanation=f"{claim_text} [source_1]", used_sources=["source_1"])
+
+
+@pytest.fixture
+def echo(monkeypatch):
+    from app import main
+
+    eb = EchoBackend()
+    monkeypatch.setitem(main.state, "llm", NS(extract=eb.extract, verify=eb.verify))
+    monkeypatch.setitem(main.state, "retriever", eb.retrieve)
+    monkeypatch.setitem(main.state, "cache", None)
+    monkeypatch.setitem(main.state, "init_error", None)
+    cfg = main.settings.pipeline
+    for k, v in dict(max_claims=8, claim_concurrency=4, extract_timeout=5.0, claim_timeout=5.0,
+                     total_timeout=10.0, expose_detail=True).items():
+        monkeypatch.setattr(cfg, k, v)
+    return eb
+
+
+def _client():
+    from app import main
+
+    return httpx.AsyncClient(transport=httpx.ASGITransport(app=main.app), base_url="http://test", timeout=30)
+
+
+async def _verify(c, text):
+    t = time.perf_counter()
+    r = await c.post("/verify", json={"text": text})
+    return r, time.perf_counter() - t
+
+
+def _p95(xs):
+    return statistics.quantiles(xs, n=20)[-1] if len(xs) >= 20 else max(xs)
+
+
+# ---- concurrency -----------------------------------------------------------------------
+
+def test_concurrent_requests_succeed_overlap_and_do_not_mix(echo):
+    echo.delay = 0.2
+    n = 25
+
+    async def go():
+        async with _client() as c:
+            t = time.perf_counter()
+            out = await asyncio.gather(*[_verify(c, f"istek-{i}") for i in range(n)])
+            return out, time.perf_counter() - t
+
+    out, wall = asyncio.run(go())
+    for i, (r, _) in enumerate(out):
+        assert r.status_code == 200, r.text
+        body = r.json()
+        assert validate_verify_response(body) == []
+        texts = [x["claim"] for x in body["results"]]
+        assert texts == [f"istek-{i} #1", f"istek-{i} #2"], "responses were mixed between requests"
+        assert all(f"istek-{i} #" in x["explanation"] for x in body["results"])
+    ids = {r.headers["x-request-id"] for r, _ in out}
+    assert len(ids) == n, "every request needs its own X-Request-ID"
+    # one request takes ~0.2 s; 25 one after another would take ~5 s
+    assert wall < 2.0, f"{n} concurrent requests took {wall:.2f}s: something serialises them"
+
+
+def test_claim_concurrency_is_per_request_and_there_is_no_global_cap(echo, monkeypatch):
+    """CLAIM_CONCURRENCY limits claims inside ONE request. There is no global limit: with
+    R requests in flight up to R x CLAIM_CONCURRENCY Groq/Tavily calls run at once.
+    That is why rate limiting / a global limit is a separate backlog item (proje-hafizasi.md);
+    this test pins the current behaviour so a change is noticed."""
+    from app import main
+
+    monkeypatch.setattr(main.settings.pipeline, "claim_concurrency", 3)
+    echo.n_claims, echo.delay = 6, 0.15
+    requests = 8
+
+    async def go():
+        async with _client() as c:
+            return await asyncio.gather(*[_verify(c, f"r{i}") for i in range(requests)])
+
+    out = asyncio.run(go())
+    assert all(r.status_code == 200 for r, _ in out)
+    assert max(echo.peak_by_req.values()) == 3, echo.peak_by_req
+    assert echo.peak <= requests * 3
+    assert echo.peak > 3, "requests should run side by side"
+
+
+def test_a_hanging_request_does_not_slow_down_the_others(echo, monkeypatch):
+    from app import main
+
+    monkeypatch.setattr(main.settings.pipeline, "total_timeout", 1.5)
+    monkeypatch.setattr(main.settings.pipeline, "claim_timeout", 30.0)
+    echo.delay = 0.05
+
+    async def go():
+        async with _client() as c:
+            slow = asyncio.create_task(_verify(c, "ASILI istek"))
+            await asyncio.sleep(0.05)
+            fast = await asyncio.gather(*[_verify(c, f"hızlı-{i}") for i in range(10)])
+            slow_done_early = slow.done()
+            return fast, slow_done_early, await slow
+
+    fast, slow_done_early, (slow_r, slow_t) = asyncio.run(go())
+    assert not slow_done_early
+    assert all(r.status_code == 200 for r, _ in fast)
+    assert max(t for _, t in fast) < 0.8
+    body = slow_r.json()
+    assert slow_r.status_code == 200 and body["partial"] is True
+    assert {x["status"] for x in body["results"]} == {"timeout"}
+    assert slow_t < 1.5 + 1.0, f"TOTAL_TIMEOUT not respected under load ({slow_t:.2f}s)"
+
+
+def test_health_stays_fast_while_verifications_run(echo):
+    echo.delay = 0.5
+
+    async def go():
+        async with _client() as c:
+            busy = [asyncio.create_task(_verify(c, f"yük-{i}")) for i in range(30)]
+            await asyncio.sleep(0.1)
+            lat = []
+            for _ in range(10):
+                t = time.perf_counter()
+                r = await c.get("/health")
+                lat.append(time.perf_counter() - t)
+                assert r.status_code == 200
+            still_busy = sum(not b.done() for b in busy)
+            await asyncio.gather(*busy)
+            return lat, still_busy
+
+    lat, still_busy = asyncio.run(go())
+    assert still_busy == 30, "the health checks must have run while the verifications were in flight"
+    assert max(lat) < 0.25, f"/health took {max(lat) * 1000:.0f} ms under load"
+
+
+# ---- memory --------------------------------------------------------------------------
+
+def test_memory_does_not_grow_with_request_count(echo):
+    async def batch(c, start, count):
+        for k in range(0, count, 20):
+            rs = await asyncio.gather(*[c.post("/verify", json={"text": f"m-{start + k + j}"}) for j in range(20)])
+            assert all(r.status_code == 200 for r in rs)
+
+    async def go():
+        async with _client() as c:
+            await batch(c, 0, 100)  # warm-up: imports, pydantic caches, logging handlers
+            gc.collect()
+            tracemalloc.start()
+            before = tracemalloc.take_snapshot()
+            await batch(c, 1000, 400)
+            gc.collect()
+            after = tracemalloc.take_snapshot()
+            tracemalloc.stop()
+            return sum(s.size_diff for s in after.compare_to(before, "filename"))
+
+    growth = asyncio.run(go())
+    assert growth < 1_000_000, f"memory grew by {growth / 1e6:.2f} MB over 400 requests"
+
+
+def test_cache_is_bounded_under_many_distinct_claims(echo, monkeypatch):
+    from app import main
+    from app.pipeline import TTLCache
+
+    cache = TTLCache(ttl=3600, max_items=50)
+    monkeypatch.setitem(main.state, "cache", cache)
+
+    async def go():
+        async with _client() as c:
+            for k in range(0, 200, 25):
+                await asyncio.gather(*[c.post("/verify", json={"text": f"farklı-{k + j}"}) for j in range(25)])
+            again = await c.post("/verify", json={"text": "farklı-199"})
+            return again.json()
+
+    again = asyncio.run(go())
+    assert len(cache) == 50
+    assert all(x.get("cached") is True for x in again["results"]), "recent entries must still be served"
+
+
+def test_many_disconnected_streams_leave_no_tasks_behind(echo, monkeypatch):
+    from app import main
+    from test_stream import _asgi_post_and_disconnect
+
+    monkeypatch.setattr(main.settings.pipeline, "total_timeout", 30.0)
+    monkeypatch.setattr(main.settings.pipeline, "claim_timeout", 30.0)
+    echo.n_claims = 3
+
+    async def go():
+        await asyncio.gather(*[
+            _asgi_post_and_disconnect(main.app, "/verify/stream", json.dumps({"text": f"ASILI {i}"}).encode(),
+                                      b"event: claims", use_receive=True)
+            for i in range(20)
+        ])
+        await asyncio.sleep(0.05)
+        return [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
+
+    t = time.perf_counter()
+    leftover = asyncio.run(go())
+    assert time.perf_counter() - t < 5
+    assert leftover == []
+    assert echo.started == echo.cancelled == 20 * 3
+
+
+# ---- performance ---------------------------------------------------------------------
+
+def test_backend_overhead_per_request_is_small(echo):
+    """With instant fakes everything measured is the backend's own work (validation,
+    middleware, pipeline, JSON). Locally p95 is a few ms; the limit leaves room for CI."""
+
+    async def go():
+        async with _client() as c:
+            for i in range(20):
+                await c.post("/verify", json={"text": f"ısınma-{i}"})
+            lat = []
+            for i in range(200):
+                r, t = await _verify(c, f"ölçüm-{i}")
+                assert r.status_code == 200
+                assert r.json()["timings"]["total_ms"] >= 0
+                lat.append(t)
+            return lat
+
+    lat = asyncio.run(go())
+    p50, p95 = statistics.median(lat), _p95(lat)
+    print(f"\n/verify overhead: p50={p50 * 1000:.1f} ms p95={p95 * 1000:.1f} ms")
+    assert p95 < 0.1, f"p95 {p95 * 1000:.0f} ms"
+
+
+def test_stream_overhead_per_request_is_small(echo):
+    async def go():
+        async with _client() as c:
+            lat = []
+            for i in range(60):
+                t = time.perf_counter()
+                r = await c.post("/verify/stream", json={"text": f"akış-{i}"})
+                lat.append(time.perf_counter() - t)
+                assert r.status_code == 200 and "event: done" in r.text
+            return lat
+
+    lat = asyncio.run(go())
+    assert _p95(lat) < 0.15, f"stream p95 {_p95(lat) * 1000:.0f} ms"

@@ -51,6 +51,39 @@ python check_all.py --skip-live   # what CI runs (also works without pytest: the
 checks to a running server. Tests marked `known_gap` are `xfail(strict)`: they describe open items owned by a
 teammate and turn CI red once the item is fixed, so the marker gets removed. CI: `.github/workflows/backend.yml`.
 
+### Load, memory and performance
+
+`tests/test_load.py` (marker `perf`, runs in CI with everything else, about 5 s) checks with fakes:
+25 requests at once overlap and never mix answers; `CLAIM_CONCURRENCY` holds per request; a request stuck
+on a hanging claim does not slow down the others and still answers within `TOTAL_TIMEOUT`; `/health` stays
+under 250 ms while 30 verifications run; memory does not grow over 400 requests; the cache stays at
+`max_items`; 20 disconnected streams leave no task behind; the backend's own overhead per request is small.
+
+`loadtest.py` measures a real uvicorn process (latency percentiles, status / error codes, contract
+problems, unique request ids, server RAM):
+
+```bash
+python loadtest.py --spawn-fake --requests 300 --concurrency 30        # offline, fake LLM/search
+python loadtest.py --spawn-fake --requests 300 --concurrency 30 --stream
+python loadtest.py --url https://<backend> --requests 6 --concurrency 3  # REAL: spends Groq/Tavily quota
+```
+
+Measured on 16 Oct 2026 (CI container, one uvicorn worker, fake search 0.3 s per claim, cache off):
+
+| Scenario | p50 | p95 | Errors | Server RAM (before → peak) |
+|---|---|---|---|---|
+| `/verify`, 300 requests, 30 at once | 305 ms | 328 ms | 0 | 51.7 → 53.1 MB |
+| `/verify/stream`, 300 requests, 30 at once | 306 ms | 332 ms | 0 | 51.8 → 53.4 MB |
+| `/verify`, 1000 requests, 100 at once | 1126 ms | 4720 ms | 0 | 51.7 → 56.1 MB |
+
+With 30 at once the latency is the fake search time, so the backend adds almost nothing. With 100 at once
+the single worker's CPU (JSON, logging, validation, plus the load generator on the same machine) becomes
+the limit at about 60 requests/s; all answers stayed valid and `/health` still answered in 5 ms.
+RAM stays around 50-60 MB (the Render free instance has 512 MB). These numbers say nothing about Groq
+and Tavily: with real services each claim takes seconds and their rate limits are the real ceiling.
+There is **no global limit** on upstream calls: R requests in flight can run R x `CLAIM_CONCURRENCY`
+Groq/Tavily calls at once (pinned by a test, see "Known limits").
+
 ## API
 
 - `GET /health` – config and which keys are set (never the keys)
@@ -91,6 +124,8 @@ On Render/Railway: Dockerfile path `backend_v2/Dockerfile`, build context = repo
 ## Known limits
 
 - The cache and rate-limiting are per process (fine for one instance; use Redis if you scale out).
+- `CLAIM_CONCURRENCY` is per request; there is no global cap on concurrent Groq/Tavily calls, and two
+  identical requests at the same moment both miss the cache (no in-flight de-duplication).
 - Python threads that are already waiting on Groq/Tavily when a request times out cannot be killed; their
   result is simply discarded.
 - With `RETRIEVER=tavily`, Tavily snippets are shorter than full pages, so evidence is thinner (speed/depth trade-off).

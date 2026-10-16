@@ -66,6 +66,11 @@ jobs:
       - name: check_all.py --skip-live
         run: python check_all.py --skip-live
 
+      # A real uvicorn process with the fake LLM/search: 200 requests, 20 at once.
+      # Limits are loose (shared runners); they catch a lock, a leak or broken answers.
+      - name: Load test (fake services)
+        run: python loadtest.py --spawn-fake --requests 200 --concurrency 20 --max-p95 2.0 --max-rss-mb 200
+
       - name: Upload reports
         if: always()
         uses: actions/upload-artifact@v4
