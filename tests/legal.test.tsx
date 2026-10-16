@@ -18,7 +18,7 @@ const pages = [
 describe("yasal sayfalar", () => {
   it("gizlilik politikası KVKK m.10 başlıklarını ve koddan bilinen veri akışını içerir", () => {
     const html = renderToStaticMarkup(<PrivacyPage />);
-    for (const s of ["Veri sorumlusu", "hukuki sebep", "m.5/2-c", "m.5/2-f", "Render", "Groq", "Tavily", "Vercel", "yurt dışına aktarılır", "7 ile 30 gün", "11. maddesine", "30 gün içinde", "Kişisel Verileri Koruma Kurulu"]) {
+    for (const s of ["Veri sorumlusu", "hukuki sebep", "m.5/2-c", "m.5/2-f", "Render", "Groq", "Tavily", "Vercel", "yurt dışına aktarılır", "7 ile 30 gün", "model eğitiminde kullanılmaz", "modellerini eğitmek", "11. maddesine", "30 gün içinde", "Kişisel Verileri Koruma Kurulu"]) {
       assert.ok(html.includes(s), s);
     }
   });

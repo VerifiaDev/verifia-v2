@@ -17,8 +17,10 @@ export const metadata: Metadata = {
  * - site: lib/api (metin yalnızca "İncelemeyi başlat" ile gönderilir), components/ThemeToggle (tek tarayıcı kaydı);
  * - canlı backend v1 (MertBulut11/verify): metin Groq'a, iddialardan üretilen sorgular Tavily'ye gider; arama
  *   sorguları sunucu çıktısına yazılır (backend/search_retrieval.py, coklu_internet_aramasi);
- * - sağlayıcı belgeleri: Render log saklama 7/14/30 gün (render.com/docs/logging), Groq "your data",
- *   Tavily gizlilik politikası.
+ * - sağlayıcı belgeleri: Render log saklama 7/14/30 gün (render.com/docs/logging), Groq "your data" ve
+ *   Services Agreement m.4.2 (eğitimde kullanılmaz, 22 Haziran 2026), Tavily gizlilik politikası (24 Kasım 2025:
+ *   sorgu verisi geliştirme ve eğitim için kullanılabilir, hesap açık kaldıkça saklanır).
+ *   Karşılaştırma ve bekleyen öneriler: docs/GIZLILIK_VERI_ISLEME.md.
  * backend_v2 yayına alınırsa (6 saatlik bellek önbelleği vb.) bu sayfa güncellenmelidir.
  */
 export default function PrivacyPage() {
@@ -79,13 +81,15 @@ export default function PrivacyPage() {
         <li>
           <strong>{PROVIDERS.groq.name}</strong>, iddiaları ayıran ve kaynaklara göre değerlendiren yapay zekâ modelini
           çalıştırır. Metninizin tamamı ve bulunan kaynakların alıntıları buraya gönderilir. Groq bu içerikleri varsayılan
-          olarak saklamadığını, ancak arıza ve kötüye kullanım incelemesi için 30 güne kadar saklayabileceğini belirtir.{" "}
+          olarak saklamadığını, ancak arıza ve kötüye kullanım incelemesi için 30 güne kadar saklayabileceğini belirtir.
+          Groq&apos;un hizmet sözleşmesine göre gönderilen içerikler model eğitiminde kullanılmaz.{" "}
           <ExternalLink href={PROVIDERS.groq.policy}>Groq veri politikası</ExternalLink>
         </li>
         <li>
           <strong>{PROVIDERS.tavily.name}</strong> web araması yapar. Metninizden ayrılan iddialara dayanan arama
-          sorguları buraya gönderilir. Tavily, sorguları hizmetini geliştirmek için saklayabileceğini ve sınırlı
-          durumlarda başka arama sağlayıcılarıyla (ör. Google) paylaşabileceğini belirtir.{" "}
+          sorguları buraya gönderilir. Tavily, sorguları hizmetini geliştirmek ve modellerini eğitmek için
+          kullanabileceğini, hesap açık kaldıkça saklayabileceğini ve sınırlı durumlarda başka arama sağlayıcılarıyla
+          (ör. Google) paylaşabileceğini belirtir.{" "}
           <ExternalLink href={PROVIDERS.tavily.policy}>Tavily gizlilik politikası</ExternalLink>
         </li>
       </ul>

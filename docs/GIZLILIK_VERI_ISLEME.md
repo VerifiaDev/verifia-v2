@@ -93,19 +93,19 @@ Render, Groq ve Tavily'nin belgeleri AB SCC'lerine ve DPF'ye dayanıyor; bunlar 
 **Yapılacak (proje sahibi + hukukçu):** hangi dayanağın kullanılacağına karar verin ve gizlilik sayfasına tek cümleyle
 ekleyin (K1). Bu karar verilmeden siteye "her şey hazır" denmemeli (`lib/legal.ts`, `LEGAL_COMPLETE`).
 
-## Sayfa için önerilen değişiklikler (henüz uygulanmadı)
+## Sayfa için önerilen değişiklikler
 
-Yasal metin bu işte değiştirilmedi; onay sizde. Öneriler, hangi koşulda yapılacağıyla:
+G1 ve T1 uygulandı (sağlayıcı belgelerinden doğrulanmış olgular). Diğerleri koşula ya da karara bağlı:
 
 | Kod | Ne zaman | Öneri |
 |---|---|---|
 | B1 | backend_v2 yayına alınınca | "Ne kadar saklanır?" bölümüne: "Aynı iddia tekrar incelendiğinde hızlı yanıt vermek için iddia ve sonuç, sunucunun belleğinde en fazla 6 saat tutulur; diske ya da veritabanına yazılmaz ve sunucu yeniden başlayınca silinir." (`CACHE_TTL_SECONDS=21600`, `backend_v2/app/pipeline.py`, `TTLCache`) |
 | B2 | backend_v2 yayına alınınca | Render maddesinden "metninizden üretilen web araması sorguları yer alabilir" kısmı çıkarılır; yerine "Sunucu kayıtlarında IP adresiniz ve isteğin zamanı yer alır; metniniz kayıtlara yazılmaz." |
-| G1 | şimdi | Groq maddesine: "Groq bu içerikleri model eğitiminde kullanmaz." |
+| G1 | **uygulandı (16 Ekim)** | Groq maddesine: "Groq bu içerikleri model eğitiminde kullanmaz." |
 | G2 | Groq'ta ZDR açılınca | Groq maddesi: "Groq bu içerikleri saklamaz ve model eğitiminde kullanmaz." (30 gün cümlesi kalkar) |
 | R1 | Render bölgesi öğrenilince | "Sunucumuz ...'da (bölge) çalışır." |
 | K1 | hukuki karar verilince | Yurt dışı aktarımın dayanağı (ör. standart sözleşme). |
-| T1 | şimdi (isteğe bağlı) | Tavily maddesine "sorgular model eğitiminde de kullanılabilir" eklenerek açıklık artırılır. |
+| T1 | **uygulandı (16 Ekim)** | Tavily maddesine "sorgular model eğitiminde de kullanılabilir" eklenerek açıklık artırılır. |
 
 ## Teknik öneriler (backend)
 
