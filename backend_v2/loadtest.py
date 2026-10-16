@@ -168,7 +168,7 @@ def main() -> int:
     if a.spawn_fake:
         port = free_port()
         env = {**os.environ, "PORT": str(port), "FAKE_DELAY": str(a.fake_delay),
-               "FAKE_CACHE": "1" if a.fake_cache else "0"}
+               "FAKE_CACHE": "1" if a.fake_cache else "0", "FAKE_UNIQUE_CLAIMS": "1"}
         # the server log goes to a file: an unread pipe fills up and blocks the server
         log_file = tempfile.NamedTemporaryFile("w+", prefix="fake_server_", suffix=".log", delete=False)
         proc = subprocess.Popen([sys.executable, str(HERE / "tests" / "fake_server.py")], env=env,

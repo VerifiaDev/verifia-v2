@@ -53,8 +53,10 @@ teammate and turn CI red once the item is fixed, so the marker gets removed. CI:
 
 ### Load, memory and performance
 
-`tests/test_load.py` (marker `perf`, runs in CI with everything else, about 5 s) checks with fakes:
-25 requests at once overlap and never mix answers; `CLAIM_CONCURRENCY` holds per request; a request stuck
+`tests/test_load.py` (marker `perf`, runs in CI with everything else, about 8 s) checks with fakes:
+25 requests at once overlap and never mix answers; `CLAIM_CONCURRENCY` holds per request and
+`MAX_UPSTREAM_CONCURRENCY` over all requests; identical claims in flight are searched once and one user
+leaving does not cancel the other's shared call; a request stuck
 on a hanging claim does not slow down the others and still answers within `TOTAL_TIMEOUT`; `/health` stays
 under 250 ms while 30 verifications run; memory does not grow over 400 requests; the cache stays at
 `max_items`; 20 disconnected streams leave no task behind; the backend's own overhead per request is small.
@@ -68,21 +70,26 @@ python loadtest.py --spawn-fake --requests 300 --concurrency 30 --stream
 python loadtest.py --url https://<backend> --requests 6 --concurrency 3  # REAL: spends Groq/Tavily quota
 ```
 
-Measured on 16 Oct 2026 (CI container, one uvicorn worker, fake search 0.3 s per claim, cache off):
+Measured on 16 Oct 2026 (CI container, one uvicorn worker, fake search 0.3 s per claim, cache off,
+every text has its own claims, 2 verifiable claims per request):
 
-| Scenario | p50 | p95 | Errors | Server RAM (before → peak) |
-|---|---|---|---|---|
-| `/verify`, 300 requests, 30 at once | 305 ms | 328 ms | 0 | 51.7 → 53.1 MB |
-| `/verify/stream`, 300 requests, 30 at once | 306 ms | 332 ms | 0 | 51.8 → 53.4 MB |
-| `/verify`, 1000 requests, 100 at once | 1126 ms | 4720 ms | 0 | 51.7 → 56.1 MB |
+| Scenario | `MAX_UPSTREAM_CONCURRENCY` | p50 | p95 | Errors | Server RAM (before → peak) |
+|---|---|---|---|---|---|
+| `/verify`, 200 requests, 20 at once | 8 (default) | 1519 ms | 1536 ms | 0 | 51.8 → 53.0 MB |
+| `/verify`, 300 requests, 30 at once | 8 (default) | 2123 ms | 4227 ms | 0 | 51.8 → 53.6 MB |
+| `/verify`, 200 requests, 20 at once | 64 | 304 ms | 317 ms | 0 | 51.8 → 53.2 MB |
+| `/verify`, 300 requests, 30 at once | 64 | 306 ms | 328 ms | 0 | 51.8 → 53.8 MB |
 
-With 30 at once the latency is the fake search time, so the backend adds almost nothing. With 100 at once
-the single worker's CPU (JSON, logging, validation, plus the load generator on the same machine) becomes
-the limit at about 60 requests/s; all answers stayed valid and `/health` still answered in 5 ms.
-RAM stays around 50-60 MB (the Render free instance has 512 MB). These numbers say nothing about Groq
-and Tavily: with real services each claim takes seconds and their rate limits are the real ceiling.
-There is **no global limit** on upstream calls: R requests in flight can run R x `CLAIM_CONCURRENCY`
-Groq/Tavily calls at once (pinned by a test, see "Known limits").
+With the default cap at most 8 search/verdict calls run at once, so throughput is about
+8 / (seconds per claim) and extra requests wait in line instead of all hitting Groq/Tavily
+together (and their rate limits). The wait counts against `CLAIM_TIMEOUT` / `TOTAL_TIMEOUT`,
+so under a flood claims come back as `timeout` (partial result) instead of piling up.
+With a high cap the backend itself adds almost nothing (p95 ≈ the fake search time).
+RAM stays around 50-60 MB (the Render free instance has 512 MB); `/health` answered in 3 ms
+throughout. Earlier run without the cap: 1000 requests, 100 at once, p95 4.7 s, 0 errors,
+peak 56 MB (single worker CPU limit). These numbers say nothing about Groq and Tavily
+themselves: with real services each claim takes seconds and their rate limits decide what
+`MAX_UPSTREAM_CONCURRENCY` should be.
 
 ## API
 
@@ -124,8 +131,9 @@ On Render/Railway: Dockerfile path `backend_v2/Dockerfile`, build context = repo
 ## Known limits
 
 - The cache and rate-limiting are per process (fine for one instance; use Redis if you scale out).
-- `CLAIM_CONCURRENCY` is per request; there is no global cap on concurrent Groq/Tavily calls, and two
-  identical requests at the same moment both miss the cache (no in-flight de-duplication).
+- `MAX_UPSTREAM_CONCURRENCY` (default 8) caps search + verdict calls over all requests and identical
+  in-flight claims share one call (`app/limits.py`). Claim extraction (one Groq call per request) is
+  not capped by it; a per-IP / global request limit is still needed (Fatih's item).
 - Python threads that are already waiting on Groq/Tavily when a request times out cannot be killed; their
   result is simply discarded.
 - With `RETRIEVER=tavily`, Tavily snippets are shorter than full pages, so evidence is thinner (speed/depth trade-off).

@@ -89,6 +89,9 @@ def fake(monkeypatch):
     monkeypatch.setitem(main.state, "retriever", fb.retrieve)
     monkeypatch.setitem(main.state, "cache", None)
     monkeypatch.setitem(main.state, "init_error", None)
+    from app.limits import UpstreamGate
+
+    monkeypatch.setattr(main, "upstream", UpstreamGate(8))  # fresh per test (counters, in-flight calls)
     cfg = main.settings.pipeline
     for k, v in dict(max_claims=8, claim_concurrency=4, extract_timeout=5.0, claim_timeout=5.0,
                      total_timeout=10.0, expose_detail=True).items():

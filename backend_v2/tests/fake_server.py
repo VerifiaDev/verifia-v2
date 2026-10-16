@@ -17,6 +17,9 @@ Environment:
   FAKE_CACHE           "0" turns the result cache off (default on, like production);
                        the fake claims are the same for every text, so with the cache on
                        only the first request does any work
+  FAKE_UNIQUE_CLAIMS   "1" makes every text produce its own claims (default off). Needed for
+                       load tests: identical in-flight claims are otherwise searched once
+                       (app/limits.py), so only the first request would do any work
 
 The claims come from conftest.FakeBackend; keywords in the claim text pick a behaviour
 (BOZUK, KARARSIZ, ASILI, KAYNAKSIZ). Special input texts, for the integration test:
@@ -28,6 +31,7 @@ from __future__ import annotations
 
 import os
 import sys
+import zlib
 from contextlib import asynccontextmanager
 from pathlib import Path
 from types import SimpleNamespace as NS
@@ -54,6 +58,9 @@ class ScenarioBackend(FakeBackend):
         claims = list(self.claims)
         if "KISMI" in text:
             claims[2] = NS(id="c3", text="BOZUK kaynaklı iddia.", is_verifiable=True)
+        if os.getenv("FAKE_UNIQUE_CLAIMS") == "1":
+            tag = f" [{zlib.crc32(text.encode()):08x}]"
+            claims = [NS(id=c.id, text=c.text + tag, is_verifiable=c.is_verifiable) for c in claims]
         return NS(claims=claims)
 
 

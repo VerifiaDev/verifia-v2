@@ -30,6 +30,7 @@ from types import SimpleNamespace as NS
 import httpx
 import pytest
 
+from app.limits import UpstreamGate
 from contract import validate_verify_response
 
 pytestmark = pytest.mark.perf
@@ -89,6 +90,7 @@ def echo(monkeypatch):
     monkeypatch.setitem(main.state, "retriever", eb.retrieve)
     monkeypatch.setitem(main.state, "cache", None)
     monkeypatch.setitem(main.state, "init_error", None)
+    monkeypatch.setattr(main, "upstream", UpstreamGate(64))  # fresh counters; tests that need a cap set it
     cfg = main.settings.pipeline
     for k, v in dict(max_claims=8, claim_concurrency=4, extract_timeout=5.0, claim_timeout=5.0,
                      total_timeout=10.0, expose_detail=True).items():
@@ -138,15 +140,14 @@ def test_concurrent_requests_succeed_overlap_and_do_not_mix(echo):
     assert wall < 2.0, f"{n} concurrent requests took {wall:.2f}s: something serialises them"
 
 
-def test_claim_concurrency_is_per_request_and_there_is_no_global_cap(echo, monkeypatch):
-    """CLAIM_CONCURRENCY limits claims inside ONE request. There is no global limit: with
-    R requests in flight up to R x CLAIM_CONCURRENCY Groq/Tavily calls run at once.
-    That is why rate limiting / a global limit is a separate backlog item (proje-hafizasi.md);
-    this test pins the current behaviour so a change is noticed."""
+def test_upstream_calls_are_capped_across_all_requests(echo, monkeypatch):
+    """CLAIM_CONCURRENCY limits claims inside ONE request; MAX_UPSTREAM_CONCURRENCY limits the
+    paid search/verdict calls of ALL requests together (app/limits.py)."""
     from app import main
 
     monkeypatch.setattr(main.settings.pipeline, "claim_concurrency", 3)
-    echo.n_claims, echo.delay = 6, 0.15
+    monkeypatch.setattr(main, "upstream", UpstreamGate(5))
+    echo.n_claims, echo.delay = 6, 0.1
     requests = 8
 
     async def go():
@@ -155,9 +156,56 @@ def test_claim_concurrency_is_per_request_and_there_is_no_global_cap(echo, monke
 
     out = asyncio.run(go())
     assert all(r.status_code == 200 for r, _ in out)
-    assert max(echo.peak_by_req.values()) == 3, echo.peak_by_req
-    assert echo.peak <= requests * 3
-    assert echo.peak > 3, "requests should run side by side"
+    assert all(x["status"] == "ok" for r, _ in out for x in r.json()["results"])
+    assert max(echo.peak_by_req.values()) <= 3, echo.peak_by_req
+    assert echo.peak == 5, f"global cap not applied (peak {echo.peak})"
+    assert main.upstream.peak == 5
+    assert echo.started == requests * 6
+
+
+def test_identical_claims_in_flight_are_searched_once(echo):
+    """Ten users checking the same text at the same moment: one search and one verdict per claim."""
+    from app import main
+
+    echo.delay = 0.2
+
+    async def go():
+        async with _client() as c:
+            return await asyncio.gather(*[_verify(c, "aynı metin") for _ in range(10)])
+
+    out = asyncio.run(go())
+    bodies = [r.json() for r, _ in out]
+    assert all(r.status_code == 200 for r, _ in out)
+    assert echo.started == 2, f"{echo.started} searches for 2 distinct claims"
+    def same(results):  # timings are measured per request, everything else must be equal
+        return [{k: v for k, v in x.items() if k != "timings_ms"} for x in results]
+
+    assert all(same(b["results"]) == same(bodies[0]["results"]) for b in bodies)
+    assert main.upstream.shared_hits >= 18  # 9 extra requests x (search + verdict) for 2 claims
+
+
+def test_one_user_leaving_does_not_cancel_a_shared_call(echo, monkeypatch):
+    """A stream that disconnects must not break the answer of another request waiting on the
+    same in-flight call; the call is cancelled only when nobody is left."""
+    from app import main
+    from test_stream import _asgi_post_and_disconnect
+
+    monkeypatch.setattr(main.settings.pipeline, "total_timeout", 30.0)
+    monkeypatch.setattr(main.settings.pipeline, "claim_timeout", 30.0)
+    echo.delay = 0.4
+
+    async def go():
+        async with _client() as c:
+            stays = asyncio.create_task(_verify(c, "ortak metin"))
+            await asyncio.sleep(0.05)
+            await _asgi_post_and_disconnect(main.app, "/verify/stream", json.dumps({"text": "ortak metin"}).encode(),
+                                            b"event: claims", use_receive=True)
+            return await stays
+
+    r, _ = asyncio.run(go())
+    assert r.status_code == 200
+    assert [x["status"] for x in r.json()["results"]] == ["ok", "ok"]
+    assert echo.cancelled == 0 and echo.started == 2
 
 
 def test_a_hanging_request_does_not_slow_down_the_others(echo, monkeypatch):
@@ -257,6 +305,7 @@ def test_many_disconnected_streams_leave_no_tasks_behind(echo, monkeypatch):
     monkeypatch.setattr(main.settings.pipeline, "total_timeout", 30.0)
     monkeypatch.setattr(main.settings.pipeline, "claim_timeout", 30.0)
     echo.n_claims = 3
+    monkeypatch.setattr(main, "upstream", UpstreamGate(8))
 
     async def go():
         await asyncio.gather(*[
@@ -271,7 +320,8 @@ def test_many_disconnected_streams_leave_no_tasks_behind(echo, monkeypatch):
     leftover = asyncio.run(go())
     assert time.perf_counter() - t < 5
     assert leftover == []
-    assert echo.started == echo.cancelled == 20 * 3
+    # queued calls never start; every call that did start was cancelled
+    assert 0 < echo.started == echo.cancelled <= main.upstream.max_concurrency
 
 
 # ---- performance ---------------------------------------------------------------------

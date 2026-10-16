@@ -134,6 +134,15 @@ test("CORS: backend frontend'in kökenine izin verir, başka kökene vermez", as
   expect(bad.headers()["access-control-allow-origin"]).toBeUndefined();
 });
 
+test("tarayıcıdaki kod X-Request-ID başlığını okuyabilir (hata bildiriminde kimlik göstermek için)", async ({ page }) => {
+  await page.goto("/");
+  const rid = await page.evaluate(async (url) => {
+    const res = await fetch(`${url}/health`, { cache: "no-store" });
+    return res.headers.get("x-request-id");
+  }, BACKEND_URL);
+  expect(rid).toMatch(/^[A-Za-z0-9._-]{8,64}$/);
+});
+
 test("CSP: sayfa yalnızca kendi sitesine ve tanımlı backend'e bağlanabilir", async ({ page }) => {
   const res = await page.goto("/");
   const csp = res.headers()["content-security-policy"];

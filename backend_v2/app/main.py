@@ -41,6 +41,7 @@ from .observability import (  # noqa: E402
     log_pipeline_result,
     setup_logging,
 )
+from .limits import UpstreamGate  # noqa: E402
 from .pipeline import PipelineError, TTLCache, run_pipeline  # noqa: E402
 from .streaming import SSEResponse, VerificationStream  # noqa: E402
 
@@ -49,6 +50,8 @@ log = logging.getLogger("verify.api")
 
 settings = Settings.from_env()
 state: dict = {"llm": None, "retriever": None, "cache": None, "init_error": None}
+# shared by all requests: global cap on paid calls + one call for identical in-flight claims
+upstream = UpstreamGate(settings.upstream_concurrency)
 
 
 @asynccontextmanager
@@ -92,6 +95,8 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Lets the frontend's JavaScript read the id (e.g. to show it with an error message).
+    expose_headers=["X-Request-ID"],
 )
 # Added last = outermost: every response, including CORS preflight, gets X-Request-ID.
 app.add_middleware(RequestContextMiddleware)
@@ -136,8 +141,8 @@ async def _run(text: str, emit=None):
     res = await run_pipeline(
         text,
         extract=state["llm"].extract,
-        retrieve=state["retriever"],
-        verify=state["llm"].verify,
+        retrieve=upstream.retrieve(state["retriever"]),
+        verify=upstream.verify(state["llm"].verify),
         cfg=settings.pipeline,
         cache=state["cache"],
         emit=emit,
@@ -167,6 +172,7 @@ def health():
             "tavily_key_set": bool(settings.tavily_api_key),
             "max_claims": settings.pipeline.max_claims,
             "claim_concurrency": settings.pipeline.claim_concurrency,
+            "upstream_concurrency": upstream.max_concurrency,
             "total_timeout_s": settings.pipeline.total_timeout,
             "cache_entries": len(state["cache"]) if state["cache"] is not None else 0,
         },

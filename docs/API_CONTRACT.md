@@ -156,9 +156,9 @@ backend_v2'de bu yoktur: hata veren iddia yalnızca kendisi `status: "error"` ol
 backend'de `FRONTEND_ORIGIN` ayarlanmalıdır; yoksa tarayıcı isteği engeller ve arayüz "Sunucuya ulaşılamadı" gösterir.
 İzinsiz kökene `Access-Control-Allow-Origin` dönmediği `e2e/` testinde denetlenir.
 
-backend_v2 `Access-Control-Expose-Headers` göndermez: tarayıcıdaki kod `X-Request-ID` başlığını okuyamaz (ağ
-sekmesinde görünür). Kullanıcıya "hata kimliği" gösterilmek istenirse backend'de `expose_headers=["X-Request-ID"]`
-eklenmelidir.
+backend_v2 `Access-Control-Expose-Headers: X-Request-ID` gönderir (16 Ekim): tarayıcıdaki kod bu başlığı okuyabilir,
+örneğin bir hata mesajının yanında "hata kimliği" olarak gösterebilir. `backend_v2/tests/test_observability.py` ve
+`e2e/` (gerçek tarayıcıda `fetch`) bunu denetler.
 
 ## İzlenebilirlik: `X-Request-ID` (backend_v2)
 
@@ -197,8 +197,13 @@ done     {"type":"done","partial":false,"timings":{…},"request_id":"…"}
 - Aşama bilgisi (`extracting_claims`, `retrieving_evidence`, `verifying`) `/verify`'da **yoktur**. backend_v2'nin
   `/verify/stream` olayları gerçek aşamaları verir (yukarıda); arayüz hazır, yalnızca `lib/api/http.ts` değişir.
   Akış kullanılmadıkça sahte ilerleme gösterilmez.
-- Ölçüm (16 Ekim, sahte arama 0,3 sn/iddia, tek süreç): 30 eşzamanlı istekte p95 yaklaşık 330 ms, sunucu belleği
-  yaklaşık 53 MB; ayrıntı `backend_v2/README.md`, "Load, memory and performance". Gerçek Groq/Tavily süreleri buna dahil değildir.
+- Eşzamanlılık (backend_v2, 16 Ekim): bir istekteki iddialar `CLAIM_CONCURRENCY` (4) ile, tüm isteklerdeki arama ve
+  değerlendirme çağrıları birlikte `MAX_UPSTREAM_CONCURRENCY` (8) ile sınırlıdır; aynı anda incelenen aynı iddia tek
+  kez aranır. Yoğunlukta istekler sırada bekler; bekleme süre sınırına dahildir, aşılırsa iddia `timeout` döner
+  (kısmi sonuç). Arayüzün 90 sn'lik `REQUEST_TIMEOUT_MS` sınırı backend'in 45 sn'lik toplam sınırından uzundur.
+- Ölçüm (16 Ekim, sahte arama 0,3 sn/iddia, tek süreç, varsayılan sınır 8): 20 eşzamanlı istekte p95 yaklaşık 1,5 sn,
+  30 eşzamanlıda yaklaşık 4,2 sn, hata yok, sunucu belleği yaklaşık 53 MB; ayrıntı `backend_v2/README.md`,
+  "Load, memory and performance". Gerçek Groq/Tavily süreleri buna dahil değildir.
 
 ## Teyit edilmemiş varsayımlar
 

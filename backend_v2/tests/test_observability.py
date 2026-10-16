@@ -57,6 +57,13 @@ def test_cors_preflight_has_a_request_id(client):
     assert r.headers.get("x-request-id")
 
 
+def test_browser_javascript_may_read_the_request_id(client):
+    """Without Access-Control-Expose-Headers the frontend's fetch() cannot see X-Request-ID."""
+    r = client.post("/verify", json={"text": "metin"}, headers={"Origin": "https://verify-test-swart.vercel.app"})
+    exposed = [h.strip().lower() for h in r.headers.get("access-control-expose-headers", "").split(",")]
+    assert "x-request-id" in exposed
+
+
 def test_logs_carry_request_id_and_stage_timings(client, caplog):
     caplog.set_level(logging.INFO)
     rid = "trace-me-12345"
