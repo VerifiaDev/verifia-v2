@@ -89,6 +89,14 @@ describe("gece modu: telefon çubuğu ve düğme", () => {
     }
   });
 
+  it("hareket azaltma tercihi sözde öğeleri de kapsar (::before ile çizilen bekleme halkası dönmeye devam etmez)", () => {
+    const block = css.slice(css.indexOf("prefers-reduced-motion: reduce"));
+    const selector = block.slice(block.indexOf("{") + 1, block.indexOf("{", block.indexOf("{") + 1));
+    for (const part of ["*", "*::before", "*::after"]) {
+      assert.ok(selector.split(",").map((x) => x.trim()).includes(part), part);
+    }
+  });
+
   it("düğme sabit adlı, aria-pressed'lı gerçek bir <button>", () => {
     const html = renderToStaticMarkup(<ThemeToggle />);
     assert.match(html, /^<button /);

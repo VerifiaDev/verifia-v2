@@ -10,7 +10,11 @@ interface Props {
   onEdit: () => void;
 }
 
-/** Hata: ne oldu → şimdi ne yapabilirsiniz. Teknik ayrıntı kullanıcıya gösterilmez. */
+/**
+ * Hata: ne oldu → şimdi ne yapabilirsiniz. Teknik ayrıntı kullanıcıya gösterilmez.
+ * Duyuru odakla yapılır: odak başlığa taşınır ve ekran okuyucu başlığı okur. Kapsayıcıda ayrıca
+ * `role="alert"` yok; olsaydı panelin tamamı (liste ve düğmeler dahil) bir kez de canlı bölge olarak okunurdu.
+ */
 export function ErrorState({ error, onRetry, onEdit }: Props) {
   const copy = ERROR_COPY[error.code] ?? ERROR_COPY.INTERNAL_ERROR;
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -22,7 +26,7 @@ export function ErrorState({ error, onRetry, onEdit }: Props) {
   }, []);
 
   return (
-    <div className="error-state" role="alert">
+    <div className="error-state">
       <h2 ref={headingRef} tabIndex={-1} className="t-h3 focus-target">
         {copy.title}
       </h2>

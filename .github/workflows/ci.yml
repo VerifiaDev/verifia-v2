@@ -1,0 +1,30 @@
+# Her gönderimde ve birleştirme isteğinde: tip denetimi, testler ve yayın derlemesi.
+# Yayına alma Vercel'dedir; bu iş yalnızca bozuk kodun fark edilmeden birleşmesini önler.
+name: Kontrol
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kontrol-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  kontrol:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build

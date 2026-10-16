@@ -12,12 +12,27 @@ export type ErrorCode =
   | "INVALID_INPUT"
   | "INPUT_TOO_LONG"
   | "URL_UNREADABLE"
+  /** Bağlantı hiç denenmedi: bağlı servis bağlantıyla incelemeyi desteklemiyor (arayüzün kendi kodu). */
+  | "URL_UNSUPPORTED"
   | "IMAGE_UNREADABLE"
   | "TIMEOUT"
+  | "RATE_LIMITED"
   | "NETWORK"
+  /** Tarayıcı çevrimdışı olduğunu bildiriyor (arayüzün kendi kodu; istek hiç gönderilemedi). */
+  | "OFFLINE"
+  /** Sunucu sağlık denetimine süresinde yanıt vermedi; inceleme isteği hiç gönderilmedi (arayüzün kendi kodu). */
+  | "SERVER_BUSY"
+  /** Günlük toplam inceleme sınırı doldu. */
+  | "QUOTA_EXCEEDED"
+  /** Arama ya da yapay zekâ servisi geçici olarak kullanılamıyor (HTTP 502/503). */
+  | "SERVICE_UNAVAILABLE"
   | "INTERNAL_ERROR";
 
 export interface Source {
+  /** Yalnızca servis veya editör açıkça belirttiğinde gösterilir; sonuçtan türetilmez. */
+  relation?: "supports" | "contradicts" | "context";
+  excerptKind?: "summary";
+  kind?: string;
   /** Açıklamadaki atıfla eşleşen kimlik, örn. "kaynak_1" */
   id: string;
   url: string;
@@ -41,10 +56,30 @@ export interface Claim {
   confidence: number | null;
 }
 
+/** Backend iddiayı buldu ama sonuç üretemedi (yeni backend: iddia başına `status`). Hüküm gösterilmez. */
+export interface UnfinishedClaim {
+  text: string;
+  reason: "timeout" | "error" | "skipped";
+}
+
 export interface CheckResult {
+  report?: {
+    title?: string;
+    summary?: string;
+    input?: string;
+    preparedAt?: string;
+    scope?: string;
+  };
   claims: Claim[];
   /** Doğrulanamaz bulunan ifadeler (görüş, tahmin vb.) */
   unverifiable: string[];
+  /**
+   * Sonucu okunamayan iddialar: metni geldi ama sonuç değeri tanınmadı ya da hiç gelmedi.
+   * Arayüz bunlar için hüküm göstermez; diğer iddiaların sonucu yine gösterilir (kısmi sonuç).
+   */
+  unreadable: string[];
+  /** İncelenemeyen iddialar (süre aşımı, hata, çok iddia nedeniyle atlanma). Yoksa boş sayılır. */
+  unfinished?: UnfinishedClaim[];
 }
 
 /** Backend'in bildirebileceği gerçek işlem aşamaları. Bildirmezse hiçbiri kullanılmaz. */

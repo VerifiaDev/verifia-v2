@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { InvalidResponseError, normalizeVerdict, parseCheckResponse } from "@/lib/api/adapter";
+import { InvalidResponseError, SOURCELESS_EXPLANATION, normalizeVerdict, parseCheckResponse } from "@/lib/api/adapter";
 
 describe("normalizeVerdict", () => {
   it("farklı yazımları tek biçime çevirir", () => {
@@ -94,9 +94,65 @@ describe("parseCheckResponse", () => {
     assert.equal(r.claims[0].explanation, "");
   });
 
+  it("kaynak yoksa hüküm yok: kaynaksız doğru/yanlış/çelişkili sonuç 'yeterli kanıt yok' olarak gösterilir", () => {
+    for (const verdict of ["SUPPORTED", "REFUTED", "CONFLICTING"]) {
+      const r = parseCheckResponse({ results: [{ claim: "A", verdict, explanation: "Modelin kendi bilgisi.", sources: [] }] });
+      assert.equal(r.claims[0].verdict, "NOT_ENOUGH_EVIDENCE", verdict);
+      assert.equal(r.claims[0].explanation, SOURCELESS_EXPLANATION);
+    }
+    const kept = parseCheckResponse({ results: [{ claim: "A", verdict: "NOT ENOUGH EVIDENCE", explanation: "Kaynak yok.", sources: [] }] });
+    assert.equal(kept.claims[0].explanation, "Kaynak yok.");
+    const withSource = parseCheckResponse({ results: [{ claim: "A", verdict: "SUPPORTED", explanation: "e [source_1]", sources: [{ id: "source_1", url: "https://a.example", text: "m" }] }] });
+    assert.equal(withSource.claims[0].verdict, "SUPPORTED");
+  });
+
+  it("sonucu tanınmayan iddia diğerlerini düşürmez; ayrı listelenir (kısmi sonuç)", () => {
+    const r = parseCheckResponse({
+      results: [
+        { claim: "A", verdict: "SUPPORTED" },
+        { claim: "B", verdict: "MOSTLY_TRUE" },
+        { claim: "C" },
+        { claim: "D", is_verifiable: false },
+      ],
+    });
+    assert.deepEqual(r.claims.map((c) => c.text), ["A"]);
+    assert.deepEqual(r.unreadable, ["B", "C"]);
+    assert.deepEqual(r.unverifiable, ["D"]);
+  });
+
+  it("backend_v2: durumu ok olmayan iddia hüküm taşımaz, 'incelenemeyen' listesine girer", () => {
+    const r = parseCheckResponse({
+      status: "ok",
+      partial: true,
+      results: [
+        { claim_id: "c1", claim: "A", is_verifiable: true, verdict: "SUPPORTED", explanation: "x", used_sources: [], sources: [], status: "ok" },
+        { claim_id: "c2", claim: "B", is_verifiable: true, verdict: null, status: "timeout", explanation: "Bu iddia zamanında incelenemedi." },
+        { claim_id: "c3", claim: "C", is_verifiable: true, verdict: null, status: "skipped" },
+        { claim_id: "c4", claim: "D", is_verifiable: true, verdict: null, status: "error" },
+      ],
+    });
+    assert.deepEqual(r.claims.map((c) => c.text), ["A"]);
+    assert.deepEqual(r.unfinished, [
+      { text: "B", reason: "timeout" },
+      { text: "C", reason: "skipped" },
+      { text: "D", reason: "error" },
+    ]);
+    assert.deepEqual(r.unreadable, []);
+  });
+
+  it("backend_v2: hiçbir iddia incelenemediyse de geçerli cevaptır (hata sayılmaz)", () => {
+    const r = parseCheckResponse({ status: "ok", partial: true, results: [{ claim_id: "c1", claim: "A", is_verifiable: true, verdict: null, status: "timeout" }] });
+    assert.equal(r.claims.length, 0);
+    assert.equal(r.unfinished?.length, 1);
+  });
+
+  it("okunabilen hiçbir iddia yokken sonucu tanınmayan iddia varsa cevap geçersizdir ('iddia bulunamadı' denmez)", () => {
+    assert.throws(() => parseCheckResponse({ results: [{ claim: "B", verdict: "MOSTLY_TRUE" }, { claim: "D", is_verifiable: false }] }), InvalidResponseError);
+  });
+
   it("boş claims listesi geçerlidir", () => {
     const r = parseCheckResponse({ claims: [] });
-    assert.deepEqual(r, { claims: [], unverifiable: [] });
+    assert.deepEqual(r, { claims: [], unverifiable: [], unreadable: [] });
   });
 
   for (const bad of [null, "x", [], {}, { claims: "a" }, { claims: [null] }, { claims: [{ verdict: "SUPPORTED" }] }, { claims: [{ text: "t", verdict: "??" }] }]) {
@@ -122,5 +178,54 @@ describe("proje dokümanındaki örnek cevap", () => {
     assert.equal(r.claims[0].sources[0].name, "Reuters");
     assert.equal(r.claims[0].sources[0].publishedAt, "2026-05-12");
     assert.equal(r.claims[0].sources[0].excerpt, "Kısa kanıt pasajı");
+  });
+});
+
+it("isteğe bağlı şeffaflık alanlarını taşır, geçersiz değerleri üretmez", () => {
+  const result = parseCheckResponse({
+    claims: [{ text: "İddia", verdict: "SUPPORTED", sources: [
+      { url: "https://example.com/one", relation: "context", excerpt_kind: "summary", kind: "Görev kaydı" },
+      { url: "https://example.com/two", relation: "certain", excerpt_kind: "unknown" },
+    ] }],
+    report: { scope: "Yalnızca iki belge", prepared_at: "geçersiz tarih" },
+  });
+  assert.equal(result.claims[0].sources[0].relation, "context");
+  assert.equal(result.claims[0].sources[0].excerptKind, "summary");
+  assert.equal(result.claims[0].sources[1].relation, undefined);
+  assert.equal(result.claims[0].sources[1].excerptKind, undefined);
+  assert.deepEqual(result.report, { scope: "Yalnızca iki belge" });
+});
+
+describe("parseCheckResponse: gerçek backend şekli (backend/main.py)", () => {
+  const body = {
+    status: "ok",
+    results: [
+      {
+        claim_id: "claim_1",
+        claim: "Dünya yuvarlaktır.",
+        is_verifiable: true,
+        verdict: "NOT ENOUGH EVIDENCE",
+        explanation: "Kanıt yetersiz [source_1].",
+        used_sources: ["source_1"],
+        sources: [
+          { id: "source_1", title: "Bir başlık", site_name: "ornek.com", domain: "ornek.com", url: "https://www.ornek.com/a", published_date: "2025-03-04", retrieval_score: 0.8, text: "alıntı" },
+          { id: "source_2", title: "Kaynak", domain: "diger.org", url: "https://diger.org/b", published_date: null, retrieval_score: 0.5, text: "başka" },
+          { id: "source_3", title: "ornek.net", domain: "ornek.net", url: "https://ornek.net/c", published_date: null, text: "üçüncü" },
+        ],
+      },
+      { claim_id: "claim_2", claim: "Bence güzel.", is_verifiable: false, verdict: null, explanation: null, used_sources: [], sources: [] },
+    ],
+  };
+  it("başlık, tarih ve doğrulanamayan iddiayı doğru çevirir", () => {
+    const r = parseCheckResponse(body);
+    assert.equal(r.claims.length, 1);
+    assert.deepEqual(r.unverifiable, ["Bence güzel."]);
+    assert.equal(r.claims[0].verdict, "NOT_ENOUGH_EVIDENCE");
+    const [a, b, c] = r.claims[0].sources;
+    assert.equal(a.name, "Bir başlık");
+    assert.equal(a.publishedAt, "2025-03-04");
+    assert.equal(b.name, null, "yedek 'Kaynak' etiketi ad sayılmaz");
+    assert.equal(c.name, null, "alan adıyla aynı başlık ad sayılmaz");
+    assert.equal(r.claims[0].confidence, null);
   });
 });

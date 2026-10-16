@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { ApiRequestError, checkInput } from "@/lib/api";
+import { ApiRequestError, checkInput, sampleResult, warmUp } from "@/lib/api";
 import type { AnalysisStage, ApiError, CheckRequest, CheckResult } from "@/lib/types";
 
 /**
@@ -12,28 +12,44 @@ import type { AnalysisStage, ApiError, CheckRequest, CheckResult } from "@/lib/t
  * Parantez içindeki üç aşama YALNIZCA backend gerçekten aşama bilgisi verirse kullanılır
  * (`onStage` ile). Bilgi gelmezse `submitting` içinde kalırız; sahte ilerleme gösterilmez.
  */
-export type BusyPhase = "submitting" | AnalysisStage;
+/**
+ * `waiting_server`: istek gönderildi ama sunucu sağlık denetimine henüz yanıt vermedi (uyuyor ya da meşgul).
+ * Bu sırada hiçbir şey incelenmiyor; arayüz "inceleniyor" yerine bunu söyler. Gerçek bilgidir, tahmin değildir.
+ */
+export type BusyPhase = "submitting" | "waiting_server" | AnalysisStage;
 
 export type AnalysisState =
   | { phase: "idle" }
   | { phase: BusyPhase }
-  | { phase: "completed"; result: CheckResult; input: string }
+  /** `sample`: sonuç gerçek bir inceleme değil, sabit örnek (servis bağlı değilken gösterilir). */
+  | { phase: "completed"; result: CheckResult; sample?: boolean }
   | { phase: "error"; error: ApiError };
 
 export type AnalysisAction =
   | { type: "start" }
   | { type: "stage"; phase: AnalysisStage }
-  | { type: "done"; result: CheckResult; input: string }
+  | { type: "server_wait"; waiting: boolean }
+  | { type: "done"; result: CheckResult; sample?: boolean }
   | { type: "fail"; error: ApiError }
   | { type: "reset" };
 
 export function isBusy(state: AnalysisState): state is { phase: BusyPhase } {
   return (
     state.phase === "submitting" ||
+    state.phase === "waiting_server" ||
     state.phase === "extracting_claims" ||
     state.phase === "retrieving_evidence" ||
     state.phase === "verifying"
   );
+}
+
+/**
+ * "Kaynaklı örnek raporu aç" girişi gösterilsin mi? Sonuç ekrandayken gösterilmez: örnek, tek sonuç durumunun
+ * üzerine yazar ve gerçek sonuç hiçbir yerde saklanmadığı için kullanıcı incelemeyi baştan başlatmak zorunda kalırdı.
+ * Örnek açıkken de yinelenmez. "Yeni bir içerik incele" ya da "Örneği kapat" sonrası giriş geri gelir.
+ */
+export function sampleEntryVisible(state: AnalysisState): boolean {
+  return state.phase !== "completed";
 }
 
 export function analysisReducer(state: AnalysisState, action: AnalysisAction): AnalysisState {
@@ -43,13 +59,29 @@ export function analysisReducer(state: AnalysisState, action: AnalysisAction): A
     case "stage":
       // Aşama bilgisi yalnızca devam eden bir istekte anlamlıdır; geç gelen bilgi yok sayılır.
       return isBusy(state) ? { phase: action.phase } : state;
+    case "server_wait":
+      // Yalnızca inceleme henüz başlamamışken anlamlıdır; geç gelen bildirim başka bir durumu ezmez.
+      if (state.phase !== "submitting" && state.phase !== "waiting_server") return state;
+      return { phase: action.waiting ? "waiting_server" : "submitting" };
     case "done":
-      return { phase: "completed", result: action.result, input: action.input };
+      return action.sample
+        ? { phase: "completed", result: action.result, sample: true }
+        : { phase: "completed", result: action.result };
     case "fail":
       return { phase: "error", error: action.error };
     case "reset":
       return { phase: "idle" };
   }
+}
+
+/**
+ * Yakalanan hatayı arayüzün hata tipine çevirir. Tarayıcı çevrimdışı olduğunu bildiriyorsa ağ hatası
+ * "internet bağlantısı yok" olarak gösterilir (sunucuyu suçlamak yanlış olurdu).
+ */
+export function toApiError(err: unknown, online: boolean): ApiError {
+  if (!(err instanceof ApiRequestError)) return { code: "INTERNAL_ERROR", message: "Beklenmeyen bir hata oluştu." };
+  if (err.code === "NETWORK" && !online) return { code: "OFFLINE", message: "Cihaz çevrimdışı." };
+  return err.toApiError();
 }
 
 export function useAnalysis() {
@@ -58,6 +90,11 @@ export function useAnalysis() {
   const runId = useRef(0);
   const controller = useRef<AbortController | null>(null);
   const lastRequest = useRef<CheckRequest | null>(null);
+
+  // Sayfa açılınca sunucu uyandırılır; kullanıcı metnini yapıştırana kadar açılmış olur. Kota harcamaz; yalnızca gerçek servis bağlıyken istek gider.
+  useEffect(() => {
+    warmUp();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -76,18 +113,22 @@ export function useAnalysis() {
     dispatch({ type: "start" });
 
     try {
-      const result = await checkInput(req, ctrl.signal, (phase) => {
-        if (runId.current === myRun) dispatch({ type: "stage", phase });
-      });
+      const result = await checkInput(
+        req,
+        ctrl.signal,
+        (phase) => {
+          if (runId.current === myRun) dispatch({ type: "stage", phase });
+        },
+        (waiting) => {
+          if (runId.current === myRun) dispatch({ type: "server_wait", waiting });
+        },
+      );
       if (runId.current !== myRun) return;
-      dispatch({ type: "done", result, input: req.content });
+      dispatch({ type: "done", result });
     } catch (err) {
       if (runId.current !== myRun) return;
-      const apiErr =
-        err instanceof ApiRequestError
-          ? err.toApiError()
-          : ({ code: "INTERNAL_ERROR", message: "Beklenmeyen bir hata oluştu." } as ApiError);
-      dispatch({ type: "fail", error: apiErr });
+      const online = typeof navigator === "undefined" ? true : navigator.onLine;
+      dispatch({ type: "fail", error: toApiError(err, online) });
     }
   }, []);
 
@@ -103,5 +144,12 @@ export function useAnalysis() {
     dispatch({ type: "reset" });
   }, []);
 
-  return { state, start, retry, reset };
+  /** Sabit örnek sonucu gösterir (istek gönderilmez). */
+  const showSample = useCallback(() => {
+    runId.current += 1;
+    controller.current?.abort();
+    dispatch({ type: "done", result: sampleResult(), sample: true });
+  }, []);
+
+  return { state, start, retry, reset, showSample };
 }

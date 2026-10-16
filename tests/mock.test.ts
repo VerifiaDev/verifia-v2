@@ -41,14 +41,26 @@ describe("mockService", () => {
     }
   });
 
+  it("#eksik kısmi sonuç verir: okunabilen iddia gösterilir, tanınmayan ayrı listelenir", async () => {
+    const r = parseCheckResponse((await run("#eksik x")).raw);
+    assert.equal(r.claims.length, 1);
+    assert.equal(r.unreadable.length, 1);
+  });
+
+  it("#incelenemedi backend_v2 biçimini verir: bir iddia gösterilir, ikisi incelenemedi listesinde", async () => {
+    const r = parseCheckResponse((await run("#incelenemedi x")).raw);
+    assert.equal(r.claims.length, 1);
+    assert.deepEqual(r.unfinished?.map((u) => u.reason), ["timeout", "skipped"]);
+  });
+
   it("hata senaryoları ApiRequestError fırlatır", async () => {
     await assert.rejects(run("#hata-ag x"), (e: { code?: string }) => e.code === "NETWORK");
   });
 
   it("teknik senaryolar geliştirici örneği olarak işaretlidir; sonuç türü örnekleri değildir", () => {
     const dev = MOCK_EXAMPLES.filter((ex) => ex.dev).map((ex) => ex.content);
-    assert.equal(dev.length, 2);
-    assert.ok(dev.every((c) => c.includes("#asamali") || c.includes("#hata-")));
+    assert.equal(dev.length, 3);
+    assert.ok(dev.every((c) => c.includes("#asamali") || c.includes("#hata-") || c.includes("#eksik")));
     assert.equal(MOCK_EXAMPLES.filter((ex) => !ex.dev).length, 4);
   });
 

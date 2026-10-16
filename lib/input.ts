@@ -10,6 +10,14 @@ function isHttpUrl(value: string): boolean {
   }
 }
 
+/**
+ * Metin alanında Enter yeni satırdır; Ctrl+Enter (macOS: Cmd+Enter) incelemeyi başlatır.
+ * Yazım yöntemi (IME) birleştirme sürerken Enter o birleştirmeyi onaylar; gönderim sayılmaz.
+ */
+export function isSubmitShortcut(e: { key: string; ctrlKey: boolean; metaKey: boolean; isComposing?: boolean }): boolean {
+  return e.key === "Enter" && (e.ctrlKey || e.metaKey) && !e.isComposing;
+}
+
 /** Girdiyi moduna göre doğrular; geçerliyse gönderilecek isteği döner. */
 export function validateInput(
   mode: InputMode,

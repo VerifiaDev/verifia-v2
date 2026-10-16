@@ -1,15 +1,33 @@
 import { Section } from "./Section";
+import { ProcessDemo } from "./ProcessDemo";
 
+/**
+ * Backend'in gerçek akışı (MertBulut11/verify, backend/main.py ve ai_engine.py). Burada yazan her şey koddan
+ * doğrulanabilir; yapılmayan bir şey (ör. "destekleyen ve çelişen kanıtlar ayrı tartılır") yazılmaz.
+ */
 const STEPS = [
-  { t: "İddialar ayrılır", d: "Gönderdiğiniz metindeki kaynaklarla kontrol edilebilir iddialar tek tek bulunur. Görüşler ve tahminler ayrı tutulur." },
-  { t: "Kaynaklar aranır", d: "Her iddia için web’de ilgili kaynaklar toplanır." },
-  { t: "Kanıtlar karşılaştırılır", d: "Kaynaklar iddiayla karşılaştırılır; destekleyen ve çelişen kanıtlar ayrı değerlendirilir." },
-  { t: "Kanıt düzeyi açıkça belirtilir", d: "Kaynaklar iddiayı destekliyor, onunla çelişiyor ya da yeterli gelmiyorsa sonuç bunu gösterir." },
+  {
+    t: "İddialar ayrılır",
+    d: "Metniniz bir yapay zekâ modeline gönderilir. Model, kaynaklarla kontrol edilebilecek iddiaları tek tek ayırır. Görüşler ve tahminler ayrıca listelenir, incelenmez.",
+  },
+  {
+    t: "Kaynaklar aranır",
+    d: "Her iddia için web’de arama yapılır ve en ilgili en fazla beş kaynak seçilir. Arama sonuçları her zaman en güvenilir kaynakları içermeyebilir.",
+  },
+  {
+    t: "Kaynaklara göre karar verilir",
+    d: "Model, yalnızca bulunan kaynaklara dayanarak karar vermeye ve her bilgiye kaynağını numarayla eklemeye yönlendirilir. Hiç kaynak bulunamayan iddiaya “yeterli kanıt yok” denir.",
+  },
+  {
+    t: "Sonuç ve kaynaklar birlikte gösterilir",
+    d: "Kanıtlar destekliyor, çelişiyor, kaynaklar birbiriyle çelişiyor ya da yeterli kanıt yok. Sonuç otomatik bir ön değerlendirmedir; kaynakları kendiniz de okuyun.",
+  },
 ];
 
 export function HowItWorks() {
   return (
     <Section id="nasil" title="Nasıl çalışır?">
+      <ProcessDemo />
       <ol className="how-list">
         {STEPS.map((s, i) => (
           <li key={s.t}>

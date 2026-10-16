@@ -1,18 +1,13 @@
+import { Brand } from "./Brand";
 import { SiteLinks } from "./SiteLinks";
 import { ThemeToggle } from "./ThemeToggle";
-import { SITE_NAME, SITE_TAGLINE } from "@/lib/config";
 
-/** Logo yalnızca yazıdır (sözcük işareti): simge yok, ad başlık yazı tipiyle yazılır. */
+/** Üst bant: marka (bkz. Brand), sayfa içi menü ve gece modu düğmesi. */
 export function Navbar() {
   return (
     <header>
       <div className="masthead container">
-        <div className="masthead-brand">
-          <a className="brand" href="#main">
-            {SITE_NAME}
-          </a>
-          <p className="brand-tagline">{SITE_TAGLINE}</p>
-        </div>
+        <Brand href="#main" tagline />
         <div className="masthead-end">
           <nav aria-label="Ana menü">
             <SiteLinks className="nav-list" />
