@@ -1,5 +1,5 @@
 /** Site adı ve sabitler tek yerde. Adı değiştirmek için sadece burayı düzenleyin. */
-export const SITE_NAME = "verify";
+export const SITE_NAME = "Verifia";
 export const SITE_TAGLINE = "Kanıtı görün. Kararı siz verin.";
 
 /** Hazır örnek raporun kendi sayfası (app/ornek/apollo-11). Paylaşım bağlantısı ve site haritası burayı gösterir. */

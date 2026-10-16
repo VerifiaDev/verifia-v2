@@ -6,7 +6,7 @@ import { SITE_ORIGIN } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Gizlilik politikası | ${SITE_NAME}`,
-  description: "verify'a gönderdiğiniz metnin nasıl işlendiği, kimlere iletildiği, ne kadar saklandığı ve haklarınız.",
+  description: `${SITE_NAME}'ya gönderdiğiniz metnin nasıl işlendiği, kimlere iletildiği, ne kadar saklandığı ve haklarınız.`,
   ...(SITE_ORIGIN ? { alternates: { canonical: PRIVACY_PATH } } : {}),
   ...(LEGAL_COMPLETE ? {} : { robots: { index: false, follow: false } }),
 };
@@ -25,8 +25,8 @@ export default function PrivacyPage() {
   return (
     <LegalPage title="Gizlilik politikası" path={PRIVACY_PATH}>
       <p>
-        Bu metin, verify&apos;ı kullanırken hangi bilgilerin işlendiğini anlatır ve 6698 sayılı Kişisel Verilerin
-        Korunması Kanunu&apos;nun (KVKK) 10. maddesi kapsamındaki aydınlatma metnidir. verify hesap açtırmaz; adınızı,
+        Bu metin, {SITE_NAME}&apos;yı kullanırken hangi bilgilerin işlendiğini anlatır ve 6698 sayılı Kişisel Verilerin
+        Korunması Kanunu&apos;nun (KVKK) 10. maddesi kapsamındaki aydınlatma metnidir. {SITE_NAME} hesap açtırmaz; adınızı,
         e-posta adresinizi ya da başka bir kimlik bilginizi istemez.
       </p>
 

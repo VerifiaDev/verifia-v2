@@ -12,7 +12,7 @@ interface Props {
 /**
  * Marka tek yerde: logo yalnızca yazıdır (sözcük işareti), ad başlık yazı tipiyle yazılır.
  * Ad ve slogan `lib/config.ts` içinden gelir; marka değişirse bu dosya ile o iki sabit yeter.
- * (Paylaşım görseli ve simgeler ayrı dosyalardır: `app/opengraph-image.png`, `app/icon.svg`.)
+ * (Paylaşım görselleri `app/opengraph-image.tsx` ve `app/twitter-image.tsx` rotalarından üretilir; simge `app/icon.svg`.)
  */
 export function Brand({ href, small = false, tagline = false }: Props) {
   const className = small ? "brand brand--small" : "brand";

@@ -1,4 +1,4 @@
-# verify — Web arayüzü
+# Verifia — Web arayüzü
 
 "Bize güvenme, kanıtlara bak." Bir metin ya da haber bağlantısındaki iddiaları kaynaklarıyla gösteren arayüz.
 **Bu klasör yalnızca frontend'dir.** Geliştirmede (`npm run dev`) adres boşsa örnek (mock) veriyle çalışır; yayın derlemesinde adres yoksa inceleme yapılmaz, uydurma sonuç gösterilmez.
@@ -43,10 +43,10 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 |---|---|
 | `app/globals.css` | Tasarım sistemi. Dosyanın başındaki jetonlar tek kaynaktır: renk, 8 basamaklı tip ölçeği, satır yüksekliği, 4 piksel tabanlı boşluk, köşe ve kenar. Kurallarda jeton dışı yazı boyutu kullanılmaz. Küçük ekran ayarları ilgili bölümün hemen altındadır; üzerine gelme durumları ve hareket dosyanın sonunda toplanmıştır |
 | `app/layout.tsx`, `app/fonts/` | Yazı tipleri proje içinden sunulur (`next/font/local`): başlık ve alıntılar Literata, arayüz Atkinson Hyperlegible Next. Dosyalar Latin + Türkçe harflerle sınırlandırılmıştır; lisans SIL OFL (aynı klasörde) |
-| `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png` | Logo yalnızca yazıdır ("verify" sözcük işareti, `components/Brand.tsx`; ad ve slogan `lib/config.ts` içinde); ayrı bir simge yok. Marka adı değişirse bu iki sabit ile aşağıdaki görseller yeter. Sekme simgesi, aynı yazı tipindeki "v" harfidir. `favicon.ico` (16/32/48) ve `apple-icon.png` (180) doğrudan `icon.svg`'den üretilmiştir; simge değişirse ikisi de yeniden üretilmeli |
+| `app/icon.svg`, `app/favicon.ico`, `app/apple-icon.png` | Marka sözcük işareti `components/Brand.tsx` ve `lib/config.ts` içinden gelir; sekme ve uygulama simgeleri ayrı bir "v" harfidir. `favicon.ico` (16/32/48) ve `apple-icon.png` (180) doğrudan `icon.svg`'den üretilmiştir; simge değişirse ikisi de yeniden üretilmeli |
 | `app/page.tsx` | Sayfa: navbar, hero, giriş, nasıl çalışır, güven ilkeleri, footer |
 | `app/not-found.tsx`, `app/error.tsx` | Sitede olmayan adres ve beklenmeyen çizim hatası için Türkçe sayfalar (ortak iskelet: `components/PlainPage.tsx`) |
-| `app/opengraph-image.png`, `app/twitter-image.png` | Bağlantı paylaşılınca görünen görsel (1200×630, yazı logo). Slogan ya da renk değişirse yeniden üretilmeli; `.alt.txt` dosyaları görselin metin karşılığıdır |
+| `app/opengraph-image.tsx`, `app/twitter-image.tsx` | Bağlantı paylaşılınca görünen görseller (1200×630); marka adı ve sloganı `lib/config.ts` içinden alır |
 | `lib/site.ts` | Yayın adresi. Elle yazılmaz: Vercel'in bildirdiği üretim alan adından (`VERCEL_PROJECT_PRODUCTION_URL`) okunur; canonical ve paylaşım bağlantıları buna göre kurulur. Yerelde boştur |
 | `components/` | Analyzer (durum; kart + sonuç), VerificationInput (form ve inceleme sonrası özet), AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Legend (sonuç türleri), Icon (tek simge seti), Navbar, ThemeToggle, HowItWorks, TrustNotes, Footer, PlainPage |
 | `hooks/useAnalysis.ts` | idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed \| error. Parantezdeki aşamalar yalnızca backend gerçek aşama bilgisi verirse kullanılır; vermezse `submitting`'de kalınır, sahte ilerleme gösterilmez |

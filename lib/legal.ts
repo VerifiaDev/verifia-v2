@@ -10,7 +10,7 @@
  */
 export const LEGAL = {
   /** Hizmeti sunan ve KVKK'daki "veri sorumlusu". 16 Ekim 2026'da proje sahibi bildirdi. */
-  owner: "verify ekibi",
+  owner: "Verifia ekibi",
   members: ["Osman Efe Yıldız", "Mert Bulut", "Mehmet Fatih Çelebi", "Ali Arda Sarı"],
   /** Gizlilik ve yasal başvurular için e-posta adresi (16 Ekim 2026, proje sahibi bildirdi). */
   email: "verifiadev@gmail.com",

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Icon } from "./Icon";
 import { VERDICT_META, formatPercent } from "@/lib/format";
 import type { Verdict } from "@/lib/types";

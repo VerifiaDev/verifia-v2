@@ -6,7 +6,7 @@ import { SITE_ORIGIN } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Çerez politikası | ${SITE_NAME}`,
-  description: "verify çerez kullanmaz. Tarayıcınızda saklanan tek bilgi, sizin seçtiğiniz tema tercihidir.",
+  description: `${SITE_NAME} çerez kullanmaz. Tarayıcınızda saklanan tek bilgi, sizin seçtiğiniz tema tercihidir.`,
   ...(SITE_ORIGIN ? { alternates: { canonical: COOKIES_PATH } } : {}),
   ...(LEGAL_COMPLETE ? {} : { robots: { index: false, follow: false } }),
 };
@@ -22,10 +22,10 @@ export default function CookiesPage() {
     <LegalPage title="Çerez politikası" path={COOKIES_PATH}>
       <p>
         Çerezler, web sitelerinin tarayıcınıza kaydettiği küçük dosyalardır; çoğu zaman ziyaretçileri tanımak ya da
-        izlemek için kullanılır. Bu sayfa, verify&apos;ın tarayıcınızda neyi sakladığını anlatır.
+        izlemek için kullanılır. Bu sayfa, {SITE_NAME}&apos;nın tarayıcınızda neyi sakladığını anlatır.
       </p>
 
-      <h2>verify çerez kullanmaz</h2>
+      <h2>{SITE_NAME} çerez kullanmaz</h2>
       <ul>
         <li>Ziyaretçi analizi (analitik), reklam ya da izleme aracı kullanılmaz.</li>
         <li>Sosyal medya düğmesi, video, harita gibi başka sitelerden yüklenen içerik yoktur.</li>
