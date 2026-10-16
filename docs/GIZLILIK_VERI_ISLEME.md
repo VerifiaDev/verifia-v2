@@ -11,8 +11,9 @@
 - **Eksik 1 (backend_v2 yayına alınınca):** 6 saatlik bellek önbelleği sayfada yok (aşağıda B1).
 - **Eksik 2 (hukuki):** yurt dışına aktarımın KVKK m.9'a göre hangi dayanakla yapıldığı yazmıyor (aşağıda K1).
 - **Kolay kazanç:** Groq konsolunda "Zero Data Retention" açılırsa sayfa "Groq metni saklamaz" diyebilir (G2).
-- **Dikkat:** Tavily sorguları hizmetini geliştirmek (ve model eğitimi) için kullanabileceğini yazıyor; ücretsiz/
-  standart planda bunu kapatan bir ayar bulunmadı (T2).
+- **Dikkat:** Tavily sorguları hizmetini geliştirmek (ve model eğitimi) için kullanabileceğini yazıyor. Herkese açık
+  belgelerde bunu kapatan bir ayar anlatılmıyor; proje notlarına göre hesap panelinde "Allow Use of Query Data" ayarı
+  var (T2, panelden doğrulanmalı).
 
 ## Verinin yolu (backend_v2, `RETRIEVER=lite`)
 
@@ -109,9 +110,10 @@ Yasal metin bu işte değiştirilmedi; onay sizde. Öneriler, hangi koşulda yap
 ## Teknik öneriler (backend)
 
 - **G2:** Groq konsolunda Zero Data Retention'ı açmak (kod değişikliği gerekmez; batch/fine-tuning kullanılmıyor).
-- **T2:** Tavily'ye support@tavily.com üzerinden ücretsiz/standart planda sorguların eğitimde kullanılmaması için
-  itiraz ya da sözleşme seçeneği sorulmalı; SSS'deki "zero data retention" cümlesinin hangi planda geçerli olduğu yazılı
-  olarak öğrenilmeli.
+- **T2:** Tavily panelinde "Allow Use of Query Data" ayarı kapatılmalı (proje notlarındaki ayar; belgelerde anlatılmıyor,
+  panelden doğrulanmalı). Ayar yoksa support@tavily.com'a itiraz yazılmalı. SSS'deki "zero data retention" cümlesinin
+  hangi planda geçerli olduğu yazılı olarak öğrenilmeli. Kapatılınca T1 yerine "sorgular hizmeti geliştirmek için
+  kullanılmaz" yazılabilir.
 - **Sorgu küçültme:** Tavily'ye metnin kendisi değil iddialardan türetilen sorgular gidiyor; yine de metinde kişi adı
   varsa sorguya geçebilir. Sayfadaki "Göndermemeniz gerekenler" bölümü bu yüzden önemli.
 - **Hata mesajları:** dış servis hata mesajları log'a yazılıyor (`log.exception`). Yayında `EXPOSE_ERROR_DETAIL=0`
