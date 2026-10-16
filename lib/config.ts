@@ -1,5 +1,5 @@
 /** Site adı ve sabitler tek yerde. Adı değiştirmek için sadece burayı düzenleyin. */
-export const SITE_NAME = "verify";
+export const SITE_NAME = "Verifia";
 export const SITE_TAGLINE = "Kanıtı görün. Kararı siz verin.";
 
 /** Doldurulursa navbar ve footer'da "GitHub" bağlantısı görünür. Boşsa görünmez. */
