@@ -24,7 +24,7 @@ const SECRET_PATTERNS: [string, RegExp][] = [
 ];
 
 /** Kodda okunmasına izin verilen ortam değişkenleri. Yenisi eklenecekse gizli olmadığından emin olunmalı. */
-const ALLOWED_ENV = new Set(["NODE_ENV", "NEXT_PUBLIC_API_BASE_URL", "VERCEL_PROJECT_PRODUCTION_URL", "TZ"]);
+const ALLOWED_ENV = new Set(["NODE_ENV", "NEXT_PUBLIC_API_BASE_URL", "VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_ENV", "TZ"]);
 
 describe("gizli anahtar koruması", () => {
   it("depodaki hiçbir dosyada anahtar biçiminde bir değer yok", () => {

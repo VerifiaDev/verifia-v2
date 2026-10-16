@@ -90,6 +90,10 @@ function parseSource(raw: unknown, index: number): Source | null {
   };
 }
 
+/** Kaynaksız bir hüküm "yeterli kanıt yok"a çevrildiğinde gösterilen açıklama. */
+export const SOURCELESS_EXPLANATION =
+  "Bu iddia için kaynak bulunamadı. Kaynağa dayanmayan bir “doğru” ya da “yanlış” sonucu gösterilmez.";
+
 function parseClaim(
   raw: unknown,
   index: number,
@@ -115,11 +119,16 @@ function parseClaim(
   const rawSources = Array.isArray(raw.sources) ? raw.sources : Array.isArray(raw.evidence) ? raw.evidence : [];
   const sources = rawSources.map(parseSource).filter((s): s is Source => s !== null);
 
+  // Sitenin sözü (Güven ilkeleri): hiç kaynak yoksa "doğru/yanlış/çelişkili" gösterilmez. Canlı backend 1.0.0
+  // kaynak bulamasa da modele karar verdiriyor; model kendi bilgisinden hüküm verebilir. backend_v2 bunu zaten
+  // kendisi yapıyor (kaynak yoksa modele sormadan NOT ENOUGH EVIDENCE); bu satır iki sürümde de aynı sonucu verir.
+  const sourceless = sources.length === 0 && verdict !== "NOT_ENOUGH_EVIDENCE";
+
   return {
     id: str(raw.id) ?? str(raw.claim_id) ?? `claim_${index + 1}`,
     text,
-    verdict,
-    explanation: str(raw.explanation) ?? "",
+    verdict: sourceless ? "NOT_ENOUGH_EVIDENCE" : verdict,
+    explanation: sourceless ? SOURCELESS_EXPLANATION : (str(raw.explanation) ?? ""),
     sources,
     confidence: parseConfidence(raw.confidence),
   };

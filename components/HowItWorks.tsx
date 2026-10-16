@@ -16,7 +16,7 @@ const STEPS = [
   },
   {
     t: "Kaynaklara göre karar verilir",
-    d: "Model, yalnızca bulunan kaynaklara dayanarak karar vermeye yönlendirilir. Açıklamadaki bilgiler, geldiği kaynağa numaralı atıfla bağlanır.",
+    d: "Model, yalnızca bulunan kaynaklara dayanarak karar vermeye ve her bilgiye kaynağını numarayla eklemeye yönlendirilir. Hiç kaynak bulunamayan iddiaya “yeterli kanıt yok” denir.",
   },
   {
     t: "Sonuç ve kaynaklar birlikte gösterilir",

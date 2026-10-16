@@ -2,6 +2,7 @@
 
 import { useId, useRef, useState } from "react";
 import { MAX_INPUT_LENGTH } from "@/lib/config";
+import { LEGAL_COMPLETE, PRIVACY_PATH } from "@/lib/legal";
 import { INPUT_MODES } from "@/lib/format";
 import { isSubmitShortcut, validateInput } from "@/lib/input";
 import type { ExampleInput } from "@/lib/api";
@@ -225,19 +226,21 @@ export function VerificationInput({
           type="submit"
           className={demoteSubmit ? "btn btn-quiet" : "btn"}
           disabled={disabled || busy}
-          aria-describedby={noticeId}
+          aria-describedby={[noticeId, privacyId].filter(Boolean).join(" ")}
           aria-keyshortcuts="Control+Enter Meta+Enter"
         >
           {busy ? "İnceleniyor…" : "İncelemeyi başlat"}
         </button>
       </div>}
-      {/* Gizlilik: içerik backend üzerinden dil modeli ve web araması servislerine gider (backend/main.py).
-          Metin alanının açıklamasına bağlıdır (aria-describedby), ekran okuyucu da duyurur. */}
+      {/* Formdaki bilgilendirme (KVKK m.10): gönderimden önce, düğmenin hemen altında. Onay kutusu bilerek yok:
+          metin, kullanıcının istediği hizmet için işlenir (m.5/2-c); gereksiz "rıza" istemek yanıltıcı olurdu.
+          Metin alanına ve düğmeye bağlıdır (aria-describedby), ekran okuyucu da duyurur. */}
       <p id={privacyId} className="form-privacy t-meta muted">
         {!unavailable &&
           !localOnly &&
-          "İncelemeyi başlattığınızda içerik, inceleme servisine ve onun kullandığı yapay zekâ ile web araması servislerine gönderilir; kişisel bilgi (ad, telefon, adres, kimlik numarası) eklemeyin. "}
-        Sayfa yenilenince metin ve sonuçlar kaybolur. <a href="#gizlilik">Veri kullanımı</a>
+          "İncelemeyi başlattığınızda metniniz, inceleme sunucumuz üzerinden yurt dışındaki yapay zekâ (Groq) ve web araması (Tavily) servislerine gönderilir. Ad, telefon, adres, kimlik numarası gibi kişisel bilgileri eklemeyin. "}
+        Metin ve sonuçlar kaydedilmez; sayfa yenilenince kaybolur.{" "}
+        <a href={LEGAL_COMPLETE ? PRIVACY_PATH : "#gizlilik"}>{LEGAL_COMPLETE ? "Gizlilik politikası" : "Veri kullanımı"}</a>
       </p>
 
       {userExamples.length > 0 && (

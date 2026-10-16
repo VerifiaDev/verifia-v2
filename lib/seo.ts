@@ -1,5 +1,6 @@
 import { SAMPLE_REPORT_PATH, SITE_NAME, SITE_TAGLINE } from "./config";
 import { SITE_ORIGIN } from "./site";
+import { LEGAL_COMPLETE, LEGAL_PAGES } from "./legal";
 
 /**
  * Arama motorları için robots.txt, site haritası ve yapılandırılmış veri (app/robots.ts, app/sitemap.ts, app/page.tsx).
@@ -8,7 +9,7 @@ import { SITE_ORIGIN } from "./site";
  */
 
 /** Site haritasına giren sayfalar. Yeni bir sayfa eklenince buraya da eklenir; arama motoruna kapalı sayfalar eklenmez. */
-const INDEXED_PATHS = ["/", SAMPLE_REPORT_PATH];
+const INDEXED_PATHS = ["/", SAMPLE_REPORT_PATH, ...(LEGAL_COMPLETE ? LEGAL_PAGES.map((p) => p.path) : [])];
 
 export function robotsRules(origin: string | null = SITE_ORIGIN): { rules: { userAgent: string; allow: string }; sitemap?: string } {
   return { rules: { userAgent: "*", allow: "/" }, ...(origin ? { sitemap: `${origin}/sitemap.xml` } : {}) };

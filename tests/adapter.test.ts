@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { InvalidResponseError, normalizeVerdict, parseCheckResponse } from "@/lib/api/adapter";
+import { InvalidResponseError, SOURCELESS_EXPLANATION, normalizeVerdict, parseCheckResponse } from "@/lib/api/adapter";
 
 describe("normalizeVerdict", () => {
   it("farklı yazımları tek biçime çevirir", () => {
@@ -92,6 +92,18 @@ describe("parseCheckResponse", () => {
     assert.equal(r.claims[0].sources.length, 0);
     assert.equal(r.claims[0].id, "claim_1");
     assert.equal(r.claims[0].explanation, "");
+  });
+
+  it("kaynak yoksa hüküm yok: kaynaksız doğru/yanlış/çelişkili sonuç 'yeterli kanıt yok' olarak gösterilir", () => {
+    for (const verdict of ["SUPPORTED", "REFUTED", "CONFLICTING"]) {
+      const r = parseCheckResponse({ results: [{ claim: "A", verdict, explanation: "Modelin kendi bilgisi.", sources: [] }] });
+      assert.equal(r.claims[0].verdict, "NOT_ENOUGH_EVIDENCE", verdict);
+      assert.equal(r.claims[0].explanation, SOURCELESS_EXPLANATION);
+    }
+    const kept = parseCheckResponse({ results: [{ claim: "A", verdict: "NOT ENOUGH EVIDENCE", explanation: "Kaynak yok.", sources: [] }] });
+    assert.equal(kept.claims[0].explanation, "Kaynak yok.");
+    const withSource = parseCheckResponse({ results: [{ claim: "A", verdict: "SUPPORTED", explanation: "e [source_1]", sources: [{ id: "source_1", url: "https://a.example", text: "m" }] }] });
+    assert.equal(withSource.claims[0].verdict, "SUPPORTED");
   });
 
   it("sonucu tanınmayan iddia diğerlerini düşürmez; ayrı listelenir (kısmi sonuç)", () => {

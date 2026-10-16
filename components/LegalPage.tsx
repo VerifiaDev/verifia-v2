@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
+import { notFound } from "next/navigation";
 import { PlainPage } from "./PlainPage";
-import { LEGAL, LEGAL_COMPLETE, PRIVACY_PATH, TERMS_PATH } from "@/lib/legal";
+import { LEGAL, LEGAL_COMPLETE, LEGAL_PAGES, joinNames, legalPagesHidden } from "@/lib/legal";
 import { formatDate } from "@/lib/format";
 
 /** Proje sahibinden gelecek bir bilgi. Boşsa uydurulmaz; eksik olduğu açıkça gösterilir. */
@@ -12,8 +13,30 @@ export function EmailLink() {
   return LEGAL.email.trim() ? <a href={`mailto:${LEGAL.email}`}>{LEGAL.email}</a> : <Fill value="" label="iletişim e-postası" />;
 }
 
-/** Gizlilik politikası ve kullanım koşulları için ortak iskelet: başlık, tarih, taslak uyarısı, içerik, karşı bağlantı. */
-export function LegalPage({ title, other, children }: { title: string; other: "privacy" | "terms"; children: ReactNode }) {
+/** "verify ekibinin (Ad Soyad, Ad Soyad ve Ad Soyad)": "Bu site, … ticari olmayan bir projesidir." cümlesinde. */
+export function Owner() {
+  return (
+    <>
+      {LEGAL.owner}nin ({joinNames(LEGAL.members)})
+    </>
+  );
+}
+
+export function ExternalLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer">
+      {children}
+      <span className="sr-only"> (yeni sekmede açılır)</span>
+    </a>
+  );
+}
+
+/**
+ * Üç yasal sayfanın ortak iskeleti: başlık, tarih, taslak uyarısı, içerik, diğer sayfalara bağlantılar.
+ * Bilgiler eksikken yayındaki sitede sayfa 404 döner (bkz. lib/legal.ts).
+ */
+export function LegalPage({ title, path, children }: { title: string; path: string; children: ReactNode }) {
+  if (legalPagesHidden()) notFound();
   return (
     <PlainPage title={title}>
       {!LEGAL_COMPLETE && (
@@ -26,10 +49,14 @@ export function LegalPage({ title, other, children }: { title: string; other: "p
         Son güncelleme: <time dateTime={LEGAL.updated}>{formatDate(LEGAL.updated)}</time>
       </p>
       <div className="legal">{children}</div>
-      <p className="legal-nav">
-        {other === "privacy" ? <a href={PRIVACY_PATH}>Gizlilik politikası</a> : <a href={TERMS_PATH}>Kullanım koşulları</a>}
+      <nav className="legal-nav" aria-label="Yasal sayfalar">
+        {LEGAL_PAGES.filter((p) => p.path !== path).map((p) => (
+          <a key={p.path} href={p.path}>
+            {p.label}
+          </a>
+        ))}
         <a href="/">Ana sayfaya dön</a>
-      </p>
+      </nav>
     </PlainPage>
   );
 }

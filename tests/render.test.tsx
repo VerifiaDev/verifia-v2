@@ -270,10 +270,13 @@ describe("VerificationInput örnekleri", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
     const note = html.match(/<p id="([^"]+)" class="form-privacy[^"]*">([\s\S]*?)<\/p>/);
     assert.ok(note, "gizlilik notu bulunamadı");
-    assert.ok(note[2].includes("yapay zekâ ile web araması servislerine gönderilir"));
-    assert.ok(note[2].includes("kişisel bilgi"));
+    assert.ok(note[2].includes("yurt dışındaki yapay zekâ (Groq) ve web araması (Tavily) servislerine gönderilir"));
+    assert.ok(note[2].includes("kişisel bilgileri eklemeyin"));
     const described = html.match(/<textarea[^>]*aria-describedby="([^"]+)"/)?.[1].split(" ") ?? [];
     assert.ok(described.includes(note[1]), "not, metin alanının açıklamasına bağlı değil");
+    // Gönderimden hemen önce de duyurulsun: düğme de nota bağlı (formdaki bilgilendirme).
+    const button = html.match(/<button[^>]*type="submit"[^>]*aria-describedby="([^"]+)"/)?.[1].split(" ") ?? [];
+    assert.ok(button.includes(note[1]), "not, gönder düğmesine bağlı değil");
   });
   it("girdi türü grubunu tek kez adlandırır (fieldset + legend; ikinci bir radiogroup etiketi yok)", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
@@ -284,9 +287,9 @@ describe("VerificationInput örnekleri", () => {
   it("servis bağlı değilken devre dışı alan ve düğme, nedenini anlatan nota bağlanır", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} disabled noticeId="not" />);
     assert.match(html, /<textarea[^>]*aria-describedby="[^"]*\bnot\b[^"]*"/);
-    assert.match(html, /<button[^>]*type="submit"[^>]*aria-describedby="not"/);
+    assert.match(html, /<button[^>]*type="submit"[^>]*aria-describedby="not [^"]*-privacy"/);
     const plain = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
-    assert.ok(!/<button[^>]*aria-describedby/.test(plain));
+    assert.match(plain, /<button[^>]*type="submit"[^>]*aria-describedby="[^" ]*-privacy"/);
   });
   const ex = (label: string, dev?: boolean) => ({ label, mode: "text" as const, content: label, dev });
   it("geliştirici senaryolarını ayrı ve etiketli bir grupta gösterir", () => {
@@ -400,8 +403,8 @@ it("servis yokken metin yazılabilir ama gönderim eylemi sunulmaz", () => {
   assert.ok(html.includes("<textarea"));
   assert.ok(!/<textarea[^>]*disabled/.test(html));
   assert.ok(!html.includes('type="submit"'));
-  assert.ok(html.includes("Sayfa yenilenince metin ve sonuçlar kaybolur"));
-  assert.ok(!html.includes("içerik inceleme servisine gönderilir"));
+  assert.ok(html.includes("Metin ve sonuçlar kaydedilmez; sayfa yenilenince kaybolur"));
+  assert.ok(!html.includes("servislerine gönderilir"));
 });
 
 it("okunamayan rapor tarihi için boş 'İnceleme tarihi' satırı çizilmez", () => {
