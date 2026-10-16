@@ -1,0 +1,4 @@
+# Test-only dependencies (CI and local). Runtime deps stay in requirements.txt.
+-r requirements.txt
+pytest>=8,<10
+httpx>=0.27,<1     # needed by fastapi.testclient

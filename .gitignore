@@ -8,3 +8,18 @@ next-env.d.ts
 !.env.example
 *.tsbuildinfo
 .DS_Store
+
+# Backend (backend_v2/, ai-engine/, retrieval_demo_lite/)
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+backend_v2/check_all_report.txt
+backend_v2/check_all_server.log
+backend_v2/pytest-report.xml
+
+# Uçtan uca test (e2e/)
+e2e/node_modules/
+e2e/test-results/
+e2e/playwright-report/

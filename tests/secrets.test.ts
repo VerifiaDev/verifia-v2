@@ -36,7 +36,8 @@ describe("gizli anahtar koruması", () => {
 
   it(".env dosyaları depoya girmez; yalnızca .env.example izlenir", () => {
     const envFiles = tracked.filter((f) => /(^|\/)\.env/.test(f));
-    assert.deepEqual(envFiles, [".env.example"]);
+    // backend_v2/.env.example: backend'in örnek ayar dosyası; anahtar satırları boştur (aşağıdaki test).
+    assert.deepEqual(envFiles, [".env.example", "backend_v2/.env.example"]);
     const ignore = readFileSync(".gitignore", "utf8").split("\n");
     for (const rule of [".env", ".env.*", "!.env.example"]) assert.ok(ignore.includes(rule), rule);
   });
@@ -48,8 +49,18 @@ describe("gizli anahtar koruması", () => {
     assert.deepEqual(lines, ["NEXT_PUBLIC_API_BASE_URL="]);
   });
 
+  it("backend_v2/.env.example içinde anahtar satırları boştur", () => {
+    const lines = readFileSync("backend_v2/.env.example", "utf8").split("\n");
+    for (const name of ["GROQ_API_KEY", "TAVILY_API_KEY"]) {
+      const line = lines.find((l) => l.startsWith(`${name}=`));
+      assert.ok(line, `${name} satırı yok`);
+      assert.equal(line.slice(name.length + 1).trim(), "", `${name} dolu`);
+    }
+  });
+
   it("kod yalnızca izin verilen ortam değişkenlerini okur (tarayıcıya gömülen NEXT_PUBLIC_ dahil)", () => {
-    const code = tracked.filter((f) => /\.(ts|tsx|js|mjs)$/.test(f));
+    // e2e/ tarayıcıya gönderilmez: CI'da Node'da çalışan uçtan uca testtir, kendi ayarlarını ortamdan okur.
+    const code = tracked.filter((f) => /\.(ts|tsx|js|mjs)$/.test(f) && !f.startsWith("e2e/"));
     for (const f of code) {
       for (const m of readFileSync(f, "utf8").matchAll(/process\.env\.([A-Z0-9_]+)/g)) {
         assert.ok(ALLOWED_ENV.has(m[1]), `${f}: process.env.${m[1]}`);
