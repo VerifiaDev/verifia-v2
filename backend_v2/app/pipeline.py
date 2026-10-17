@@ -47,7 +47,7 @@ class PipelineConfig:
     extract_timeout: float = 20.0  # seconds for the claim-extraction LLM call
     claim_timeout: float = 30.0    # seconds per claim (retrieval + verdict)
     total_timeout: float = 45.0    # hard deadline for the whole request
-    expose_detail: bool = True     # include "Type: message" of errors in responses
+    expose_detail: bool = False    # include "Type: message" of errors; opt in only for private debugging
 
 
 class TTLCache:

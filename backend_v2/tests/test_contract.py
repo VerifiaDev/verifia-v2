@@ -214,8 +214,6 @@ def test_missing_config_is_503_config_error(client, monkeypatch):
         assert validate_error_body(r.json()) == []
 
 
-@pytest.mark.known_gap
-@pytest.mark.xfail(reason="Fatih / item 3: CONFIG_ERROR always includes `detail`, even with EXPOSE_ERROR_DETAIL=0")
 def test_config_error_detail_respects_expose_detail(client, monkeypatch):
     from app import main
 
@@ -287,3 +285,20 @@ def test_asyncio_is_not_left_with_pending_tasks(fake):
         return [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
     assert asyncio.run(go()) == []
+
+
+def test_deep_health_is_disabled_unless_debugging(client, monkeypatch):
+    """/health/deep spends provider credits; it must not be reachable in production."""
+    from app import main
+
+    monkeypatch.setattr(main.settings.pipeline, "expose_detail", False)
+    assert client.get("/health/deep").status_code == 404
+
+
+def test_health_hides_init_error_unless_debugging(client, monkeypatch):
+    from app import main
+
+    monkeypatch.setattr(main.settings.pipeline, "expose_detail", False)
+    monkeypatch.setitem(main.state, "init_error", "Eksik ortam değişkenleri: GROQ_API_KEY")
+    body = client.get("/health").json()
+    assert body["status"] == "degraded" and body["init_error"] is None

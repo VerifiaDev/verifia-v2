@@ -86,15 +86,19 @@ allowed_origins = [
     "http://localhost:3000",
     "http://localhost:5173",
 ]
-if settings.frontend_origin and settings.frontend_origin not in allowed_origins:
-    allowed_origins.append(settings.frontend_origin)
+# FRONTEND_ORIGIN may list several origins separated by commas (e.g. production + preview domain).
+for origin in (settings.frontend_origin or "").split(","):
+    origin = origin.strip().rstrip("/")
+    if origin and origin not in allowed_origins:
+        allowed_origins.append(origin)
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # The frontend sends no cookies or auth headers; keep the browser surface minimal.
+    allow_credentials=False,
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type"],
     # Lets the frontend's JavaScript read the id (e.g. to show it with an error message).
     expose_headers=["X-Request-ID"],
 )
@@ -125,14 +129,14 @@ def _not_ready():
             "status": "error",
             "error": "CONFIG_ERROR",
             "message": "Sunucu yapılandırması eksik.",
-            "detail": state["init_error"],
+            "detail": state["init_error"] if settings.pipeline.expose_detail else None,
         },
     )
 
 
 def _error_response(e: PipelineError):
     content = {"status": "error", "error": e.code, "message": e.message}
-    if e.detail:
+    if e.detail and settings.pipeline.expose_detail:
         content["detail"] = e.detail
     return JSONResponse(status_code=e.http_status, content=content)
 
@@ -162,7 +166,7 @@ def health():
         "status": "ok" if state["init_error"] is None else "degraded",
         "service": "verify-backend",
         "version": "2.0.0",
-        "init_error": state["init_error"],
+        "init_error": state["init_error"] if settings.pipeline.expose_detail else None,
         "config": {
             "model": settings.model_name,
             "reasoning_effort": settings.reasoning_effort or None,
@@ -181,6 +185,9 @@ def health():
 
 @app.get("/health/deep")
 async def health_deep():
+    # This diagnostic endpoint spends provider credits; it only exists while debugging is enabled.
+    if not settings.pipeline.expose_detail:
+        return JSONResponse(status_code=404, content={"detail": "Not Found"})
     if state["init_error"]:
         return _not_ready()
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Brand } from "@/components/Brand";
 import { Legend } from "@/components/Legend";
 import { SampleReport } from "@/components/SampleReport";
@@ -31,7 +32,7 @@ export default function SampleReportPage() {
             <div className="hero">
               <h1 className="t-display">Örnek rapor</h1>
               <p className="hero-lead">
-                Bir incelemenin nasıl göründüğünü gösteren hazır örnek. <a href="/">Kendi metninizi inceleyin</a>
+                Bir incelemenin nasıl göründüğünü gösteren hazır örnek. <Link href="/">Kendi metninizi inceleyin</Link>
               </p>
             </div>
             <SampleReport />

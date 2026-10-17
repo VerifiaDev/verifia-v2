@@ -21,6 +21,8 @@ export default function ErrorPage({ error, retry }: { error: Error & { digest?: 
         <button type="button" className="btn" onClick={() => retry()}>
           Yeniden dene
         </button>
+        {/* Full document navigation intentionally clears the failed client router. */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a className="btn btn-quiet" href="/">
           Ana sayfaya dön
         </a>

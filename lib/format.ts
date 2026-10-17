@@ -157,6 +157,16 @@ export function formatDate(iso: string | null): string | null {
   const value = iso.trim();
   const dateOnly = DATE_ONLY.test(value);
   if (!dateOnly && !ISO_DATE_TIME.test(value) && !RFC_2822.test(value)) return null;
+  // Date silently normalizes impossible days (e.g. February 30) into the next month.
+  const isoParts = /^(\d{4})-(\d{2})-(\d{2})/.exec(value);
+  const rfcParts = /^(?:[A-Za-z]{3},\s*)?(\d{1,2})\s+([A-Za-z]{3})\s+(\d{4})/.exec(value);
+  const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+  const year = Number(isoParts?.[1] ?? rfcParts?.[3]);
+  const month = isoParts ? Number(isoParts[2]) : months.indexOf(rfcParts?.[2].toLowerCase() ?? "") + 1;
+  const day = Number(isoParts?.[3] ?? rfcParts?.[1]);
+  const leap = year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+  const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  if (month < 1 || month > 12 || day < 1 || day > days[month - 1]) return null;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return (dateOnly ? dateFmtUtc : dateFmt).format(d);
@@ -183,14 +193,19 @@ export function isSafeHttpUrl(url: string): boolean {
 
 /** Kaynak listesindeki bir öğenin sayfa içi bağlantı kimliği. */
 export function sourceAnchor(claimId: string, number: number): string {
-  return `src-${claimId.replace(/[^A-Za-z0-9_-]/g, "_")}-${number}`;
+  return `src-${anchorId(claimId)}-${number}`;
 }
 
 /** İddia listesinin (sonucun başındaki özet) sayfa içi adresi; her iddiadaki "listeye dön" bağlantısı buraya gider. */
 export const CLAIM_LIST_ID = "iddia-listesi";
 
 export function claimAnchor(claimId: string): string {
-  return `claim-${claimId.replace(/[^A-Za-z0-9_-]/g, "_")}`;
+  return `claim-${anchorId(claimId)}`;
+}
+
+/** Escape each non-ASCII-safe character without collapsing distinct IDs. */
+function anchorId(id: string): string {
+  return Array.from(id, (char) => /^[A-Za-z0-9_-]$/.test(char) ? char : `~${char.codePointAt(0)!.toString(16)}~`).join("");
 }
 
 /** İncelenemeyen iddiaların nedeni (backend_v2 iddia `status` değeri). Hüküm değildir. */

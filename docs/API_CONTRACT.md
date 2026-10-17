@@ -130,8 +130,8 @@ Backend (koddan okundu): `{ "status": "error", "error": "<KOD>", "message": "<T�
 | 504 | `EXTRACTION_TIMEOUT` (backend_v2) | `TIMEOUT` |
 
 backend_v2 hata gövdesine isteğe bağlı `detail` ("Tür: mesaj") ekleyebilir (`EXPOSE_ERROR_DETAIL=1` iken). Arayüz bunu
-göstermez; yayında `EXPOSE_ERROR_DETAIL=0` olmalıdır. Bilinen eksik (Fatih / madde 3): `CONFIG_ERROR` bu ayardan bağımsız
-olarak `detail` taşır.
+göstermez. 17 Ekim 2026'dan beri varsayılan `EXPOSE_ERROR_DETAIL=0`'dır; bu ayar `CONFIG_ERROR` ve `/health` içindeki
+`init_error` için de geçerlidir (eski Fatih / madde 3 kapandı).
 
 Backend henüz göndermeyen ama `docs/BACKEND_TODO.md`'de önerilen kodlar da şimdiden tanınır:
 `TEXT_TOO_LONG` → `INPUT_TOO_LONG`, `RATE_LIMITED` → `RATE_LIMITED`, `BUSY` → `SERVER_BUSY`,

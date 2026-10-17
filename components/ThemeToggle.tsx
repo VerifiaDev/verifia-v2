@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useSyncExternalStore } from "react";
 import { Icon } from "./Icon";
 
 const KEY = "verify-theme";
@@ -23,6 +23,18 @@ function currentIsDark(): boolean {
   return window.matchMedia("(prefers-color-scheme: dark)").matches;
 }
 
+const THEME_CHANGE = "verify-theme-change";
+function subscribeTheme(notify: () => void) {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  mq.addEventListener("change", notify);
+  window.addEventListener(THEME_CHANGE, notify);
+  return () => {
+    mq.removeEventListener("change", notify);
+    window.removeEventListener(THEME_CHANGE, notify);
+  };
+}
+const serverIsDark = () => false;
+
 /**
  * Gece modu düğmesi: her genişlikte çerçevesiz bir simge düğmesi (menüden ağır durmasın); adı ekran
  * okuyucuya okunur ve üzerine gelince ipucu olarak görünür. Tercih yoksa sistem ayarı izlenir; tıklayınca seçim tarayıcıda saklanır.
@@ -30,17 +42,12 @@ function currentIsDark(): boolean {
  * Depolama kullanılamıyorsa (gizli pencere vb.) düğme yine o oturum için çalışır.
  */
 export function ThemeToggle() {
-  const [dark, setDark] = useState(false);
+  const dark = useSyncExternalStore(subscribeTheme, currentIsDark, serverIsDark);
 
   useEffect(() => {
-    setDark(currentIsDark());
     // Etiketlerin bir kısmı ilk boyama betiğinden sonra eklenebilir; kayıtlı seçim varsa burada yeniden uygulanır.
     const chosen = document.documentElement.dataset.theme;
     if (chosen === "dark" || chosen === "light") applyBarColor(chosen);
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
-    const onChange = () => setDark(currentIsDark());
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
   }, []);
 
   function toggle() {
@@ -52,7 +59,7 @@ export function ThemeToggle() {
     } catch {
       /* depolama kapalı: seçim yalnızca bu sayfa için geçerli */
     }
-    setDark(next === "dark");
+    window.dispatchEvent(new Event(THEME_CHANGE));
   }
 
   return (

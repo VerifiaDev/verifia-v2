@@ -82,13 +82,21 @@ def test_order_preserved_and_hallucinated_source_dropped():
 def test_one_failing_claim_does_not_kill_the_others():
     cl = [claim(0, "iyi"), claim(1, "BOZUK"), claim(2, "iyi iki")]
     ex, rt, vf, _ = make_steps(cl, fail_on="BOZUK")
-    out = run(run_pipeline("x", extract=ex, retrieve=rt, verify=vf))
+    # detail is opt-in (EXPOSE_ERROR_DETAIL=1); enable it to check the real cause is carried
+    out = run(run_pipeline("x", extract=ex, retrieve=rt, verify=vf, cfg=PipelineConfig(expose_detail=True)))
     st = [r["status"] for r in out["results"]]
     assert st == ["ok", "error", "ok"]
     bad = out["results"][1]
     assert bad["error_code"] == "RETRIEVAL_FAILED" and bad["failed_stage"] == "retrieval"
     assert "tavily exploded" in bad["detail"]  # the real cause is visible
     assert out["partial"] is True
+
+
+def test_detail_is_hidden_by_default():
+    cl = [claim(0, "BOZUK")]
+    ex, rt, vf, _ = make_steps(cl, fail_on="BOZUK")
+    out = run(run_pipeline("x", extract=ex, retrieve=rt, verify=vf))
+    assert out["results"][0]["detail"] is None
 
 
 def test_detail_can_be_hidden():
@@ -169,7 +177,7 @@ def test_extraction_failure_is_a_pipeline_error_with_cause():
         raise ValueError("groq 401 invalid api key")
 
     try:
-        run(run_pipeline("x", extract=extract, retrieve=None, verify=None))
+        run(run_pipeline("x", extract=extract, retrieve=None, verify=None, cfg=PipelineConfig(expose_detail=True)))
         assert False, "should raise"
     except PipelineError as e:
         assert e.code == "EXTRACTION_FAILED" and "invalid api key" in e.detail

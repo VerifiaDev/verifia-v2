@@ -28,9 +28,10 @@
  *
  * `confidence` (0-1 arası sayı) okunur ve "modelin güven puanı" olarak gösterilir; geçersizse (sayı değil,
  * 0-1 dışında) yok sayılır, tahmin edilmez. `score` (kanıt başına) okunmaz.
- * Ham şekiller için bkz. contract.ts. Bu dosya bilerek başka dosyalardan YALNIZCA tip alır (kolay test için).
+ * Ham şekiller için bkz. contract.ts. Bağlantı doğrulaması ortak format yardımcılarını kullanır.
  */
 import type { CheckResult, Claim, Source, UnfinishedClaim, Verdict } from "../types";
+import { isSafeHttpUrl } from "../format";
 
 export class InvalidResponseError extends Error {}
 
@@ -76,7 +77,7 @@ const BACKEND_TITLE_PLACEHOLDER = "kaynak";
 function parseSource(raw: unknown, index: number): Source | null {
   if (!isRecord(raw)) return null;
   const url = str(raw.url);
-  if (!url) return null;
+  if (!url || !isSafeHttpUrl(url)) return null;
   // Ad: sayfa başlığı. Alan adıyla aynıysa ya da yedek etiketse atılır (alan adı zaten ayrıca gösterilir).
   const candidate = str(raw.source) ?? str(raw.title) ?? str(raw.name);
   const host = hostOnly(url);
@@ -102,10 +103,10 @@ function parseClaim(
   raw: unknown,
   index: number,
 ): Claim | { unverifiableText: string } | { unreadableText: string } | { unfinished: UnfinishedClaim } {
-  if (!isRecord(raw)) throw new InvalidResponseError(`claims[${index}] nesne değil`);
+  if (!isRecord(raw)) return { unreadableText: `${index + 1}. iddia (metin okunamadı)` };
 
   const text = str(raw.text) ?? str(raw.claim);
-  if (!text) throw new InvalidResponseError(`claims[${index}] için iddia metni eksik`);
+  if (!text) return { unreadableText: `${index + 1}. iddia (metin okunamadı)` };
 
   if (raw.is_verifiable === false) return { unverifiableText: text };
 
@@ -114,6 +115,7 @@ function parseClaim(
   if (status === "timeout" || status === "error" || status === "skipped") {
     return { unfinished: { text, reason: status } };
   }
+  if (status && status !== "ok") return { unreadableText: text };
 
   // Sonuç değeri tanınmıyorsa yalnızca bu iddia "okunamadı" sayılır; diğer iddialar yine gösterilir.
   // (Tek bozuk satır yüzünden bütün incelemeyi "sunucu hatası" diye atmak, kullanıcının beklediği sonucu boşa harcardı.)
@@ -161,6 +163,17 @@ export function parseCheckResponse(body: unknown): CheckResult {
     else if ("unfinished" in parsed) unfinished.push(parsed.unfinished);
     else claims.push(parsed);
   });
+  // Preserve ordinary backend IDs and keep duplicate rows independently navigable.
+  const reservedIds = new Set(claims.map((claim) => claim.id));
+  const usedIds = new Set<string>();
+  for (const claim of claims) {
+    const original = claim.id;
+    let suffix = 2;
+    while (usedIds.has(claim.id)) {
+      do { claim.id = `${original}__${suffix++}`; } while (reservedIds.has(claim.id));
+    }
+    usedIds.add(claim.id);
+  }
   // Okunabilen hiçbir sonuç yoksa cevap geçersizdir: "incelenebilir iddia bulunamadı" demek yanlış olurdu
   // (iddia bulundu, sonucu okunamadı).
   if (claims.length === 0 && unreadable.length > 0) {

@@ -71,10 +71,11 @@ function errorFromResponse(body: unknown, status: number): ApiRequestError {
  * hem kullanıcıyı boşuna bekletir hem kotayı boşa harcar. Bu yüzden sağlık yanıtı süresinde gelmezse
  * inceleme isteği HİÇ gönderilmez ve "sunucu yanıt vermiyor" denir.
  *
- * Yalnızca süre aşımı engeller. Sunucu herhangi bir HTTP yanıtı verirse (404 dahil; `/health` ileride
- * kaldırılsa bile site çalışmaya devam etsin diye) inceleme normal şekilde gönderilir.
+ * Sağlık denetimi başarısızsa inceleme gönderilmez. Eski servislerde `/health` bulunmaması (404)
+ * uyumluluk için kabul edilir; diğer HTTP hataları ve `degraded` durumu kullanıcıya bildirilir.
  */
 async function waitForHealth(base: string, signal: AbortSignal, onServerWait?: (waiting: boolean) => void): Promise<void> {
+  signal.throwIfAborted();
   const controller = new AbortController();
   let timedOut = false;
   let noticed = false;
@@ -91,11 +92,17 @@ async function waitForHealth(base: string, signal: AbortSignal, onServerWait?: (
   }, SERVER_WAIT_NOTICE_MS);
   try {
     const res = await fetch(`${base}/health`, { method: "GET", cache: "no-store", signal: controller.signal });
-    await res.body?.cancel().catch(() => {});
+    const body: unknown = await res.json().catch(() => null);
+    controller.signal.throwIfAborted();
+    if (!res.ok && res.status !== 404) throw errorFromResponse(body, res.status);
+    if (res.ok && typeof body === "object" && body !== null && "status" in body && (body.status === "degraded" || body.status === "error")) {
+      throw new ApiRequestError("SERVICE_UNAVAILABLE", "İnceleme servisi henüz hazır değil.");
+    }
     if (noticed) onServerWait?.(false);
   } catch (err) {
+    if (signal.aborted) throw err;
+    if (err instanceof ApiRequestError) throw err;
     if (timedOut) throw new ApiRequestError("SERVER_BUSY", "Sunucu sağlık denetimine yanıt vermedi.");
-    if (signal.aborted) throw err; // kullanıcı vazgeçti
     throw new ApiRequestError("NETWORK", "Sunucuya ulaşılamadı.");
   } finally {
     clearTimeout(timer);
@@ -133,6 +140,7 @@ export function httpService(baseUrl: string): VerificationService {
         throw new ApiRequestError("URL_UNSUPPORTED", "Bağlantı ile doğrulama henüz desteklenmiyor.");
       }
       await waitForHealth(base, signal, onServerWait);
+      signal.throwIfAborted();
 
       const controller = new AbortController();
       let timedOut = false;
@@ -151,6 +159,7 @@ export function httpService(baseUrl: string): VerificationService {
           signal: controller.signal,
         });
         const body: unknown = await res.json().catch(() => null);
+        controller.signal.throwIfAborted();
         if (!res.ok) throw errorFromResponse(body, res.status);
         return body as RawCheckResponse; // şekil adapter'da doğrulanır
       } catch (err) {

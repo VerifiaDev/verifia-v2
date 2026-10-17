@@ -8,7 +8,7 @@
 2. Bu klasörde terminal açın: `npm install`, bitince `npm run dev`.
 3. Tarayıcıda http://localhost:3000
 
-Kontrol: `npm run typecheck`, `npm run build`, `npm test` — aynı üçü her gönderimde GitHub'da da çalışır (`.github/workflows/ci.yml`) (ek paket olarak yalnızca geliştirme amaçlı `tsx` kullanır).
+Kontrol: `npm run lint`, `npm run typecheck`, `npm test`, `npm run build` — aynı dördü her gönderimde GitHub'da da çalışır (`.github/workflows/ci.yml`). Geliştirme paketleri: `tsx`, ESLint (`eslint-config-next`) ve TypeScript. `tsc` derleyicisi TypeScript 7'dir (`@typescript/native` takma adı); ESLint'in ihtiyaç duyduğu derleyici API'si `typescript` adıyla kurulan TypeScript 6 uyumluluk paketinden gelir. Bakım notları: [docs/FRONTEND_FIXES.md](docs/FRONTEND_FIXES.md).
 
 ## Gece modu
 Sistem tercihi (`prefers-color-scheme`) izlenir; üstteki "Gece modu" düğmesi tercihi elle değiştirir ve tarayıcıda (`localStorage`, anahtar `verify-theme`) saklar. Renkler `app/globals.css` başındaki jetonlardır; koyu palet iki yerde tanımlıdır (`[data-theme="dark"]` ve sistem koyuyken `:root:not([data-theme="light"])`), biri değişirse diğeri de güncellenmelidir. Telefonda tarayıcı çubuğu rengi de temayı izler (`viewport.themeColor`; elle seçimde `ThemeToggle` günceller). Renk çiftleri `tests/theme.test.tsx` ile kontrast ve iki koyu bloğun eşitliği açısından denenir. Kayıtlı tercih, `app/layout.tsx` içindeki satır içi betikle ilk boyamadan önce uygulanır (yanıp sönme olmaz).

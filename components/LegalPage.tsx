@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { PlainPage } from "./PlainPage";
 import { LEGAL, LEGAL_COMPLETE, LEGAL_PAGES, joinNames, legalPagesHidden } from "@/lib/legal";
 import { formatDate } from "@/lib/format";
@@ -55,7 +56,7 @@ export function LegalPage({ title, path, children }: { title: string; path: stri
             {p.label}
           </a>
         ))}
-        <a href="/">Ana sayfaya dön</a>
+        <Link href="/">Ana sayfaya dön</Link>
       </nav>
     </PlainPage>
   );

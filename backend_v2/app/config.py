@@ -64,7 +64,7 @@ class Settings:
                 extract_timeout=_float("EXTRACT_TIMEOUT", 20.0),
                 claim_timeout=_float("CLAIM_TIMEOUT", 30.0),
                 total_timeout=_float("TOTAL_TIMEOUT", 45.0),
-                expose_detail=_bool("EXPOSE_ERROR_DETAIL", True),
+                expose_detail=_bool("EXPOSE_ERROR_DETAIL", False),
             ),
         )
 

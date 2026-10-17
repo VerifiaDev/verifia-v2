@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { PlainPage } from "@/components/PlainPage";
+import Link from "next/link";
 import { SITE_NAME } from "@/lib/config";
 
 export const metadata: Metadata = {
@@ -12,9 +13,9 @@ export default function NotFound() {
     <PlainPage title="Sayfa bulunamadı">
       <p className="hero-lead">Bu adreste bir sayfa yok. Bağlantı eksik ya da yanlış yazılmış olabilir.</p>
       <p>
-        <a className="btn" href="/">
+        <Link className="btn" href="/">
           Ana sayfaya dön
-        </a>
+        </Link>
       </p>
     </PlainPage>
   );

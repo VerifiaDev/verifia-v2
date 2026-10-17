@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Icon } from "./Icon";
 import { VERDICT_META } from "@/lib/format";
 import type { Verdict } from "@/lib/types";
@@ -37,17 +37,22 @@ type Phase = "idle" | "armed" | "play";
 /** Son öğenin bitişi (ms): en geç gelen sonuç etiketi. CSS'teki gecikmelerle aynı tutulmalı. */
 const DURATION_MS = 4800;
 
+function subscribeMotion(notify: () => void) {
+  const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mq.addEventListener("change", notify);
+  return () => mq.removeEventListener("change", notify);
+}
+const motionAllowed = () => typeof IntersectionObserver !== "undefined" && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const serverMotionAllowed = () => false;
+
 export function ProcessDemo() {
   const ref = useRef<HTMLElement>(null);
   const [phase, setPhase] = useState<Phase>("idle");
-  const [canReplay, setCanReplay] = useState(false);
+  const canReplay = useSyncExternalStore(subscribeMotion, motionAllowed, serverMotionAllowed);
 
   useEffect(() => {
     const el = ref.current;
-    if (!el || typeof IntersectionObserver === "undefined") return;
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setPhase("armed");
-    setCanReplay(true);
+    if (!el || !canReplay) return;
     const io = new IntersectionObserver(
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
@@ -55,11 +60,12 @@ export function ProcessDemo() {
           setPhase("play");
         }
       },
-      { threshold: 0.5 },
+      // A tall figure may never be 50% visible on a short phone screen.
+      { threshold: 0.1 },
     );
     io.observe(el);
     return () => io.disconnect();
-  }, []);
+  }, [canReplay]);
 
   useEffect(() => {
     if (phase !== "play") return;
@@ -74,7 +80,7 @@ export function ProcessDemo() {
   }
 
   return (
-    <figure ref={ref} className="demo" data-phase={phase} aria-labelledby="demo-caption">
+    <figure ref={ref} className="demo" data-phase={canReplay ? phase : "idle"} aria-labelledby="demo-caption">
       <div className="demo-input">
         <p className="demo-label">Yapıştırılan metin</p>
         <p className="demo-text">

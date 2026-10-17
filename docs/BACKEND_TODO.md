@@ -2,6 +2,27 @@
 
 Kaynak: kod okuması ve 8 Ekim 2026 canlı testleri. Frontend bu listeyi beklemeden çalışıyor; değişen sözleşme olursa frontend'e haber verilmeli.
 
+## 17 Ekim 2026: verifia-v2 durumu (önce bu bölümü okuyun)
+
+Proje kodunun tamamı artık `VerifiaDev/verifia-v2` deposundadır (kök: Next.js frontend, `backend_v2/`, `ai-engine/`, `retrieval_demo_lite/`). Değişiklikler `efeeyildiz91` ve `VerifiaDev` hesaplarından bu depoya yapılır.
+
+**Bu tarihte koda işlenenler** (`codex/frontend-integration-hardening` dalından, yeni yapıya uyarlanarak; 104 backend testi geçiyor)
+- `EXPOSE_ERROR_DETAIL` varsayılanı artık kapalı (`0`). Kapalıyken: hata gövdelerinde `detail` yok, `CONFIG_ERROR` ve `/health` içindeki `init_error` gizli, `/health/deep` 404 döner. Hata ayıklarken geçici olarak `1` yapılır.
+- CORS: `allow_credentials=False`, yalnız `GET`/`POST` ve `Content-Type` başlığı. `FRONTEND_ORIGIN` virgülle ayrılmış birden çok adres kabul eder.
+- Aşağıdaki 3. ve 4. maddelerin kod kısmı ile 6. maddenin (CORS) çoğu bu değişiklikle kapandı.
+
+**Daldan bilerek alınmayanlar**
+- "En fazla 2 eşzamanlı istek, fazlasına `429 BUSY`" kontrolü: v2'de bunun yerine `app/limits.py` (`UpstreamGate`, `MAX_UPSTREAM_CONCURRENCY`) istekleri kuyruğa alıyor. Sert sınır istenirse ayrıca karar verilmeli; `BUSY` kodu arayüzde zaten tanınıyor.
+- `retrieval_demo_lite` yanıt kontrolü v2'de zaten vardı. Daldaki `--self-test` sonrası `return` silinmesi hataydı, alınmadı.
+
+**Backend için sizin yapmanız gerekenler (sırayla)**
+1. Render'da backend'i `backend_v2` olarak yayına alın (Dockerfile: `backend_v2/Dockerfile`). Canlıdaki sürüm hâlâ 1.0.0.
+2. Render ortam değişkenleri: `GROQ_API_KEY`, `TAVILY_API_KEY`, `EXPOSE_ERROR_DETAIL=0` (ya da hiç tanımlamayın), `FRONTEND_ORIGIN=<Vercel adresi>[,<alan adı>]`.
+3. Yayından sonra `/health` → `"status": "ok"` görün; Vercel'de `NEXT_PUBLIC_API_BASE_URL` bu adrese ayarlı olsun ve yeniden dağıtın.
+4. Arayüzün metin sınırı (3.000) v2 canlıya çıkınca 10.000'e yükseltilebilir.
+5. Açık güvenlik işleri: IP başına istek/günlük kota (madde 1), sayfa indirme güvenliği (2), `/docs`-`/openapi.json` kapatma (5), yayında `localhost` kökenlerini kaldırma (6), gövde boyutu sınırı (7), istem enjeksiyonu (8), sürüm sabitleme ve root olmayan Docker kullanıcısı (10), `/health` içindeki model/ayar bilgisinin azaltılması (4).
+6. Açık test: açıklamadaki geçersiz `[source_N]` atıfları temizlenmiyor (Mert / madde 12, `tests/test_contract.py` xfail).
+
 ## 11 Ekim 2026 denetimi: canlıda doğrulananlar ve açık güvenlik işleri
 
 Canlı servis (`verify-wb28.onrender.com`) yalnızca ücretsiz isteklerle denendi; gerçek inceleme gönderilmedi. Backend dosyalarına dokunulmadı.
