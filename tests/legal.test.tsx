@@ -8,6 +8,7 @@ import { Footer } from "@/components/Footer";
 import { VerificationInput } from "@/components/VerificationInput";
 import { COOKIES_PATH, LEGAL, LEGAL_COMPLETE, LEGAL_MISSING, LEGAL_PAGES, PRIVACY_PATH, TERMS_PATH, joinNames, legalPagesHidden } from "@/lib/legal";
 import { sitemapEntries } from "@/lib/seo";
+import { SITE_NAME } from "@/lib/config";
 
 const pages = [
   { name: "gizlilik", render: () => renderToStaticMarkup(<PrivacyPage />), meta: privacyMeta },
@@ -18,7 +19,7 @@ const pages = [
 describe("yasal sayfalar", () => {
   it("gizlilik politikası KVKK m.10 başlıklarını ve koddan bilinen veri akışını içerir", () => {
     const html = renderToStaticMarkup(<PrivacyPage />);
-    for (const s of ["Veri sorumlusu", "hukuki sebep", "m.5/2-c", "m.5/2-f", "Render", "Groq", "Tavily", "Vercel", "yurt dışına aktarılır", "7 ile 30 gün", "11. maddesine", "30 gün içinde", "Kişisel Verileri Koruma Kurulu"]) {
+    for (const s of ["Veri sorumlusu", "hukuki sebep", "m.5/2-c", "m.5/2-f", "Render", "Groq", "Tavily", "Vercel", "yurt dışına aktarılır", "7 ile 30 gün", "model eğitiminde kullanılmaz", "modellerini eğitmek", "11. maddesine", "30 gün içinde", "Kişisel Verileri Koruma Kurulu"]) {
       assert.ok(html.includes(s), s);
     }
   });
@@ -32,11 +33,11 @@ describe("yasal sayfalar", () => {
   });
   it("kullanım koşulları: kesin hüküm değil, ücretsiz ve iade yok, Türk hukuku", () => {
     const html = renderToStaticMarkup(<TermsPage />);
-    for (const s of ["Sonuçlar kesin hüküm değildir", "Ücret ve iade", "verify ücretsizdir", "iade politikası yoktur", "Türkiye Cumhuriyeti hukuku"]) assert.ok(html.includes(s), s);
+    for (const s of ["Sonuçlar kesin hüküm değildir", "Ücret ve iade", `${SITE_NAME} ücretsizdir`, "iade politikası yoktur", "Türkiye Cumhuriyeti hukuku"]) assert.ok(html.includes(s), s);
   });
   it("çerez politikası: çerez yok, tek kayıt tema tercihi, onay penceresinin neden olmadığı", () => {
     const html = renderToStaticMarkup(<CookiesPage />);
-    for (const s of ["verify çerez kullanmaz", "verify-theme", "Yalnızca siz düğmeye bastığınızda", "Neden çerez onayı istemiyoruz?"]) assert.ok(html.includes(s), s);
+    for (const s of [`${SITE_NAME} çerez kullanmaz`, "verify-theme", "Yalnızca siz düğmeye bastığınızda", "Neden çerez onayı istemiyoruz?"]) assert.ok(html.includes(s), s);
   });
   it("her sayfa diğer iki yasal sayfaya ve ana sayfaya bağlanır; dış bağlantılar yeni sekmede açıldığını söyler", () => {
     for (const p of pages) {

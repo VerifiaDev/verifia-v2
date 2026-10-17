@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+pydantic>=2.6
+python-dotenv
+groq>=0.11.0
+tavily-python
+requests
+beautifulsoup4

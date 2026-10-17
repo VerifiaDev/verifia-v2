@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { SITE_NAME } from "@/lib/config";
 import { before, describe, it } from "node:test";
 import { renderToStaticMarkup } from "react-dom/server";
 
@@ -38,7 +39,7 @@ describe("yapılandırılmış veri (JSON-LD)", () => {
     const data = JSON.parse(block[1]);
     assert.equal(data["@context"], "https://schema.org");
     assert.equal(data["@type"], "WebApplication");
-    assert.equal(data.name, "verify");
+    assert.equal(data.name, SITE_NAME);
     assert.equal(data.url, "https://verify.example/");
     assert.equal(data.inLanguage, "tr");
   });

@@ -32,6 +32,15 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 3. Sözleşmenin tamamı ve backend sahibine sorular: **[docs/API_CONTRACT.md](docs/API_CONTRACT.md)**.
 4. Güvenlik, gizlilik ve yayına hazırlık denetimi: **[docs/SECURITY_AUDIT.md](docs/SECURITY_AUDIT.md)**.
 5. Backend için önerilen değişiklikler (kod okumasından): **[docs/BACKEND_TODO.md](docs/BACKEND_TODO.md)**.
+   Gizlilik sayfasının Render, Groq ve Tavily belgeleriyle karşılaştırması: **[docs/GIZLILIK_VERI_ISLEME.md](docs/GIZLILIK_VERI_ISLEME.md)**.
+6. Frontend ile backend'i birlikte, gerçek tarayıcıda denemek (anahtar gerekmez):
+
+   ```bash
+   NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:8799 npm run build
+   cd e2e && npm ci && npx playwright install chromium && npm test
+   ```
+
+   Backend'i (`backend_v2/tests/fake_server.py`, gerçek uygulama + sahte Groq/Tavily) ve `next start`'ı kendisi açar.
 
 `confidence` (0-1 arası) gelirse sonuçta "Modelin güven puanı: %91" olarak, doğruluk olasılığı olmadığı notuyla gösterilir; gelmezse hiçbir şey gösterilmez. Kanıt başına `score` gösterilmez.
 
@@ -51,6 +60,8 @@ Mimari: **UI → `lib/api` (tek kapı) → mock ya da gerçek servis → adapter
 | `components/` | Analyzer (durum; kart + sonuç), VerificationInput (form ve inceleme sonrası özet), AnalysisProgress, ErrorState, ResultView, ClaimItem, EvidenceCard, Explanation, VerdictSummary, Legend (sonuç türleri), Icon (tek simge seti), Navbar, ThemeToggle, HowItWorks, TrustNotes, Footer, PlainPage |
 | `hooks/useAnalysis.ts` | idle → submitting → (extracting_claims → retrieving_evidence → verifying) → completed \| error. Parantezdeki aşamalar yalnızca backend gerçek aşama bilgisi verirse kullanılır; vermezse `submitting`'de kalınır, sahte ilerleme gösterilmez |
 | `tests/` | adapter, atıflar, girdi doğrulama, state, API (hata/zaman aşımı/bozuk cevap), uç durum görünümleri |
+| `e2e/` | Frontend-backend entegrasyon testi (Playwright): yayın derlemesi + gerçek backend uygulaması (sahte LLM/arama). `.github/workflows/integration.yml` her PR'da koşturur |
+| `backend_v2/`, `ai-engine/`, `retrieval_demo_lite/` | Backend (FastAPI, `MertBulut11/verify-v2`'den). Çalıştırma, testler, yük testi: [backend_v2/README.md](backend_v2/README.md); CI: `.github/workflows/backend.yml` |
 | `lib/api/` | `index.ts` (tek kapı), `contract.ts` (ham şekiller), `adapter.ts`, `http.ts` (FastAPI), `mock/` (sahte servis ve veriler), `errors.ts`, `service.ts` |
 | `lib/` | citations, format, input, config, types |
 

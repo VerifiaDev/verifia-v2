@@ -20,6 +20,15 @@
 > - **Kullanılmayan fırsat:** `POST /verify/stream` (SSE) gerçek aşamaları ve iddiaları geldikçe verir; arayüz henüz tek istekle çalışıyor.
 > - Backend'in yayın adresi değişirse Vercel'de `NEXT_PUBLIC_API_BASE_URL` güncellenip yeniden dağıtılmalıdır.
 
+> **16 Ekim güncellemesi — sözleşme artık testle korunuyor (`backend_v2/` bu depoda):**
+> - Bu belgedeki backend_v2 kuralları kod olarak `backend_v2/tests/contract.py` içindedir. Aynı denetimler hem çevrimdışı
+>   testlerde (`backend_v2/tests/test_contract.py`, sahte LLM/arama) hem de canlı sunucuya karşı
+>   (`python backend_v2/check_all.py --url ...`) uygulanır. Sözleşmeyi değiştiren her backend değişikliği CI'da kırmızı olur.
+> - Gerçek tarayıcı + yayın derlemesi frontend + gerçek backend uygulaması birlikte `e2e/` testinde denenir
+>   (`.github/workflows/integration.yml`): istek şekli, iki hüküm, kısmi sonuç, `502` hata ekranı, CORS ve CSP.
+> - Yeni: her yanıtta `X-Request-ID`, gerçek aşamaları veren `POST /verify/stream` (aşağıda "Akış"), iddia başına hata
+>   kodları (aşağıda "İddia durumu"). Canlı sunucunun sürümü bu güncellemede yeniden denetlenmedi; 11 Ekim'de 1.0.0 idi.
+
 ## İstek
 
 `POST {NEXT_PUBLIC_API_BASE_URL}/verify` — `Content-Type: application/json`
@@ -57,6 +66,33 @@ Backend'in (koddan okunan) şekli:
 ```
 
 Doğrulanamayan iddiada `is_verifiable: false`, `verdict: null`, `explanation: null`, `sources: []` gelir.
+
+backend_v2 ayrıca şunları ekler (testle doğrulanır, `backend_v2/tests/contract.py`):
+
+```json
+{ "status": "ok", "partial": false, "timings": { "extract_ms": 812, "total_ms": 2310 },
+  "results": [ { "...": "yukarıdaki alanlar", "status": "ok", "cached": false,
+                 "timings_ms": { "retrieval_ms": 1200, "verify_ms": 900 } } ] }
+```
+
+- `partial` yalnızca en az bir iddianın `status` değeri `ok` değilse `true`dur.
+- `claim_id` değerleri bir yanıt içinde tekildir. `used_sources` yalnızca `sources` içindeki kimlikleri taşır
+  (modelin uydurduğu kimlikler backend'de atılır).
+- `published_date` `YYYY-MM-DD` ya da `null`dur (sahte veriyle test edilir; `lite` arayıcının gerçek değerleri canlı
+  denetimde biçim açısından gevşek denetlenir).
+- Bilinen eksik (testte `xfail` olarak işaretli, Mert / madde 12): açıklamadaki `[source_N]` atfı `sources` içinde
+  olmayan bir kimliği gösterebilir; arayüz bunu "Kaynak eşleşmesi bulunamadı" olarak gösterir.
+
+### İddia durumu (backend_v2)
+
+| `status` | `verdict` | `error_code` | Arayüzde |
+|---|---|---|---|
+| `ok` | hüküm (doğrulanabilir iddiada) ya da `null` (`is_verifiable: false`) | yok | Normal iddia |
+| `timeout` | `null` | `CLAIM_TIMEOUT` (iddia süresi) ya da `DEADLINE_EXCEEDED` (toplam süre) | "İncelenemeyen iddialar" |
+| `error` | `null` | `RETRIEVAL_FAILED`, `VERDICT_FAILED` ya da `INTERNAL_ERROR` | "İncelenemeyen iddialar" |
+| `skipped` | `null` | yok (8'den fazla doğrulanabilir iddia) | "İncelenemeyen iddialar" |
+
+`ok` dışındaki iddia hiçbir zaman hüküm taşımaz; arayüz de onu hüküm sayılarında göstermez (`e2e/` bunu denetler).
 Güven puanı yoktur; arayüz uydurmaz. `title` yoksa backend "Kaynak" yazar; arayüz bu yedek etiketi ad olarak göstermez.
 Başlık alan adıyla aynıysa da gösterilmez (alan adı zaten ayrı satırdadır). `retrieval_score` ve `used_sources` okunmaz.
 
@@ -89,6 +125,13 @@ Backend (koddan okundu): `{ "status": "error", "error": "<KOD>", "message": "<T�
 | 422 | `VALIDATION_ERROR` | `INVALID_INPUT` (boş, eksik ya da 10 000 karakterden uzun; backend bunları ayırmaz) |
 | 400 | `EMPTY_TEXT` | `INVALID_INPUT` |
 | 500 | `VERIFY_FAILED` | `INTERNAL_ERROR` |
+| 502 | `EXTRACTION_FAILED` (backend_v2) | `SERVICE_UNAVAILABLE` |
+| 503 | `CONFIG_ERROR` (backend_v2; anahtar eksik) | `SERVICE_UNAVAILABLE` |
+| 504 | `EXTRACTION_TIMEOUT` (backend_v2) | `TIMEOUT` |
+
+backend_v2 hata gövdesine isteğe bağlı `detail` ("Tür: mesaj") ekleyebilir (`EXPOSE_ERROR_DETAIL=1` iken). Arayüz bunu
+göstermez; yayında `EXPOSE_ERROR_DETAIL=0` olmalıdır. Bilinen eksik (Fatih / madde 3): `CONFIG_ERROR` bu ayardan bağımsız
+olarak `detail` taşır.
 
 Backend henüz göndermeyen ama `docs/BACKEND_TODO.md`'de önerilen kodlar da şimdiden tanınır:
 `TEXT_TOO_LONG` → `INPUT_TOO_LONG`, `RATE_LIMITED` → `RATE_LIMITED`, `BUSY` → `SERVER_BUSY`,
@@ -101,19 +144,66 @@ Her kod için kullanıcıya "ne oldu / ne yapabilirsiniz" metni gösterilir (`li
 İstek hiç ulaşmazsa (ağ, CORS) `NETWORK` gösterilir; tarayıcı bu ikisini ayırt etmeye izin vermez.
 Tarayıcı çevrimdışı olduğunu bildiriyorsa `OFFLINE` gösterilir. `OFFLINE`, `URL_UNSUPPORTED` ve `SERVER_BUSY` arayüzün kendi kodlarıdır.
 
-**Önemli:** backend tek iddia bile hata verirse (arama ya da model) bütün isteği `500 VERIFY_FAILED` ile bitirir;
-kısmi sonuç döndürmez. İddialar sırayla işlenir, süre iddia sayısıyla artar.
+**Önemli (yalnızca canlıdaki 1.0.0):** backend tek iddia bile hata verirse (arama ya da model) bütün isteği
+`500 VERIFY_FAILED` ile bitirir; kısmi sonuç döndürmez. İddialar sırayla işlenir, süre iddia sayısıyla artar.
+backend_v2'de bu yoktur: hata veren iddia yalnızca kendisi `status: "error"` olur, iddialar eşzamanlı işlenir
+(`CLAIM_CONCURRENCY`, varsayılan 4) ve yanıt her durumda `TOTAL_TIMEOUT` (varsayılan 45 sn) içinde gelir.
 
 ## CORS (koddan okundu)
 
 İzinli kökenler: `https://verify-test-swart.vercel.app`, `http://localhost:3000`, `http://localhost:5173`, ayrıca
 `FRONTEND_ORIGIN` ortam değişkeni. Vercel'in diğer adresi (`verify-test-efee2.vercel.app`) ya da alınacak alan adı için
 backend'de `FRONTEND_ORIGIN` ayarlanmalıdır; yoksa tarayıcı isteği engeller ve arayüz "Sunucuya ulaşılamadı" gösterir.
+İzinsiz kökene `Access-Control-Allow-Origin` dönmediği `e2e/` testinde denetlenir.
+
+backend_v2 `Access-Control-Expose-Headers: X-Request-ID` gönderir (16 Ekim): tarayıcıdaki kod bu başlığı okuyabilir,
+örneğin bir hata mesajının yanında "hata kimliği" olarak gösterebilir. `backend_v2/tests/test_observability.py` ve
+`e2e/` (gerçek tarayıcıda `fetch`) bunu denetler.
+
+## İzlenebilirlik: `X-Request-ID` (backend_v2)
+
+Her yanıt (hata ve CORS ön denetimi dahil) bir `X-Request-ID` başlığı taşır. İstekle gelen kimlik 8-64 karakter ve
+`[A-Za-z0-9._-]` ise aynen kullanılır, değilse yenisi üretilir. Backend'in her log satırında `rid=<kimlik>` vardır.
+Kullanıcı metni ve iddia metni log satırlarına yazılmaz; yalnızca bir dış servis hata verdiğinde o servisin kendi hata
+mesajı kayda geçer. Bir hata bildirildiğinde bu kimlikle sunucu kaydı bulunur.
+
+## Akış: `POST /verify/stream` (backend_v2, arayüz henüz kullanmıyor)
+
+İstek `/verify` ile aynıdır (`{ "text" }`). Yanıt `text/event-stream`; her olay `event: <tür>` ve `data: <JSON>` satırıdır,
+`data.type` olay adına eşittir. Sıra (testle sabit, `backend_v2/tests/test_stream.py`):
+
+```
+started  {"type":"started","request_id":"…"}
+stage    {"type":"stage","stage":"extract","status":"started"}
+stage    {"type":"stage","stage":"extract","status":"finished","ms":812}
+claims   {"type":"claims","claims":[{claim_id, claim, is_verifiable}],"extract_ms":812}
+stage    {"type":"stage","stage":"verify","status":"started","total":3}
+result   {"type":"result","result":{…/verify'daki tek iddia…}}      × total (hazır oldukça, sırası değişebilir)
+stage    {"type":"stage","stage":"verify","status":"finished","ms":2310}
+done     {"type":"done","partial":false,"timings":{…},"request_id":"…"}
+```
+
+- İstek bütünüyle başarısız olursa (ör. iddia ayrıştırma) `done` yerine tek bir `error` olayı gelir:
+  `{"type":"error","error":"EXTRACTION_FAILED","message":"…","request_id":"…"}`.
+- Boş metin akış açılmadan `400 EMPTY_TEXT` JSON, geçersiz gövde `422 VALIDATION_ERROR` JSON döner.
+- 15 saniye olay yoksa `: keep-alive` yorum satırı gelir. Tanınmayan olaylar yok sayılmalıdır.
+- İstemci bağlantıyı kapatırsa backend işi hemen iptal eder (kota harcamaya devam etmez).
+- `EventSource` POST gönderemez; arayüz `fetch` + akış okuyucu kullanmalıdır.
+- Önerilen eşleme: `extract` → `extracting_claims`, `verify` → `retrieving_evidence`/`verifying` (backend arama ve
+  değerlendirmeyi iddia başına birlikte yapar; ayrı aşama olayı yoktur).
 
 ## Süre ve aşamalar
 
-- Aşama bilgisi (`extracting_claims`, `retrieving_evidence`, `verifying`) **beklenmiyor**. Backend gerçek aşama
-  bilgisi verirse arayüz hazır (yalnızca `lib/api/http.ts` değişir); vermezse sahte ilerleme gösterilmez.
+- Aşama bilgisi (`extracting_claims`, `retrieving_evidence`, `verifying`) `/verify`'da **yoktur**. backend_v2'nin
+  `/verify/stream` olayları gerçek aşamaları verir (yukarıda); arayüz hazır, yalnızca `lib/api/http.ts` değişir.
+  Akış kullanılmadıkça sahte ilerleme gösterilmez.
+- Eşzamanlılık (backend_v2, 16 Ekim): bir istekteki iddialar `CLAIM_CONCURRENCY` (4) ile, tüm isteklerdeki arama ve
+  değerlendirme çağrıları birlikte `MAX_UPSTREAM_CONCURRENCY` (8) ile sınırlıdır; aynı anda incelenen aynı iddia tek
+  kez aranır. Yoğunlukta istekler sırada bekler; bekleme süre sınırına dahildir, aşılırsa iddia `timeout` döner
+  (kısmi sonuç). Arayüzün 90 sn'lik `REQUEST_TIMEOUT_MS` sınırı backend'in 45 sn'lik toplam sınırından uzundur.
+- Ölçüm (16 Ekim, sahte arama 0,3 sn/iddia, tek süreç, varsayılan sınır 8): 20 eşzamanlı istekte p95 yaklaşık 1,5 sn,
+  30 eşzamanlıda yaklaşık 4,2 sn, hata yok, sunucu belleği yaklaşık 53 MB; ayrıntı `backend_v2/README.md`,
+  "Load, memory and performance". Gerçek Groq/Tavily süreleri buna dahil değildir.
 
 ## Teyit edilmemiş varsayımlar
 
@@ -129,8 +219,10 @@ Teyit edilenler (koddan): `POST /verify`, `{text}`, 10 000 karakter, URL desteğ
 ## Backend sahibine sorular
 
 1. Bağlantı (URL) ile inceleme gelecek mi? Gelecekse istek şekli ne olacak?
-2. En uzun yanıt süresi nedir? İddialar paralel işlenecek mi? (Şimdi sırayla; çok iddialı metin uzun sürer.)
-3. Tek iddia başarısız olursa bütün istek yerine yalnızca o iddia hata olarak dönebilir mi?
+2. En uzun yanıt süresi nedir? İddialar paralel işlenecek mi? **backend_v2'de yanıtlandı:** eşzamanlı, en fazla
+   `TOTAL_TIMEOUT` (45 sn).
+3. Tek iddia başarısız olursa bütün istek yerine yalnızca o iddia hata olarak dönebilir mi? **backend_v2'de
+   yanıtlandı:** evet, `status: "error"` ve `partial: true`.
 4. `422 VALIDATION_ERROR` boş/eksik ve aşırı uzun metni ayırt etmiyor; ayrı kodlar eklenebilir mi (`TEXT_TOO_LONG`)?
 5. `published_date` hangi biçimde (ISO 8601 mi)?
 6. Alan adı ve `FRONTEND_ORIGIN`: yayın adresi netleşince CORS'a eklenecek mi?
