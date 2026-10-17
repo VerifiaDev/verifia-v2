@@ -1,0 +1,12 @@
+{
+  "name": "verify-e2e",
+  "private": true,
+  "description": "Gerçek frontend (next start) + gerçek backend uygulaması (sahte LLM/arama) uçtan uca testi",
+  "type": "module",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.56.0"
+  }
+}
