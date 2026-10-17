@@ -14,11 +14,21 @@ Ağır bağımlılıklar YOK:
 
 from __future__ import annotations
 
+import json
+import threading
+import inspect
+import math
+import time
+from contextvars import ContextVar
+from copy import deepcopy
+
 import os
+import ipaddress
 import re
+import socket
 import unicodedata
-from collections import Counter
-from urllib.parse import urlparse, urlunparse
+from collections import Counter, OrderedDict
+from urllib.parse import urljoin, urlparse, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -34,7 +44,233 @@ MAX_QUERY_COUNT = int(os.getenv("LITE_QUERY_COUNT", "3"))
 PREFILTER_SOURCE_LIMIT = int(os.getenv("LITE_PREFILTER_SOURCE_LIMIT", "10"))
 FETCH_SOURCE_LIMIT = int(os.getenv("LITE_FETCH_SOURCE_LIMIT", "8"))
 MAX_CHUNKS_PER_SOURCE = int(os.getenv("LITE_MAX_CHUNKS_PER_SOURCE", "10"))
-REQUEST_TIMEOUT = float(os.getenv("LITE_REQUEST_TIMEOUT", "8"))
+
+
+def _positive_env(name, default):
+    try:
+        value = float(os.getenv(name, str(default)))
+        return value if math.isfinite(value) and value > 0 else default
+    except (ValueError, TypeError):
+        return default
+
+
+def _cache_positive_int(name, default):
+    value = os.getenv(name, str(default)).strip()
+    if not value.isascii() or not value.isdecimal() or len(value) > 16:
+        return default
+    return int(value) or default
+
+
+class _TavilyQueryCache:
+    """Immutable payloads; byte limits exclude Python/key and decode overhead."""
+    def __init__(self):
+        enabled = os.getenv("LITE_TAVILY_CACHE_ENABLED", "true").strip().lower()
+        self.enabled = enabled not in ("false", "0", "no", "off")
+        self.ttl = _positive_env("LITE_TAVILY_CACHE_TTL_SECONDS", 60.0)
+        self.max_entries = _cache_positive_int("LITE_TAVILY_CACHE_MAX_ENTRIES", 128)
+        self.max_bytes = _cache_positive_int("LITE_TAVILY_CACHE_MAX_BYTES", 4 * 1024 * 1024)
+        self.max_entry_bytes = _cache_positive_int("LITE_TAVILY_CACHE_MAX_ENTRY_BYTES", 128 * 1024)
+        self._items = OrderedDict()
+        self._bytes = 0
+        self._lock = threading.Lock()
+
+    @staticmethod
+    def key(params):
+        params = dict(params)
+        params["query"] = re.sub(r"\s+", " ", unicodedata.normalize("NFC", params["query"])).strip()
+        return json.dumps(["tavily", 1, params], sort_keys=True, ensure_ascii=False)
+
+    def get(self, key):
+        with self._lock:
+            item = self._items.get(key)
+            if item is None:
+                return None
+            created, data = item
+            age = time.monotonic() - created
+            if age >= self.ttl:
+                self._bytes -= len(data)
+                del self._items[key]
+                return None
+            self._items.move_to_end(key)
+        return json.loads(data), age
+
+    def put(self, key, response):
+        if not self.enabled or not _provider_rows(response):
+            return
+        try:
+            data = json.dumps(response, ensure_ascii=False, allow_nan=False).encode("utf-8")
+        except (TypeError, ValueError, OverflowError):
+            return  # Optional caching must not invalidate a usable provider result.
+        if len(data) > min(self.max_entry_bytes, self.max_bytes):
+            return
+        with self._lock:
+            _remaining("tavily")
+            now = time.monotonic()
+            for old in list(self._items):
+                if now - self._items[old][0] >= self.ttl:
+                    self._bytes -= len(self._items.pop(old)[1])
+            if key in self._items:
+                self._bytes -= len(self._items.pop(key)[1])
+            self._items[key] = (now, data)
+            self._bytes += len(data)
+            while len(self._items) > self.max_entries or self._bytes > self.max_bytes:
+                self._bytes -= len(self._items.popitem(last=False)[1][1])
+
+
+_tavily_cache = _TavilyQueryCache()
+
+
+REQUEST_TIMEOUT = _positive_env("LITE_REQUEST_TIMEOUT", 8.0)
+CONNECT_TIMEOUT = _positive_env("LITE_CONNECT_TIMEOUT", _positive_env("LITE_REQUEST_TIMEOUT", 3.0))
+READ_TIMEOUT = _positive_env("LITE_READ_TIMEOUT", _positive_env("LITE_REQUEST_TIMEOUT", 5.0))
+PAGE_BUDGET = _positive_env("LITE_PAGE_BUDGET", 10.0)
+TAVILY_TIMEOUT = _positive_env("LITE_TAVILY_TIMEOUT", 5.0)
+TOTAL_DEADLINE = _positive_env("LITE_TOTAL_DEADLINE", 20.0)
+
+# Immutable per-context value; workers get distinct context copies.
+_total_deadline = ContextVar("lite_total_deadline", default=None)
+# Coordinator-owned state. Explicitly cleared from fetch worker contexts.
+_partial_state = ContextVar("lite_partial_state", default=None)
+
+
+class _RetrievalTimeout(TimeoutError):
+    pass
+
+
+class _PageTimeout(TimeoutError):
+    pass
+
+
+# Each adapter invocation owns its Event; copied contexts share only that claim's signal.
+_cancellation_event = ContextVar("lite_cancellation_event", default=None)
+
+
+class _RetrievalCancelled(Exception):
+    pass
+
+
+def _remaining(stage):
+    event = _cancellation_event.get()
+    if event is not None and event.is_set():
+        raise _RetrievalCancelled(stage)
+    deadline = _total_deadline.get()
+    if deadline is None:
+        return float("inf")
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise _RetrievalTimeout(stage)
+    return remaining
+
+
+def _page_remaining(deadline, stage):
+    remaining = min(_remaining(stage), deadline - time.monotonic())
+    if remaining <= 0:
+        raise _PageTimeout(stage)
+    return remaining
+
+
+class _TavilyCapabilityError(Exception):
+    pass
+
+
+class _MissingTavilyKey(Exception):
+    pass
+
+
+def _provider_defaults():
+    return dict(search_provider="tavily", provider_ok=None,
+                provider_partial_failure=False, provider_error_kind=None,
+                provider_http_status=None, provider_error_message_safe=None,
+                tavily_query_count=0, successful_query_count=0,
+                failed_query_count=0, skipped_query_count=0, provider_result_count=0,
+                cache_enabled=_tavily_cache.enabled, cache_hit_count=0, cache_miss_count=0,
+                avoided_provider_call_count=0, cache_max_age_seconds=0.0,
+                generated_query_count=0, unique_query_count=0, planned_query_count=0)
+
+
+def _classify_provider_error(exc):
+    # Never inspect error text/body: mapped SDK errors often lose HTTP status.
+    response = getattr(exc, "response", None)
+    status = getattr(response, "status_code", None)
+    if status is None:
+        status = getattr(exc, "status_code", None)
+    if type(status) is not int or not 100 <= status <= 599:
+        status = None
+    try:
+        from tavily import errors
+        def is_sdk_error(name):
+            cls = getattr(errors, name, None)
+            return isinstance(cls, type) and isinstance(exc, cls)
+        usage = is_sdk_error("UsageLimitExceededError")
+        auth = is_sdk_error("InvalidAPIKeyError") or is_sdk_error("MissingAPIKeyError")
+        timeout = is_sdk_error("TimeoutError")
+    except ImportError:
+        usage = auth = timeout = False
+    if status == 429:
+        kind = "rate_limited"
+    elif status in (401, 403) or auth or isinstance(exc, _MissingTavilyKey):
+        kind = "auth_error"
+    elif status is not None and status >= 500:
+        kind = "service_error"
+    elif timeout or isinstance(exc, requests.exceptions.Timeout):
+        kind = "timeout"
+    elif usage:
+        kind = "usage_limited"
+    else:
+        kind = "provider_error"
+    # No reliable quota-specific signal is exposed by the installed keyed SDK.
+    messages = {
+        "rate_limited": "Tavily rate limit reached",
+        "usage_limited": "Tavily usage limit reached",
+        "auth_error": "Tavily authentication failed",
+        "service_error": "Tavily service unavailable",
+        "timeout": "Tavily request timed out",
+        "provider_error": "Tavily provider error",
+    }
+    return kind, status, messages[kind]
+
+
+def _record_provider_error(diagnostics, exc):
+    diagnostics["provider_ok"] = False
+    if diagnostics["provider_error_kind"] is None:
+        kind, status, message = _classify_provider_error(exc)
+        diagnostics.update(provider_error_kind=kind, provider_http_status=status,
+                           provider_error_message_safe=message)
+
+
+def _provider_rows(response):
+    if not isinstance(response, dict) or not isinstance(response.get("results"), list):
+        raise ValueError("Invalid provider response")
+    rows = response["results"]
+    for row in rows:
+        if not isinstance(row, dict):
+            raise ValueError("Invalid provider row")
+        for key in ("url", "title", "content"):
+            if row.get(key) is not None and not isinstance(row[key], str):
+                raise ValueError("Invalid provider field")
+        if not math.isfinite(float(row.get("score") or 0.0)):
+            raise ValueError("Invalid provider score")
+    return rows
+
+
+def _tavily_search(client, _on_start=None, **kwargs):
+    _remaining("tavily")
+    try:
+        parameter = inspect.signature(client.search).parameters.get("timeout")
+    except (TypeError, ValueError):
+        raise _TavilyCapabilityError() from None
+    # **kwargs alone is not proof that the SDK implements a network timeout.
+    if parameter is None or parameter.kind not in (
+        inspect.Parameter.POSITIONAL_OR_KEYWORD, inspect.Parameter.KEYWORD_ONLY,
+    ):
+        raise _TavilyCapabilityError()
+    remaining = _remaining("tavily")
+    if _on_start is not None:
+        _on_start()
+    return client.search(timeout=min(TAVILY_TIMEOUT, remaining), **kwargs)
+
+
+MAX_RESPONSE_BYTES = 2 * 1024 * 1024
 MIN_FETCHED_TEXT_CHARS = int(os.getenv("LITE_MIN_FETCHED_TEXT_CHARS", "350"))
 MIN_SNIPPET_CHARS = int(os.getenv("LITE_MIN_SNIPPET_CHARS", "60"))
 CHUNK_TARGET_WORDS = int(os.getenv("LITE_CHUNK_TARGET_WORDS", "90"))
@@ -463,10 +699,11 @@ def generate_queries(
         f"{base} official source",
     ]
 
-    return (
-        _unique(queries)
-        [:MAX_QUERY_COUNT]
-    )
+    unique = _unique(queries)
+    state = _partial_state.get()
+    if state is not None:
+        state["diagnostics"].update(generated_query_count=len(queries), unique_query_count=len(unique))
+    return unique[:MAX_QUERY_COUNT]
 
 
 # ==========================================================
@@ -488,7 +725,7 @@ def _get_tavily_client():
     )
 
     if not api_key:
-        raise RuntimeError(
+        raise _MissingTavilyKey(
             "TAVILY_API_KEY bulunamadı. "
             "Render > Environment bölümüne ekle."
         )
@@ -507,42 +744,77 @@ def _search_web(
     claim_frame=None,
 ) -> tuple[list[dict], list[str]]:
 
-    client = _get_tavily_client()
-
-    queries = generate_queries(
-        claim_text,
-        claim_frame,
-    )
-
+    state = _partial_state.get()
+    diagnostics = state["diagnostics"] if state is not None else _provider_defaults()
+    queries = generate_queries(claim_text, claim_frame)
+    diagnostics["planned_query_count"] = len(queries)
     results = []
     seen_urls = set()
+    try:
+        _remaining("tavily")
+        client = _get_tavily_client()
+    except (_RetrievalTimeout, _RetrievalCancelled):
+        diagnostics["skipped_query_count"] += len(queries)
+        raise
+    except Exception as exc:
+        _record_provider_error(diagnostics, exc)
+        diagnostics["skipped_query_count"] += len(queries)
+        return results, queries
 
-    for query in queries:
+    for index, query in enumerate(queries):
+        started = False
+        def on_start():
+            nonlocal started
+            started = True
 
+        params = dict(query=query, search_depth="basic",
+                      max_results=SEARCH_RESULTS_PER_QUERY, include_raw_content=False)
+        key = _tavily_cache.key(params)
+        cached = None
         try:
-            response = client.search(
-                query=query,
-                search_depth="basic",
-                max_results=(
-                    SEARCH_RESULTS_PER_QUERY
-                ),
-                include_raw_content=False,
-            )
-
-        except Exception:
+            _remaining("tavily")
+            if _tavily_cache.enabled:
+                cached = _tavily_cache.get(key)
+                if cached is None:
+                    diagnostics["cache_miss_count"] += 1
+            _remaining("tavily")
+            if cached is not None:
+                response, age = cached
+                diagnostics["cache_hit_count"] += 1
+                diagnostics["avoided_provider_call_count"] += 1
+                diagnostics["cache_max_age_seconds"] = max(diagnostics["cache_max_age_seconds"], age)
+            else:
+                response = _tavily_search(client, _on_start=on_start, **params)
+            rows = _provider_rows(response)
+        except (_RetrievalTimeout, _RetrievalCancelled):
+            diagnostics["skipped_query_count"] += len(queries) - index
+            raise
+        except Exception as exc:
+            if started:
+                diagnostics["tavily_query_count"] += 1
+                diagnostics["failed_query_count"] += 1
+            else:
+                diagnostics["skipped_query_count"] += 1
+            _record_provider_error(diagnostics, exc)
+            rows = None
+        else:
+            if started:
+                diagnostics["tavily_query_count"] += 1
+                diagnostics["successful_query_count"] += 1
+                diagnostics["provider_result_count"] += len(rows)
+                if diagnostics["provider_ok"] is None:
+                    diagnostics["provider_ok"] = True
+        diagnostics["provider_partial_failure"] = bool(
+            diagnostics["successful_query_count"] and diagnostics["failed_query_count"])
+        try:
+            _remaining("tavily")
+            if rows and started and _tavily_cache.enabled:
+                _tavily_cache.put(key, response)
+        except (_RetrievalTimeout, _RetrievalCancelled):
+            diagnostics["skipped_query_count"] += len(queries) - index - 1
+            raise
+        if rows is None:
             continue
-
-        rows = (
-            response.get(
-                "results",
-                [],
-            )
-            if isinstance(
-                response,
-                dict,
-            )
-            else []
-        )
 
         for row in rows:
 
@@ -724,6 +996,71 @@ def _html_to_text(
     ).strip()
 
 
+def _is_safe_source_url(url: str) -> bool:
+    """Allow only HTTPS destinations whose resolved addresses are public."""
+    try:
+        # Reject characters that URL parsers or HTTP clients may normalize away.
+        if any(char.isspace() or ord(char) < 32 or ord(char) == 127 for char in url):
+            return False
+        parsed = urlparse(url)
+        host = parsed.hostname
+        port = parsed.port
+        if (
+            parsed.scheme != "https"
+            or not host
+            or parsed.username is not None
+            or parsed.password is not None
+            or "%" in host  # Includes IPv6 zone IDs and encoded host ambiguities.
+            or "\\" in parsed.netloc
+            or parsed.netloc.endswith(":")
+            or port == 0
+        ):
+            return False
+        host = host.rstrip(".").lower()
+        if host == "localhost" or host.endswith(".localhost"):
+            return False
+
+        def public_address(value):
+            address = ipaddress.ip_address(value)
+            if isinstance(address, ipaddress.IPv6Address) and address.ipv4_mapped:
+                if not public_address(str(address.ipv4_mapped)):
+                    return False
+            return address.is_global and not (
+                address.is_private or address.is_loopback or address.is_link_local
+                or address.is_reserved or address.is_unspecified or address.is_multicast
+            )
+
+        try:
+            literal = ipaddress.ip_address(host)
+        except ValueError:
+            literal = None
+        if literal is not None and not public_address(str(literal)):
+            return False
+        # DNS is cooperative only: getaddrinfo cannot be forcibly stopped here.
+        _remaining("dns")
+        addresses = socket.getaddrinfo(
+            host, port or 443, family=socket.AF_UNSPEC, type=socket.SOCK_STREAM,
+        )
+        return bool(addresses) and all(
+            family in (socket.AF_INET, socket.AF_INET6)
+            and public_address(sockaddr[0])
+            for family, _, _, _, sockaddr in addresses
+        )
+    except (_RetrievalTimeout, _RetrievalCancelled):
+        raise
+    except (ValueError, TypeError, OSError):
+        return False
+
+
+class _SourceSession(requests.Session):
+    def resolve_redirects(self, response, request, **kwargs):
+        # Session.send prepares Response.next even with allow_redirects=False.
+        # Suppress only that preparation, which otherwise consumes redirect bodies.
+        if kwargs.get("yield_requests", False):
+            return iter(())
+        return super().resolve_redirects(response, request, **kwargs)
+
+
 def _fetch_page(
     url: str,
 ) -> str:
@@ -738,41 +1075,82 @@ def _fetch_page(
     }
 
     try:
-        response = requests.get(
-            url,
-            headers=headers,
-            timeout=REQUEST_TIMEOUT,
-            allow_redirects=True,
-        )
+        page_deadline = min(time.monotonic() + PAGE_BUDGET,
+                            _total_deadline.get() or float("inf"))
+        with _SourceSession() as session:
+            session.trust_env = False
+            for redirects in range(4):
+                _page_remaining(page_deadline, "dns")
+                safe = _is_safe_source_url(url)
+                remaining = _page_remaining(page_deadline, "dns")
+                if not safe:
+                    return ""
+                # Residual DNS rebinding / TOCTOU risk: requests resolves again
+                # when connecting. This preflight does not pin the validated IP.
+                remaining = _page_remaining(page_deadline, "fetch")
+                with session.get(
+                    url, headers=headers, timeout=(min(CONNECT_TIMEOUT, remaining),
+                                                  min(READ_TIMEOUT, remaining)),
+                    allow_redirects=False, stream=True,
+                ) as response:
+                    _page_remaining(page_deadline, "fetch")
+                    if response.status_code in (301, 302, 303, 307, 308):
+                        location = response.headers.get("Location")
+                        if not location or redirects == 3:
+                            return ""
+                        url = urljoin(url, location)
+                        continue
+                    if 300 <= response.status_code < 400:
+                        return ""
+                    response.raise_for_status()
+                    content_type = response.headers.get("Content-Type", "").lower()
+                    if "html" not in content_type and "text" not in content_type:
+                        return ""
+                    length = response.headers.get("Content-Length", "").strip()
+                    if re.fullmatch(r"[0-9]+", length):
+                        # Compare decimal strings to avoid unbounded integer parsing.
+                        length = length.lstrip("0") or "0"
+                        limit = str(MAX_RESPONSE_BYTES)
+                        if len(length) > len(limit) or (
+                            len(length) == len(limit) and length > limit
+                        ):
+                            return ""
+                    body = bytearray()
+                    # iter_content yields decompressed bytes, not wire byte counts.
+                    _page_remaining(page_deadline, "streaming")
+                    chunks = iter(response.iter_content(chunk_size=16 * 1024))
+                    while True:
+                        _page_remaining(page_deadline, "streaming")
+                        try:
+                            chunk = next(chunks)
+                        except StopIteration:
+                            break
+                        _page_remaining(page_deadline, "streaming")
+                        if len(body) + len(chunk) > MAX_RESPONSE_BYTES:
+                            return ""
+                        body.extend(chunk)
+                    _page_remaining(page_deadline, "decode")
+                    try:
+                        html = body.decode(response.encoding or "utf-8", errors="replace")
+                    except LookupError:
+                        html = body.decode("utf-8", errors="replace")
+                    del body
+                    _page_remaining(page_deadline, "html_extraction")
+                    text = _html_to_text(html)
+                    _page_remaining(page_deadline, "html_extraction")
+                    return text
+        return ""
 
-        response.raise_for_status()
-
-        content_type = (
-            response.headers.get(
-                "Content-Type",
-                "",
-            )
-            .lower()
-        )
-
-        if (
-            "html"
-            not in content_type
-            and "text"
-            not in content_type
-        ):
-            return ""
-
-        return _html_to_text(
-            response.text
-        )
-
+    except (_RetrievalTimeout, _RetrievalCancelled):
+        raise
     except Exception:
+        _remaining("fetch")
         return ""
 
 
 def _source_text(
     row: dict,
+    fetched_text=None,
 ) -> tuple[str, str]:
 
     snippet = re.sub(
@@ -806,10 +1184,10 @@ def _source_text(
             "none",
         )
 
-    fetched = _fetch_page(
-        url
-    )
+    _remaining("fetch")
+    fetched = _fetch_page(url) if fetched_text is None else fetched_text
 
+    _remaining("fetch")
     if (
         len(fetched)
         >= MIN_FETCHED_TEXT_CHARS
@@ -897,6 +1275,7 @@ def _chunk_text(
     word_count = 0
 
     for sentence in sentences:
+        _remaining("chunking")
 
         sentence_words = len(
             sentence.split()
@@ -1029,9 +1408,10 @@ def _focus(
 # CANDIDATES
 # ==========================================================
 
-def _build_candidates(
+def _build_candidates_batch(
     claim_text: str,
     rows: list[dict],
+    fetched_text=None,
 ) -> tuple[list[dict], dict]:
 
     candidates = []
@@ -1043,8 +1423,9 @@ def _build_candidates(
         :FETCH_SOURCE_LIMIT
     ]:
 
+        _remaining("fetch")
         text, fetch_method = (
-            _source_text(row)
+            _source_text(row, fetched_text)
         )
 
         if not text:
@@ -1060,6 +1441,7 @@ def _build_candidates(
         ):
             snippet_count += 1
 
+        _remaining("chunking")
         chunks = _chunk_text(
             text
         )
@@ -1073,6 +1455,7 @@ def _build_candidates(
                 text
             ]
 
+        _remaining("ranking")
         chunks = sorted(
             chunks,
             key=lambda chunk: (
@@ -1085,6 +1468,7 @@ def _build_candidates(
         )[:MAX_CHUNKS_PER_SOURCE]
 
         for chunk in chunks:
+            _remaining("ranking")
 
             focused = _focus(
                 claim_text,
@@ -1212,6 +1596,51 @@ def _build_candidates(
     )
 
 
+def _merge_candidate_pages(pages):
+    candidates = []
+    diagnostics = {"requests_sources": 0, "snippet_sources": 0}
+    # Restore prefilter order; sorting below is stable for equal scores/chunks.
+    for index in sorted(pages):
+        page_candidates, page_diagnostics = pages[index]
+        candidates.extend(page_candidates)
+        for key in diagnostics:
+            diagnostics[key] += page_diagnostics[key]
+    candidates.sort(key=lambda item: item["retrieval_score"], reverse=True)
+    return candidates, diagnostics
+
+
+def _process_ready_page(claim_text, row, index, fetched_text=None, completed_at=None):
+    _remaining("fetch")
+    deadline = _total_deadline.get()
+    if completed_at is not None and deadline is not None and completed_at >= deadline:
+        raise _RetrievalTimeout("fetch")
+    # A page's chunks/scores enter the pool only after the whole page succeeds.
+    page = _build_candidates_batch(claim_text, [row], fetched_text)
+    _remaining("ranking")
+    state = _partial_state.get()
+    if state is not None:
+        state["pages"][index] = page
+        all_candidates, counts = _merge_candidate_pages(state["pages"])
+        state["diagnostics"].update(counts, candidate_count=len(all_candidates))
+        # Normal retrieval still includes snippets. Timeout snapshots are stricter.
+        eligible = [c for c in all_candidates if c["fetch_method"] in
+                    ("requests", "requests_short")]
+        if eligible:
+            selected = _select_diverse(eligible, state["max_sources"])
+            snapshot = deepcopy(_sources_from_selected(selected))
+            # Authoritative commit check, after ranking, serialization and copying.
+            _remaining("partial_commit")
+            state["snapshot"] = snapshot
+    return page
+
+
+def _build_candidates(claim_text, rows):
+    pages = {}
+    for index, row in enumerate(rows[:FETCH_SOURCE_LIMIT]):
+        pages[index] = _process_ready_page(claim_text, row, index)
+    return _merge_candidate_pages(pages)
+
+
 # ==========================================================
 # MMR / SOURCE DIVERSITY
 # ==========================================================
@@ -1227,12 +1656,7 @@ def _select_diverse(
     ):
         return []
 
-    pool = candidates[
-        :min(
-            len(candidates),
-            30,
-        )
-    ]
+    pool = [dict(candidate) for candidate in candidates[:30]]
 
     selected = []
 
@@ -1244,6 +1668,7 @@ def _select_diverse(
         < k
     ):
 
+        _remaining("ranking")
         best_candidate = None
         best_score = -999.0
 
@@ -1338,87 +1763,7 @@ def _select_diverse(
 # PUBLIC API
 # ==========================================================
 
-def search_detailed(
-    claim_text: str,
-    max_sources: int = 5,
-    claim_frame=None,
-    debug: bool = False,
-) -> dict:
-
-    if (
-        not isinstance(
-            claim_text,
-            str,
-        )
-        or not claim_text.strip()
-    ):
-        return {
-            "version": SURUM,
-
-            "api_version": (
-                RETRIEVAL_API_VERSION
-            ),
-
-            "claim": claim_text,
-
-            "status": (
-                "invalid_claim"
-            ),
-
-            "sources": [],
-
-            "diagnostics": {},
-        }
-
-    claim_text = re.sub(
-        r"\s+",
-        " ",
-        claim_text,
-    ).strip()
-
-    try:
-        max_sources = int(
-            max_sources
-        )
-
-    except (
-        TypeError,
-        ValueError,
-    ):
-        max_sources = 5
-
-    max_sources = max(
-        1,
-        min(
-            max_sources,
-            10,
-        ),
-    )
-
-    search_rows, queries = (
-        _search_web(
-            claim_text,
-            claim_frame,
-        )
-    )
-
-    prefiltered = _prefilter(
-        claim_text,
-        search_rows,
-    )
-
-    candidates, fetch_diagnostics = (
-        _build_candidates(
-            claim_text,
-            prefiltered,
-        )
-    )
-
-    selected = _select_diverse(
-        candidates,
-        max_sources,
-    )
-
+def _sources_from_selected(selected):
     sources = []
 
     for index, candidate in enumerate(
@@ -1426,6 +1771,7 @@ def search_detailed(
         start=1,
     ):
 
+        _remaining("result_construction")
         sources.append({
             "id": (
                 f"source_{index}"
@@ -1521,6 +1867,102 @@ def search_detailed(
                 ),
             },
         })
+
+    return sources
+
+
+def _search_detailed_impl(
+    claim_text: str,
+    max_sources: int = 5,
+    claim_frame=None,
+    debug: bool = False,
+) -> dict:
+
+    if (
+        not isinstance(
+            claim_text,
+            str,
+        )
+        or not claim_text.strip()
+    ):
+        return {
+            "version": SURUM,
+
+            "api_version": (
+                RETRIEVAL_API_VERSION
+            ),
+
+            "claim": claim_text,
+
+            "status": (
+                "invalid_claim"
+            ),
+
+            "sources": [],
+
+            "diagnostics": {},
+        }
+
+    claim_text = re.sub(
+        r"\s+",
+        " ",
+        claim_text,
+    ).strip()
+
+    try:
+        max_sources = int(
+            max_sources
+        )
+
+    except (
+        TypeError,
+        ValueError,
+    ):
+        max_sources = 5
+
+    max_sources = max(
+        1,
+        min(
+            max_sources,
+            10,
+        ),
+    )
+
+    state = _partial_state.get()
+    if state is not None:
+        state["max_sources"] = max_sources
+    search_rows, queries = (
+        _search_web(
+            claim_text,
+            claim_frame,
+        )
+    )
+
+    if state is not None:
+        state["diagnostics"].update(queries=queries, raw_search_results=len(search_rows))
+    _remaining("prefilter")
+    prefiltered = _prefilter(
+        claim_text,
+        search_rows,
+    )
+
+    if state is not None:
+        state["diagnostics"]["prefiltered_sources"] = len(prefiltered)
+    candidates, fetch_diagnostics = (
+        _build_candidates(
+            claim_text,
+            prefiltered,
+        )
+    )
+
+    _remaining("ranking")
+    selected = _select_diverse(
+        candidates,
+        max_sources,
+    )
+
+    _remaining("ranking")
+    sources = _sources_from_selected(selected)
 
     result = {
         "version": SURUM,
@@ -1644,6 +2086,69 @@ def search_detailed(
             )
 
     return result
+
+
+def _initial_diagnostics():
+    return {
+        **_provider_defaults(),
+        "cancelled": False, "cancellation_stage": None,
+        "mode": "LITE", "queries": [], "raw_search_results": 0,
+        "prefiltered_sources": 0, "candidate_count": 0, "selected_sources": 0,
+        "requests_sources": 0, "snippet_sources": 0,
+        "heavy_features_disabled": {
+            "sentence_transformers": True, "pytorch": True, "cross_encoder": True,
+            "playwright": True, "chromium": True, "local_embeddings": True,
+        },
+        "truth_decision_in_retrieval": False,
+    }
+
+
+def search_detailed(claim_text: str, max_sources: int = 5, claim_frame=None,
+                    debug: bool = False) -> dict:
+    started = time.monotonic()
+    token = _total_deadline.set(started + TOTAL_DEADLINE)
+    state = {"snapshot": [], "pages": {}, "max_sources": 5,
+             "diagnostics": _initial_diagnostics()}
+    state_token = _partial_state.set(state)
+    try:
+        _remaining("start")
+        result = _search_detailed_impl(claim_text, max_sources, claim_frame, debug)
+        _remaining("result_construction")
+        result["diagnostics"].update({key: state["diagnostics"][key]
+                                      for key in _provider_defaults()})
+        if (not result["sources"] and state["diagnostics"]["provider_ok"] is False
+                and not state["diagnostics"]["successful_query_count"]):
+            result["status"] = "search_provider_error"
+        result["diagnostics"].update(cancelled=False, cancellation_stage=None,
+                                     timed_out=False, partial_result=False,
+                                     timeout_stage=None,
+                                     completed_source_count=len(result["sources"]),
+                                     elapsed_seconds=time.monotonic() - started)
+        return result
+    except _RetrievalCancelled as exc:
+        diagnostics = dict(state["diagnostics"])
+        diagnostics.update(cancelled=True, cancellation_stage=str(exc), timed_out=False,
+                           timeout_stage=None, partial_result=False, completed_source_count=0,
+                           selected_sources=0, elapsed_seconds=time.monotonic() - started)
+        return {"version": SURUM, "api_version": RETRIEVAL_API_VERSION,
+                "claim": claim_text, "status": "cancelled", "sources": [], "diagnostics": diagnostics}
+    except _RetrievalTimeout as exc:
+        sources = state["snapshot"]
+        diagnostics = dict(state["diagnostics"])
+        diagnostics.update(timed_out=True, partial_result=bool(sources),
+                           timeout_stage=str(exc), elapsed_seconds=time.monotonic() - started,
+                           completed_source_count=len(sources), selected_sources=len(sources))
+        return {
+            "version": SURUM, "api_version": RETRIEVAL_API_VERSION,
+            "claim": claim_text,
+            "status": ("evidence_found" if sources else
+                       "search_provider_error" if diagnostics["provider_ok"] is False
+                       and not diagnostics["successful_query_count"] else "not_enough_evidence"),
+            "sources": sources, "diagnostics": diagnostics,
+        }
+    finally:
+        _partial_state.reset(state_token)
+        _total_deadline.reset(token)
 
 
 def search(

@@ -1,0 +1,472 @@
+{
+  "platform": {
+    "os": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.0"
+  },
+  "config": {
+    "repeats": 3,
+    "source_count": 8,
+    "max_sources": 5,
+    "small_payload_bytes": 131072,
+    "large_payload_bytes": 1939865,
+    "chunk_bytes": 16384,
+    "header_delay_seconds": 0.05,
+    "chunk_delay_seconds": 0.01,
+    "sample_interval_seconds": 0.05,
+    "memory_guard_mb": 405.0,
+    "stress_headroom_mb": 320.0,
+    "child_wall_guard_seconds": 100,
+    "late_deadline_seconds": 0.3,
+    "late_hold_after_new_claim_seconds": 0.2
+  },
+  "rss_units": "MiB",
+  "raw_runs": [
+    {
+      "scenario": "S4x2",
+      "claim_count": 2,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.90625,
+      "peak_sampled_rss_mb": 197.875,
+      "delta_rss_mb": 150.96875,
+      "ru_maxrss_mb": 200.71875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 11,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 11.458016792006674,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 46.890625,
+      "total_child_workload_seconds": 11.458854708005674,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S4x2",
+      "claim_count": 2,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.78125,
+      "peak_sampled_rss_mb": 202.09375,
+      "delta_rss_mb": 155.3125,
+      "ru_maxrss_mb": 202.921875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 11,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 11.546001499998965,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 46.765625,
+      "total_child_workload_seconds": 11.54675574999419,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S4x2",
+      "claim_count": 2,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.890625,
+      "peak_sampled_rss_mb": 204.5,
+      "delta_rss_mb": 157.609375,
+      "ru_maxrss_mb": 207.296875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 11,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 11.51318729200284,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 46.875,
+      "total_child_workload_seconds": 11.513890292000724,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S4x3",
+      "claim_count": 3,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.734375,
+      "peak_sampled_rss_mb": 246.671875,
+      "delta_rss_mb": 199.9375,
+      "ru_maxrss_mb": 246.671875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 16,
+      "peak_active_fetches": 12,
+      "retrieval_latency_seconds": 16.542426625004737,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 46.71875,
+      "total_child_workload_seconds": 16.54324662500585,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S4x3",
+      "claim_count": 3,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.734375,
+      "peak_sampled_rss_mb": 224.296875,
+      "delta_rss_mb": 177.5625,
+      "ru_maxrss_mb": 230.796875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 16,
+      "peak_active_fetches": 12,
+      "retrieval_latency_seconds": 16.642458250003983,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 46.71875,
+      "total_child_workload_seconds": 16.64327833299467,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S4x3",
+      "claim_count": 3,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.796875,
+      "peak_sampled_rss_mb": 251.3125,
+      "delta_rss_mb": 204.515625,
+      "ru_maxrss_mb": 261.78125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 16,
+      "peak_active_fetches": 12,
+      "retrieval_latency_seconds": 16.507442125002854,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 46.78125,
+      "total_child_workload_seconds": 16.508210125000915,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S4x4",
+      "claim_count": 4,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.90625,
+      "peak_sampled_rss_mb": 286.421875,
+      "delta_rss_mb": 239.515625,
+      "ru_maxrss_mb": 291.296875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 21,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 21.03063787499559,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "partial_result": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 46.890625,
+      "total_child_workload_seconds": 21.03141929199046,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        "ranking",
+        "ranking",
+        "ranking",
+        "ranking"
+      ]
+    },
+    {
+      "scenario": "S4x4",
+      "claim_count": 4,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.875,
+      "peak_sampled_rss_mb": 301.703125,
+      "delta_rss_mb": 254.828125,
+      "ru_maxrss_mb": 304.6875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 21,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 20.6893382499984,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "partial_result": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 46.859375,
+      "total_child_workload_seconds": 20.6901242909953,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        "ranking",
+        "ranking",
+        "chunking",
+        "ranking"
+      ]
+    },
+    {
+      "scenario": "S4x4",
+      "claim_count": 4,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 46.875,
+      "peak_sampled_rss_mb": 295.453125,
+      "delta_rss_mb": 248.578125,
+      "ru_maxrss_mb": 296.25,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 21,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 20.544007042000885,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "partial_result": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 46.859375,
+      "total_child_workload_seconds": 20.54477074999886,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        "ranking",
+        "ranking",
+        "chunking",
+        "ranking"
+      ]
+    }
+  ],
+  "original_results_sha256": "e3d5f39e05a4d4308a5ec35154593e66e2eba2f3d9cd628d1f92992571b7c7d4",
+  "benchmark_source_sha256": "c5fabc48faae513ec2a998b99444eb3cbd88046bb565e4b78f44a86f55937b83",
+  "production_hashes_before": {
+    "backend_v2/app/retrieval.py": "6bba1fec156f189d11b4fb127f571c67575295f4c1e100a471e31fd12e790e10",
+    "retrieval_demo_lite/search_retrieval_lite.py": "754e587c5e1f3ce88151d73b92dda5b5d6f8b59961ce4c6fd84a2d7c462b2b34"
+  },
+  "harness_source": "\"\"\"Follow-up driver: reuse original benchmark fixture, sampler and watchdog unchanged.\"\"\"\nimport hashlib\nimport json\nimport platform\nfrom pathlib import Path\nimport runpy\nimport sys\n\nROOT = Path('.')\nBENCH = ROOT / 'backend_v2/tests/benchmark_lite_retrieval.py'\nOUT = ROOT / 'backend_v2/tests/benchmark_results_lite_workers4.json'\nORIGINAL = ROOT / 'backend_v2/tests/benchmark_results_lite.json'\nns = runpy.run_path(str(BENCH), run_name='offline_benchmark_helpers')\nif '--child' in sys.argv:\n    spec = json.loads(sys.argv[sys.argv.index('--child') + 1])\n    sys.path.insert(0, str(ROOT / 'backend_v2'))\n    from app.retrieval import _lite_workers\n    # Original harness calls search_detailed through to_thread to retain diagnostics.\n    # Explicitly supply the adapter invocation context; direct module calls now\n    # intentionally use the sequential path. No production function is patched.\n    token = _lite_workers.set(spec['workers_per_claim'])\n    try:\n        ns['child'](spec)\n    finally:\n        _lite_workers.reset(token)\n    raise SystemExit\n\nns['run_sample'].__globals__['__file__'] = __file__\noriginal_hash = hashlib.sha256(ORIGINAL.read_bytes()).hexdigest()\nproduction = ['backend_v2/app/retrieval.py', 'retrieval_demo_lite/search_retrieval_lite.py']\nhashes = {p: hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in production}\nreport = json.loads(OUT.read_text()) if OUT.exists() else {\n    'platform': {'os': platform.platform(), 'python': platform.python_version()},\n    'config': ns['CONFIG'], 'rss_units': 'MiB', 'raw_runs': [],\n    'original_results_sha256': original_hash,\n    'benchmark_source_sha256': hashlib.sha256(BENCH.read_bytes()).hexdigest(),\n    'production_hashes_before': hashes,\n    'harness_source': Path(__file__).read_text(),\n    'notes': ['Only new 4-worker large-body concurrency scenarios; old results untouched.',\n              'Original fixture, process isolation, RSS sampling and watchdog reused.',\n              'Invocation ContextVar supplied to detailed benchmark calls to enable instance worker policy.'],\n}\n\ndef save():\n    assert hashlib.sha256(ORIGINAL.read_bytes()).hexdigest() == original_hash\n    report['scenario_summary'] = ns['summarize'](report['raw_runs'])\n    report['production_hashes_after'] = {\n        p: hashlib.sha256((ROOT/p).read_bytes()).hexdigest() for p in production}\n    temp = OUT.with_suffix('.json.tmp')\n    temp.write_text(json.dumps(report, indent=2) + '\\n')\n    temp.replace(OUT)\n\nstop = False\nfor claims in (2, 3, 4):\n    name = f'S4x{claims}'\n    spec = {'scenario': name, 'claim_count': claims, 'workers_per_claim': 4,\n            'payload_bytes_per_page': ns['CONFIG']['large_payload_bytes'], 'tracemalloc': False}\n    if stop:\n        if not any(r['scenario'] == name for r in report['raw_runs']):\n            report['raw_runs'].append({**spec, 'result_status': 'skipped', 'reason': 'stress headroom guard'})\n            save()\n        continue\n    for repeat in (1, 2, 3):\n        existing = next((r for r in report['raw_runs'] if r['scenario']==name and r.get('repeat')==repeat),None)\n        if existing:\n            run = existing\n        else:\n            run = ns['run_sample'](spec, repeat)\n            report['raw_runs'].append(run)\n            save()\n            print(name, repeat, run['result_status'], 'latency',run.get('retrieval_latency_seconds'),\n                  'RSS',run.get('peak_sampled_rss_mb'), 'fetch',run.get('peak_active_fetches'),flush=True)\n        if max(run.get('peak_sampled_rss_mb') or 0, run.get('ru_maxrss_mb') or 0) >= ns['CONFIG']['stress_headroom_mb']:\n            stop = True\n        if run['result_status'] == 'aborted_by_memory_guard':\n            stop = True\n            break\nsave()\nprint(json.dumps(report['scenario_summary'],indent=2),flush=True)\n",
+  "notes": [
+    "Only new 4-worker large-body concurrency scenarios; old results untouched.",
+    "Original fixture, process isolation, RSS sampling and watchdog reused.",
+    "Invocation ContextVar supplied to detailed benchmark calls to enable instance worker policy."
+  ],
+  "scenario_summary": {
+    "S4x2": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 11.51318729200284,
+      "median_delta_rss_mb": 155.3125,
+      "maximum_observed_rss_mb": 204.5,
+      "maximum_lifetime_rss_mb": 207.296875,
+      "maximum_active_fetches": 8,
+      "maximum_python_threads": 11
+    },
+    "S4x3": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 16.542426625004737,
+      "median_delta_rss_mb": 199.9375,
+      "maximum_observed_rss_mb": 251.3125,
+      "maximum_lifetime_rss_mb": 261.78125,
+      "maximum_active_fetches": 12,
+      "maximum_python_threads": 16
+    },
+    "S4x4": {
+      "runs": 3,
+      "statuses": [
+        "timed_out",
+        "timed_out",
+        "timed_out"
+      ],
+      "median_latency_seconds": 20.6893382499984,
+      "median_delta_rss_mb": 248.578125,
+      "maximum_observed_rss_mb": 301.703125,
+      "maximum_lifetime_rss_mb": 304.6875,
+      "maximum_active_fetches": 16,
+      "maximum_python_threads": 21
+    }
+  },
+  "production_hashes_after": {
+    "backend_v2/app/retrieval.py": "6bba1fec156f189d11b4fb127f571c67575295f4c1e100a471e31fd12e790e10",
+    "retrieval_demo_lite/search_retrieval_lite.py": "754e587c5e1f3ce88151d73b92dda5b5d6f8b59961ce4c6fd84a2d7c462b2b34"
+  }
+}

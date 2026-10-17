@@ -1,0 +1,3598 @@
+{
+  "dataset": {
+    "path": "retrieval_demo_lite/tests/data/turkish_core_eval.jsonl",
+    "sha256": "69e94b1d8c79d1bdc85f0d791a623b59abb365cdeeb4be10de3e4b2b5698b7f2",
+    "synthetic": true,
+    "canonical_to_implementation": {
+      "SUPPORTED": "SUPPORTED",
+      "REFUTED": "REFUTED",
+      "NOT_ENOUGH_EVIDENCE": "NOT ENOUGH EVIDENCE",
+      "CONFLICTING": "CONFLICTING"
+    }
+  },
+  "total_cases": 32,
+  "verdict_distribution": {
+    "SUPPORTED": 8,
+    "REFUTED": 8,
+    "NOT_ENOUGH_EVIDENCE": 8,
+    "CONFLICTING": 8
+  },
+  "category_distribution": {
+    "teknoloji": 4,
+    "ekonomi": 4,
+    "şirketler": 4,
+    "bilim": 4,
+    "enerji": 4,
+    "ulaşım": 4,
+    "eğitim": 4,
+    "kamusal bilgi": 4
+  },
+  "difficulty_distribution": {
+    "easy": 8,
+    "medium": 16,
+    "hard": 8
+  },
+  "methodology": "Fixed candidate pool; real Lite query/fetch/ranking, mocked Tavily/DNS/HTTP, cache off. Gold verdict/stance/relevance excluded from provider inputs. Macro metrics; P@5 denominator=5; recall excludes no-relevant cases; MRR includes them as zero. URL-dedup ranks for recall/P@5/MRR/nDCG; evidence-item rates for irrelevant/source/domain metrics. No live web or truth accuracy claim.",
+  "retrieval_metrics": {
+    "recall_at_5": 1.0,
+    "precision_at_5": 0.30000000000000004,
+    "mrr": 0.59375,
+    "ndcg_at_5": 0.8948404819708424,
+    "irrelevant_evidence_rate": 0.2875,
+    "primary_official_source_rate": 0.475,
+    "unique_domain_count": 3,
+    "duplicate_domain_rate": 0.2875,
+    "selected_count": 4.25
+  },
+  "per_category": {
+    "bilim": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.75,
+      "ndcg_at_5": 0.9878606647467888,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "ekonomi": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.75,
+      "ndcg_at_5": 0.9668652290468878,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "enerji": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.375,
+      "ndcg_at_5": 0.8609254017278901,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "eğitim": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.625,
+      "ndcg_at_5": 0.8124693318961776,
+      "irrelevant_evidence_rate": 0.4,
+      "primary_official_source_rate": 0.4,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.4,
+      "selected_count": 5
+    },
+    "kamusal bilgi": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.375,
+      "ndcg_at_5": 0.8609254017278901,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "teknoloji": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.75,
+      "ndcg_at_5": 0.9918669958722923,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "ulaşım": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.75,
+      "ndcg_at_5": 0.9918669958722923,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "şirketler": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.375,
+      "ndcg_at_5": 0.6859438348765207,
+      "irrelevant_evidence_rate": 0.4,
+      "primary_official_source_rate": 0.4,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.4,
+      "selected_count": 5
+    }
+  },
+  "per_difficulty": {
+    "easy": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.5625,
+      "ndcg_at_5": 0.9263961988000913,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "medium": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.65625,
+      "ndcg_at_5": 0.9518795728484648,
+      "irrelevant_evidence_rate": 0.25,
+      "primary_official_source_rate": 0.5,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.25,
+      "selected_count": 4
+    },
+    "hard": {
+      "recall_at_5": 1.0,
+      "precision_at_5": 0.30000000000000004,
+      "mrr": 0.5,
+      "ndcg_at_5": 0.7492065833863492,
+      "irrelevant_evidence_rate": 0.4,
+      "primary_official_source_rate": 0.4,
+      "unique_domain_count": 3,
+      "duplicate_domain_rate": 0.4,
+      "selected_count": 5
+    }
+  },
+  "raw_results": [
+    {
+      "id": "tr_core_001",
+      "category": "teknoloji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_001/1",
+          "text": "Kurgusal Anka Teknoloji için 2025 laboratuvar deneyinde cihaz tek dolumla yarım gün, yani 12 saat çalıştı.",
+          "title": "Kurgusal Anka Teknoloji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.546,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4209,
+            "search_score": 0.6688,
+            "structural_score": 0.875,
+            "mmr_score": 0.4587,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_001/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Teknoloji için 2025 laboratuvar deneyinde cihaz tek dolumla yarım gün, yani 12 saat çalıştı.",
+          "title": "Kurgusal Anka Teknoloji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.535,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.416,
+            "search_score": 0.6342,
+            "structural_score": 0.875,
+            "mmr_score": 0.3147,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_001/3",
+          "text": "Kurgusal Anka Teknoloji tabletinin ekran boyutu ölçüldü; pil dayanımı bu çalışmanın kapsamına alınmadı.",
+          "title": "Kurgusal Anka Teknoloji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4127,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4337,
+            "search_score": 0.5235,
+            "structural_score": 0.1562,
+            "mmr_score": 0.2275,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_001/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Teknoloji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.1772,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_002",
+      "category": "ekonomi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_002/1",
+          "text": "Kurgusal Anka Kooperatifi teslim tarifesinde aynı hizmetin bedeli 2024 yılında 100 lira, 2025 yılında 80 liradır; hizmet kapsamı değişmemiştir.",
+          "title": "Kurgusal Anka Kooperatifi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5837,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4599,
+            "search_score": 0.6868,
+            "structural_score": 0.9375,
+            "mmr_score": 0.4903,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_002/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Kooperatifi teslim tarifesinde aynı hizmetin bedeli 2024 yılında 100 lira, 2025 yılında 80 liradır; hizmet kapsamı değişmemiştir.",
+          "title": "Kurgusal Anka Kooperatifi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5727,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4549,
+            "search_score": 0.6521,
+            "structural_score": 0.9375,
+            "mmr_score": 0.3439,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://derleme.example.test/tr_core_002/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Kooperatifi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1649,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_002/3",
+          "text": "Kurgusal Anka Kooperatifi yıllık gelir toplamını açıkladı; teslimat adedi ve birim ücret tarifesi yayımlanmadı.",
+          "title": "Kurgusal Anka Kooperatifi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3202,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3127,
+            "search_score": 0.4679,
+            "structural_score": 0.125,
+            "mmr_score": 0.1519,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 0.9871451602176229,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_003",
+      "category": "şirketler",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://derleme.example.test/tr_core_003/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7162,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.9014,
+            "structural_score": 0.0,
+            "mmr_score": 0.6016,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_003/1",
+          "text": "Kurgusal Anka Üretim personel kayıtları 31 Aralık 2025 tarihinde aktif çalışan sayısını iki yüz olarak veriyor; taşeronlar bu sayıya dahil değil.",
+          "title": "Kurgusal Anka Üretim — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5041,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3631,
+            "search_score": 0.6422,
+            "structural_score": 0.875,
+            "mmr_score": 0.4234,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://derleme.example.test/tr_core_003/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6827,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.7556,
+            "structural_score": 0.0,
+            "mmr_score": 0.3134,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://inceleme.example.test/tr_core_003/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Üretim personel kayıtları 31 Aralık 2025 tarihinde aktif çalışan sayısını iki yüz olarak veriyor; taşeronlar bu sayıya dahil değil.",
+          "title": "Kurgusal Anka Üretim — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.4944,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.36,
+            "search_score": 0.6084,
+            "structural_score": 0.875,
+            "mmr_score": 0.2771,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://kayit.example.test/tr_core_003/3",
+          "text": "Kurgusal Anka Üretim yeni personel alımı ilan etti; yıl sonunda çalışan toplamı ilan metninde yer almıyor.",
+          "title": "Kurgusal Anka Üretim — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3625,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3709,
+            "search_score": 0.4946,
+            "structural_score": 0.125,
+            "mmr_score": 0.1769,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.6623050836026849,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_004",
+      "category": "bilim",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_004/1",
+          "text": "Kurgusal Anka Araştırma kontrollü deneyinde yalnız kaplama değiştirildi; diğer koşullar sabitken yeni kaplamalı örneğin ısı kaybı daha düşük ölçüldü.",
+          "title": "Kurgusal Anka Araştırma — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6136,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5398,
+            "search_score": 0.7235,
+            "structural_score": 0.75,
+            "mmr_score": 0.5154,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_004/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Araştırma kontrollü deneyinde yalnız kaplama değiştirildi; diğer koşullar sabitken yeni kaplamalı örneğin ısı kaybı daha düşük ölçüldü.",
+          "title": "Kurgusal Anka Araştırma — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5336,
+            "search_score": 0.6882,
+            "structural_score": 0.75,
+            "mmr_score": 0.3682,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_004/3",
+          "text": "Kurgusal Anka Araştırma gözleminde hem ortam sıcaklığı hem kaplama değişti; kaplamanın tek başına etkisini ayıran kontrol deneyi yapılmadı.",
+          "title": "Kurgusal Anka Araştırma — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5251,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4658,
+            "search_score": 0.5383,
+            "structural_score": 0.75,
+            "mmr_score": 0.3197,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_004/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Araştırma — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1602,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_005",
+      "category": "enerji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_005/3",
+          "text": "Kurgusal Anka Enerji tesisinin 2023 elektriği tamamen güneşten üretildi; 2025 dönemi için üretim kaydı verilmemiştir.",
+          "title": "Kurgusal Anka Enerji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.6521,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.602,
+            "search_score": 0.6009,
+            "structural_score": 0.9375,
+            "mmr_score": 0.5477,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_005/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Enerji tesisinde 2025 üretim kayıtlarının tamamı güneş panellerine aittir; o yıl başka elektrik üretim kaynağı işletilmedi.",
+          "title": "Kurgusal Anka Enerji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5397,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.416,
+            "search_score": 0.6342,
+            "structural_score": 0.9062,
+            "mmr_score": 0.4258,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_005/1",
+          "text": "Kurgusal Anka Enerji tesisinde 2025 üretim kayıtlarının tamamı güneş panellerine aittir; o yıl başka elektrik üretim kaynağı işletilmedi.",
+          "title": "Kurgusal Anka Enerji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.5507,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4209,
+            "search_score": 0.6688,
+            "structural_score": 0.9062,
+            "mmr_score": 0.2279,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_005/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Enerji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.1772,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.8145672023038535,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_006",
+      "category": "ulaşım",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_006/1",
+          "text": "Kurgusal Anka Ulaşım 2025 tarifesinde başlangıç terminalinden 10.00 kalkış, son terminale 11.30 varış yazıyor; aradaki süre bir buçuk saattir.",
+          "title": "Kurgusal Anka Ulaşım — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5218,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3811,
+            "search_score": 0.6505,
+            "structural_score": 0.9062,
+            "mmr_score": 0.4384,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_006/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Ulaşım 2025 tarifesinde başlangıç terminalinden 10.00 kalkış, son terminale 11.30 varış yazıyor; aradaki süre bir buçuk saattir.",
+          "title": "Kurgusal Anka Ulaşım — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5116,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3773,
+            "search_score": 0.6163,
+            "structural_score": 0.9062,
+            "mmr_score": 0.2926,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_006/3",
+          "text": "Kurgusal Anka Ulaşım tarifesi yalnız bir ara istasyona varışı gösteriyor; iki terminal arasındaki toplam süre belirtilmemiştir.",
+          "title": "Kurgusal Anka Ulaşım — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4431,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4691,
+            "search_score": 0.5398,
+            "structural_score": 0.1875,
+            "mmr_score": 0.2501,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_006/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Ulaşım — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.164,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_007",
+      "category": "eğitim",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://derleme.example.test/tr_core_007/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7212,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.9045,
+            "structural_score": 0.0,
+            "mmr_score": 0.6058,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_007/1",
+          "text": "Kurgusal Anka Üniversitesi 2025 akademik takvimi yaz okulu ilk ders gününü 7 Temmuz olarak belirtiyor; gerçekleşme tutanağı da aynı günü doğruluyor.",
+          "title": "Kurgusal Anka Üniversitesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.6823,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5892,
+            "search_score": 0.7462,
+            "structural_score": 0.9688,
+            "mmr_score": 0.5731,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://inceleme.example.test/tr_core_007/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Üniversitesi 2025 akademik takvimi yaz okulu ilk ders gününü 7 Temmuz olarak belirtiyor; gerçekleşme tutanağı da aynı günü doğruluyor.",
+          "title": "Kurgusal Anka Üniversitesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6699,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5824,
+            "search_score": 0.7107,
+            "structural_score": 0.9688,
+            "mmr_score": 0.4255,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_007/3",
+          "text": "Kurgusal Anka Üniversitesi 2025 yaz okulu ders listesini yayımladı; derslerin başlangıç günü bu listede açıklanmadı.",
+          "title": "Kurgusal Anka Üniversitesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5897,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.516,
+            "search_score": 0.5614,
+            "structural_score": 0.9375,
+            "mmr_score": 0.342,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://derleme.example.test/tr_core_007/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6877,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.7587,
+            "structural_score": 0.0,
+            "mmr_score": 0.3177,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.708995963673403,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_008",
+      "category": "kamusal bilgi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_008/3",
+          "text": "Kurgusal Anka Kütüphanesi 2024 döneminde pazar günleri açıktı; 2025 hizmet günleri kayıtta belirtilmemiştir.",
+          "title": "Kurgusal Anka Kütüphanesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.8777,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.9,
+            "search_score": 0.738,
+            "structural_score": 1.0,
+            "mmr_score": 0.7373,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_008/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Anka Kütüphanesi 2025 hizmet çizelgesinde pazar ziyaret saatleri 10.00 ile 16.00 arasıdır; giriş kayıtları hizmet verildiğini doğruluyor.",
+          "title": "Kurgusal Anka Kütüphanesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6439,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.553,
+            "search_score": 0.6972,
+            "structural_score": 0.9375,
+            "mmr_score": 0.5024,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_008/1",
+          "text": "Kurgusal Anka Kütüphanesi 2025 hizmet çizelgesinde pazar ziyaret saatleri 10.00 ile 16.00 arasıdır; giriş kayıtları hizmet verildiğini doğruluyor.",
+          "title": "Kurgusal Anka Kütüphanesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6564,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.56,
+            "search_score": 0.7328,
+            "structural_score": 0.9375,
+            "mmr_score": 0.3166,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_008/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Anka Kütüphanesi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2349,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2723,
+            "search_score": 0.2873,
+            "structural_score": 0.0,
+            "mmr_score": 0.1926,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.8145672023038535,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_009",
+      "category": "teknoloji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_009/1",
+          "text": "Kurgusal Mercan Teknoloji için aynı 2025 deneyinde çalışma süresi 8 saat ölçüldü; 12 saat sonucuna ulaşılamadı.",
+          "title": "Kurgusal Mercan Teknoloji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6197,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.516,
+            "search_score": 0.7126,
+            "structural_score": 0.9062,
+            "mmr_score": 0.5206,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_009/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Teknoloji için aynı 2025 deneyinde çalışma süresi 8 saat ölçüldü; 12 saat sonucuna ulaşılamadı.",
+          "title": "Kurgusal Mercan Teknoloji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6068,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5084,
+            "search_score": 0.6766,
+            "structural_score": 0.9062,
+            "mmr_score": 0.3779,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_009/3",
+          "text": "Kurgusal Mercan Teknoloji tabletinin ekran boyutu ölçüldü; pil dayanımı bu çalışmanın kapsamına alınmadı.",
+          "title": "Kurgusal Mercan Teknoloji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4127,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4337,
+            "search_score": 0.5235,
+            "structural_score": 0.1562,
+            "mmr_score": 0.2176,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_009/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Teknoloji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.177,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_010",
+      "category": "ekonomi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_010/1",
+          "text": "Kurgusal Mercan Kooperatifi aynı teslim hizmetinin bedelini 2024 yılındaki 100 liradan 2025 yılında 120 liraya çıkardı; indirim yapılmadı.",
+          "title": "Kurgusal Mercan Kooperatifi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5837,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4599,
+            "search_score": 0.6868,
+            "structural_score": 0.9375,
+            "mmr_score": 0.4903,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_010/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Kooperatifi aynı teslim hizmetinin bedelini 2024 yılındaki 100 liradan 2025 yılında 120 liraya çıkardı; indirim yapılmadı.",
+          "title": "Kurgusal Mercan Kooperatifi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5727,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4549,
+            "search_score": 0.6521,
+            "structural_score": 0.9375,
+            "mmr_score": 0.3439,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://derleme.example.test/tr_core_010/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Kooperatifi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1649,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_010/3",
+          "text": "Kurgusal Mercan Kooperatifi yıllık gelir toplamını açıkladı; teslimat adedi ve birim ücret tarifesi yayımlanmadı.",
+          "title": "Kurgusal Mercan Kooperatifi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3202,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3127,
+            "search_score": 0.4679,
+            "structural_score": 0.125,
+            "mmr_score": 0.1519,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 0.9871451602176229,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_011",
+      "category": "şirketler",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://derleme.example.test/tr_core_011/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7162,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.9014,
+            "structural_score": 0.0,
+            "mmr_score": 0.6016,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_011/1",
+          "text": "Kurgusal Mercan Üretim personel kayıtlarında 31 Aralık 2025 aktif çalışan sayısı 150 olarak verilmiştir; 200 değeri işe başvuranları göstermektedir.",
+          "title": "Kurgusal Mercan Üretim — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5797,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4609,
+            "search_score": 0.6872,
+            "structural_score": 0.9062,
+            "mmr_score": 0.487,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://inceleme.example.test/tr_core_011/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Üretim personel kayıtlarında 31 Aralık 2025 aktif çalışan sayısı 150 olarak verilmiştir; 200 değeri işe başvuranları göstermektedir.",
+          "title": "Kurgusal Mercan Üretim — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5687,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.456,
+            "search_score": 0.6526,
+            "structural_score": 0.9062,
+            "mmr_score": 0.3417,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_011/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6827,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.7556,
+            "structural_score": 0.0,
+            "mmr_score": 0.3134,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://kayit.example.test/tr_core_011/3",
+          "text": "Kurgusal Mercan Üretim yeni personel alımı ilan etti; yıl sonunda çalışan toplamı ilan metninde yer almıyor.",
+          "title": "Kurgusal Mercan Üretim — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3625,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3709,
+            "search_score": 0.4946,
+            "structural_score": 0.125,
+            "mmr_score": 0.1749,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.700869602949816,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_012",
+      "category": "bilim",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_012/1",
+          "text": "Kurgusal Mercan Araştırma deneyinde diğer koşullar sabit tutuldu; yeni kaplamalı örneğin ısı kaybı kaplamasız örnekle aynı çıktı, azalma gözlenmedi.",
+          "title": "Kurgusal Mercan Araştırma — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.535,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4573,
+            "search_score": 0.6856,
+            "structural_score": 0.625,
+            "mmr_score": 0.4494,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_012/3",
+          "text": "Kurgusal Mercan Araştırma gözleminde hem ortam sıcaklığı hem kaplama değişti; kaplamanın tek başına etkisini ayıran kontrol deneyi yapılmadı.",
+          "title": "Kurgusal Mercan Araştırma — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5251,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4658,
+            "search_score": 0.5383,
+            "structural_score": 0.75,
+            "mmr_score": 0.3261,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://inceleme.example.test/tr_core_012/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Araştırma deneyinde diğer koşullar sabit tutuldu; yeni kaplamalı örneğin ısı kaybı kaplamasız örnekle aynı çıktı, azalma gözlenmedi.",
+          "title": "Kurgusal Mercan Araştırma — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5242,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4527,
+            "search_score": 0.6511,
+            "structural_score": 0.625,
+            "mmr_score": 0.3021,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_012/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Araştırma — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.165,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 0.9514426589871553,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_013",
+      "category": "enerji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_013/3",
+          "text": "Kurgusal Mercan Enerji tesisinin 2023 elektriği tamamen güneşten üretildi; 2025 dönemi için üretim kaydı verilmemiştir.",
+          "title": "Kurgusal Mercan Enerji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.6521,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.602,
+            "search_score": 0.6009,
+            "structural_score": 0.9375,
+            "mmr_score": 0.5477,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_013/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Enerji tesisi 2025 elektriğinin yüzde 60 kısmını güneşten, yüzde 40 kısmını doğal gazdan üretti; tamamı güneş kaynaklı değildir.",
+          "title": "Kurgusal Mercan Enerji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.532,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4119,
+            "search_score": 0.6323,
+            "structural_score": 0.875,
+            "mmr_score": 0.4211,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_013/1",
+          "text": "Kurgusal Mercan Enerji tesisi 2025 elektriğinin yüzde 60 kısmını güneşten, yüzde 40 kısmını doğal gazdan üretti; tamamı güneş kaynaklı değildir.",
+          "title": "Kurgusal Mercan Enerji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.5425,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.416,
+            "search_score": 0.6666,
+            "structural_score": 0.875,
+            "mmr_score": 0.2185,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_013/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Enerji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.1775,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.8145672023038535,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_014",
+      "category": "ulaşım",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_014/1",
+          "text": "Kurgusal Mercan Ulaşım 2025 tarifesinde başlangıçtan 10.00 kalkış, son terminale 12.00 varış yazıyor; süre 120 dakikadır, 90 dakika değildir.",
+          "title": "Kurgusal Mercan Ulaşım — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6347,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5366,
+            "search_score": 0.722,
+            "structural_score": 0.9062,
+            "mmr_score": 0.5331,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_014/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Ulaşım 2025 tarifesinde başlangıçtan 10.00 kalkış, son terminale 12.00 varış yazıyor; süre 120 dakikadır, 90 dakika değildir.",
+          "title": "Kurgusal Mercan Ulaşım — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.623,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5308,
+            "search_score": 0.687,
+            "structural_score": 0.9062,
+            "mmr_score": 0.3852,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_014/3",
+          "text": "Kurgusal Mercan Ulaşım tarifesi yalnız bir ara istasyona varışı gösteriyor; iki terminal arasındaki toplam süre belirtilmemiştir.",
+          "title": "Kurgusal Mercan Ulaşım — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4431,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4691,
+            "search_score": 0.5398,
+            "structural_score": 0.1875,
+            "mmr_score": 0.2509,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_014/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Ulaşım — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.164,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_015",
+      "category": "eğitim",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_015/1",
+          "text": "Kurgusal Mercan Üniversitesi 2025 yaz okulu ilk dersini 14 Temmuz tarihinde yaptı; 7 Temmuz yalnız kayıtların açılış tarihiydi.",
+          "title": "Kurgusal Mercan Üniversitesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.754,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.688,
+            "search_score": 0.7917,
+            "structural_score": 0.9688,
+            "mmr_score": 0.6333,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://derleme.example.test/tr_core_015/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7212,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.9045,
+            "structural_score": 0.0,
+            "mmr_score": 0.6007,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://inceleme.example.test/tr_core_015/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Üniversitesi 2025 yaz okulu ilk dersini 14 Temmuz tarihinde yaptı; 7 Temmuz yalnız kayıtların açılış tarihiydi.",
+          "title": "Kurgusal Mercan Üniversitesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7391,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.6778,
+            "search_score": 0.7546,
+            "structural_score": 0.9688,
+            "mmr_score": 0.4861,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_015/3",
+          "text": "Kurgusal Mercan Üniversitesi 2025 yaz okulu ders listesini yayımladı; derslerin başlangıç günü bu listede açıklanmadı.",
+          "title": "Kurgusal Mercan Üniversitesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5897,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.516,
+            "search_score": 0.5614,
+            "structural_score": 0.9375,
+            "mmr_score": 0.3553,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://derleme.example.test/tr_core_015/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6877,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.7587,
+            "structural_score": 0.0,
+            "mmr_score": 0.3177,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 0.9143091486983557,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_016",
+      "category": "kamusal bilgi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_016/3",
+          "text": "Kurgusal Mercan Kütüphanesi 2024 döneminde pazar günleri açıktı; 2025 hizmet günleri kayıtta belirtilmemiştir.",
+          "title": "Kurgusal Mercan Kütüphanesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.8777,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.9,
+            "search_score": 0.738,
+            "structural_score": 1.0,
+            "mmr_score": 0.7373,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_016/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Mercan Kütüphanesi 2025 çizelgesinde pazar günü kapalı olarak işaretlenmiştir; yalnız cumartesi ziyaret kabul edilmiştir.",
+          "title": "Kurgusal Mercan Kütüphanesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5743,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4636,
+            "search_score": 0.6561,
+            "structural_score": 0.9062,
+            "mmr_score": 0.4491,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_016/1",
+          "text": "Kurgusal Mercan Kütüphanesi 2025 çizelgesinde pazar günü kapalı olarak işaretlenmiştir; yalnız cumartesi ziyaret kabul edilmiştir.",
+          "title": "Kurgusal Mercan Kütüphanesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5864,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.47,
+            "search_score": 0.6914,
+            "structural_score": 0.9062,
+            "mmr_score": 0.2608,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_016/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Mercan Kütüphanesi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2349,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2723,
+            "search_score": 0.2873,
+            "structural_score": 0.0,
+            "mmr_score": 0.187,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.8145672023038535,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_017",
+      "category": "teknoloji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_017/1",
+          "text": "Kurgusal Lale Teknoloji tabletinin ekran boyutu ölçüldü; pil dayanımı bu çalışmanın kapsamına alınmadı.",
+          "title": "Kurgusal Lale Teknoloji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.4475,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4337,
+            "search_score": 0.6747,
+            "structural_score": 0.1562,
+            "mmr_score": 0.3759,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_017/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Teknoloji tabletinin ekran boyutu ölçüldü; pil dayanımı bu çalışmanın kapsamına alınmadı.",
+          "title": "Kurgusal Lale Teknoloji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.435,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4267,
+            "search_score": 0.6391,
+            "structural_score": 0.1562,
+            "mmr_score": 0.2374,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://derleme.example.test/tr_core_017/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Teknoloji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.1766,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_017/3",
+          "text": "Kurgusal Lale Teknoloji tabletinin ekran boyutu ölçüldü; pil dayanımı bu çalışmanın kapsamına alınmadı.",
+          "title": "Kurgusal Lale Teknoloji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4127,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4337,
+            "search_score": 0.5235,
+            "structural_score": 0.1562,
+            "mmr_score": 0.0867,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 0.9674679834891693,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_018",
+      "category": "ekonomi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_018/1",
+          "text": "Kurgusal Lale Kooperatifi yıllık gelir toplamını açıkladı; teslimat adedi ve birim ücret tarifesi yayımlanmadı.",
+          "title": "Kurgusal Lale Kooperatifi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.355,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3127,
+            "search_score": 0.6191,
+            "structural_score": 0.125,
+            "mmr_score": 0.2982,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://derleme.example.test/tr_core_018/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Kooperatifi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1693,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://inceleme.example.test/tr_core_018/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Kooperatifi yıllık gelir toplamını açıkladı; teslimat adedi ve birim ücret tarifesi yayımlanmadı.",
+          "title": "Kurgusal Lale Kooperatifi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.3445,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3085,
+            "search_score": 0.5847,
+            "structural_score": 0.125,
+            "mmr_score": 0.1594,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_018/3",
+          "text": "Kurgusal Lale Kooperatifi yıllık gelir toplamını açıkladı; teslimat adedi ve birim ücret tarifesi yayımlanmadı.",
+          "title": "Kurgusal Lale Kooperatifi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3202,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3127,
+            "search_score": 0.4679,
+            "structural_score": 0.125,
+            "mmr_score": 0.009,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 0.9060254355346823,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_019",
+      "category": "şirketler",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://derleme.example.test/tr_core_019/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7162,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.9014,
+            "structural_score": 0.0,
+            "mmr_score": 0.6016,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_019/1",
+          "text": "Kurgusal Lale Üretim yeni personel alımı ilan etti; yıl sonunda çalışan toplamı ilan metninde yer almıyor.",
+          "title": "Kurgusal Lale Üretim — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.3973,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3709,
+            "search_score": 0.6458,
+            "structural_score": 0.125,
+            "mmr_score": 0.3337,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://derleme.example.test/tr_core_019/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6827,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.7556,
+            "structural_score": 0.0,
+            "mmr_score": 0.3134,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://inceleme.example.test/tr_core_019/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Üretim yeni personel alımı ilan etti; yıl sonunda çalışan toplamı ilan metninde yer almıyor.",
+          "title": "Kurgusal Lale Üretim — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.3867,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3667,
+            "search_score": 0.6115,
+            "structural_score": 0.125,
+            "mmr_score": 0.1915,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://kayit.example.test/tr_core_019/3",
+          "text": "Kurgusal Lale Üretim yeni personel alımı ilan etti; yıl sonunda çalışan toplamı ilan metninde yer almıyor.",
+          "title": "Kurgusal Lale Üretim — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3625,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3709,
+            "search_score": 0.4946,
+            "structural_score": 0.125,
+            "mmr_score": 0.0445,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 0.6797310500037655,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_020",
+      "category": "bilim",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_020/1",
+          "text": "Kurgusal Lale Araştırma gözleminde hem ortam sıcaklığı hem kaplama değişti; kaplamanın tek başına etkisini ayıran kontrol deneyi yapılmadı.",
+          "title": "Kurgusal Lale Araştırma — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5599,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4658,
+            "search_score": 0.6895,
+            "structural_score": 0.75,
+            "mmr_score": 0.4703,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_020/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Araştırma gözleminde hem ortam sıcaklığı hem kaplama değişti; kaplamanın tek başına etkisini ayıran kontrol deneyi yapılmadı.",
+          "title": "Kurgusal Lale Araştırma — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5482,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4599,
+            "search_score": 0.6544,
+            "structural_score": 0.75,
+            "mmr_score": 0.3257,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_020/3",
+          "text": "Kurgusal Lale Araştırma gözleminde hem ortam sıcaklığı hem kaplama değişti; kaplamanın tek başına etkisini ayıran kontrol deneyi yapılmadı.",
+          "title": "Kurgusal Lale Araştırma — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5251,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4658,
+            "search_score": 0.5383,
+            "structural_score": 0.75,
+            "mmr_score": 0.1811,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_020/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Araştırma — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1646,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_021",
+      "category": "enerji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_021/1",
+          "text": "Kurgusal Lale Enerji tesisinin 2023 elektriği tamamen güneşten üretildi; 2025 dönemi için üretim kaydı verilmemiştir.",
+          "title": "Kurgusal Lale Enerji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.6906,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.6072,
+            "search_score": 0.7545,
+            "structural_score": 0.9375,
+            "mmr_score": 0.5801,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_021/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Enerji tesisinin 2023 elektriği tamamen güneşten üretildi; 2025 dönemi için üretim kaydı verilmemiştir.",
+          "title": "Kurgusal Lale Enerji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6729,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5931,
+            "search_score": 0.7156,
+            "structural_score": 0.9375,
+            "mmr_score": 0.4319,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_021/3",
+          "text": "Kurgusal Lale Enerji tesisinin 2023 elektriği tamamen güneşten üretildi; 2025 dönemi için üretim kaydı verilmemiştir.",
+          "title": "Kurgusal Lale Enerji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.6521,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.602,
+            "search_score": 0.6009,
+            "structural_score": 0.9375,
+            "mmr_score": 0.2877,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_021/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Enerji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.1771,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_022",
+      "category": "ulaşım",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_022/1",
+          "text": "Kurgusal Lale Ulaşım tarifesi yalnız bir ara istasyona varışı gösteriyor; iki terminal arasındaki toplam süre belirtilmemiştir.",
+          "title": "Kurgusal Lale Ulaşım — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.4779,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4691,
+            "search_score": 0.691,
+            "structural_score": 0.1875,
+            "mmr_score": 0.4014,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_022/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Ulaşım tarifesi yalnız bir ara istasyona varışı gösteriyor; iki terminal arasındaki toplam süre belirtilmemiştir.",
+          "title": "Kurgusal Lale Ulaşım — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.4658,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4627,
+            "search_score": 0.6557,
+            "structural_score": 0.1875,
+            "mmr_score": 0.258,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://derleme.example.test/tr_core_022/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Ulaşım — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1593,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_022/3",
+          "text": "Kurgusal Lale Ulaşım tarifesi yalnız bir ara istasyona varışı gösteriyor; iki terminal arasındaki toplam süre belirtilmemiştir.",
+          "title": "Kurgusal Lale Ulaşım — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4431,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4691,
+            "search_score": 0.5398,
+            "structural_score": 0.1875,
+            "mmr_score": 0.1122,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 0.9674679834891693,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_023",
+      "category": "eğitim",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://derleme.example.test/tr_core_023/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7212,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.9045,
+            "structural_score": 0.0,
+            "mmr_score": 0.6058,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_023/1",
+          "text": "Kurgusal Lale Üniversitesi 2025 yaz okulu ders listesini yayımladı; derslerin başlangıç günü bu listede açıklanmadı.",
+          "title": "Kurgusal Lale Üniversitesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.6244,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.516,
+            "search_score": 0.7126,
+            "structural_score": 0.9375,
+            "mmr_score": 0.5245,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://inceleme.example.test/tr_core_023/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Üniversitesi 2025 yaz okulu ders listesini yayımladı; derslerin başlangıç günü bu listede açıklanmadı.",
+          "title": "Kurgusal Lale Üniversitesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6114,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5084,
+            "search_score": 0.6766,
+            "structural_score": 0.9375,
+            "mmr_score": 0.3818,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_023/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6877,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.7587,
+            "structural_score": 0.0,
+            "mmr_score": 0.3177,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://kayit.example.test/tr_core_023/3",
+          "text": "Kurgusal Lale Üniversitesi 2025 yaz okulu ders listesini yayımladı; derslerin başlangıç günü bu listede açıklanmadı.",
+          "title": "Kurgusal Lale Üniversitesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5897,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.516,
+            "search_score": 0.5614,
+            "structural_score": 0.9375,
+            "mmr_score": 0.2353,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 0.7122630665145961,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_024",
+      "category": "kamusal bilgi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_024/1",
+          "text": "Kurgusal Lale Kütüphanesi 2024 döneminde pazar günleri açıktı; 2025 hizmet günleri kayıtta belirtilmemiştir.",
+          "title": "Kurgusal Lale Kütüphanesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.9125,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.9,
+            "search_score": 0.8892,
+            "structural_score": 1.0,
+            "mmr_score": 0.7665,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_024/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Lale Kütüphanesi 2024 döneminde pazar günleri açıktı; 2025 hizmet günleri kayıtta belirtilmemiştir.",
+          "title": "Kurgusal Lale Kütüphanesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.8887,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8775,
+            "search_score": 0.8465,
+            "structural_score": 1.0,
+            "mmr_score": 0.6185,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_024/3",
+          "text": "Kurgusal Lale Kütüphanesi 2024 döneminde pazar günleri açıktı; 2025 hizmet günleri kayıtta belirtilmemiştir.",
+          "title": "Kurgusal Lale Kütüphanesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.8777,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.9,
+            "search_score": 0.738,
+            "structural_score": 1.0,
+            "mmr_score": 0.4773,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_024/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Lale Kütüphanesi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2349,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2723,
+            "search_score": 0.2873,
+            "structural_score": 0.0,
+            "mmr_score": 0.192,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": null,
+        "precision_at_5": 0.0,
+        "mrr": 0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_025",
+      "category": "teknoloji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://inceleme.example.test/tr_core_025/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Teknoloji için aynı 2025 deneyinde çalışma süresi 8 saat ölçüldü; 12 saat sonucuna ulaşılamadı.",
+          "title": "Kurgusal Doruk Teknoloji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6068,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5084,
+            "search_score": 0.6766,
+            "structural_score": 0.9062,
+            "mmr_score": 0.5097,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_025/1",
+          "text": "Kurgusal Doruk Teknoloji için 2025 laboratuvar deneyinde cihaz tek dolumla yarım gün, yani 12 saat çalıştı.",
+          "title": "Kurgusal Doruk Teknoloji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.546,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4209,
+            "search_score": 0.6688,
+            "structural_score": 0.875,
+            "mmr_score": 0.4075,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_025/3",
+          "text": "Kurgusal Doruk Teknoloji tabletinin ekran boyutu ölçüldü; pil dayanımı bu çalışmanın kapsamına alınmadı.",
+          "title": "Kurgusal Doruk Teknoloji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4127,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4337,
+            "search_score": 0.5235,
+            "structural_score": 0.1562,
+            "mmr_score": 0.2211,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_025/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Teknoloji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.177,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_026",
+      "category": "ekonomi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_026/1",
+          "text": "Kurgusal Doruk Kooperatifi teslim tarifesinde aynı hizmetin bedeli 2024 yılında 100 lira, 2025 yılında 80 liradır; hizmet kapsamı değişmemiştir.",
+          "title": "Kurgusal Doruk Kooperatifi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5837,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4599,
+            "search_score": 0.6868,
+            "structural_score": 0.9375,
+            "mmr_score": 0.4903,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_026/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Kooperatifi aynı teslim hizmetinin bedelini 2024 yılındaki 100 liradan 2025 yılında 120 liraya çıkardı; indirim yapılmadı.",
+          "title": "Kurgusal Doruk Kooperatifi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5727,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4549,
+            "search_score": 0.6521,
+            "structural_score": 0.9375,
+            "mmr_score": 0.433,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://derleme.example.test/tr_core_026/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Kooperatifi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1649,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_026/3",
+          "text": "Kurgusal Doruk Kooperatifi yıllık gelir toplamını açıkladı; teslimat adedi ve birim ücret tarifesi yayımlanmadı.",
+          "title": "Kurgusal Doruk Kooperatifi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3202,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3127,
+            "search_score": 0.4679,
+            "structural_score": 0.125,
+            "mmr_score": 0.1519,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 0.9871451602176229,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_027",
+      "category": "şirketler",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://derleme.example.test/tr_core_027/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7162,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.9014,
+            "structural_score": 0.0,
+            "mmr_score": 0.6016,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_027/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Üretim personel kayıtlarında 31 Aralık 2025 aktif çalışan sayısı 150 olarak verilmiştir; 200 değeri işe başvuranları göstermektedir.",
+          "title": "Kurgusal Doruk Üretim — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5687,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.456,
+            "search_score": 0.6526,
+            "structural_score": 0.9062,
+            "mmr_score": 0.4732,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_027/1",
+          "text": "Kurgusal Doruk Üretim personel kayıtları 31 Aralık 2025 tarihinde aktif çalışan sayısını iki yüz olarak veriyor; taşeronlar bu sayıya dahil değil.",
+          "title": "Kurgusal Doruk Üretim — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5041,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3631,
+            "search_score": 0.6422,
+            "structural_score": 0.875,
+            "mmr_score": 0.3754,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_027/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Üretim 2025 sonunda 200 kişiye istihdam sağladı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6827,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8208,
+            "search_score": 0.7556,
+            "structural_score": 0.0,
+            "mmr_score": 0.3134,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://kayit.example.test/tr_core_027/3",
+          "text": "Kurgusal Doruk Üretim yeni personel alımı ilan etti; yıl sonunda çalışan toplamı ilan metninde yer almıyor.",
+          "title": "Kurgusal Doruk Üretim — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.3625,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3709,
+            "search_score": 0.4946,
+            "structural_score": 0.125,
+            "mmr_score": 0.1769,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.700869602949816,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_028",
+      "category": "bilim",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_028/1",
+          "text": "Kurgusal Doruk Araştırma kontrollü deneyinde yalnız kaplama değiştirildi; diğer koşullar sabitken yeni kaplamalı örneğin ısı kaybı daha düşük ölçüldü.",
+          "title": "Kurgusal Doruk Araştırma — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6136,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5398,
+            "search_score": 0.7235,
+            "structural_score": 0.75,
+            "mmr_score": 0.5154,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_028/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Araştırma deneyinde diğer koşullar sabit tutuldu; yeni kaplamalı örneğin ısı kaybı kaplamasız örnekle aynı çıktı, azalma gözlenmedi.",
+          "title": "Kurgusal Doruk Araştırma — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5242,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4527,
+            "search_score": 0.6511,
+            "structural_score": 0.625,
+            "mmr_score": 0.3796,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_028/3",
+          "text": "Kurgusal Doruk Araştırma gözleminde hem ortam sıcaklığı hem kaplama değişti; kaplamanın tek başına etkisini ayıran kontrol deneyi yapılmadı.",
+          "title": "Kurgusal Doruk Araştırma — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5251,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4658,
+            "search_score": 0.5383,
+            "structural_score": 0.75,
+            "mmr_score": 0.3197,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_028/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Araştırma — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.1645,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_029",
+      "category": "enerji",
+      "difficulty": "easy",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_029/3",
+          "text": "Kurgusal Doruk Enerji tesisinin 2023 elektriği tamamen güneşten üretildi; 2025 dönemi için üretim kaydı verilmemiştir.",
+          "title": "Kurgusal Doruk Enerji — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.6521,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.602,
+            "search_score": 0.6009,
+            "structural_score": 0.9375,
+            "mmr_score": 0.5477,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_029/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Enerji tesisi 2025 elektriğinin yüzde 60 kısmını güneşten, yüzde 40 kısmını doğal gazdan üretti; tamamı güneş kaynaklı değildir.",
+          "title": "Kurgusal Doruk Enerji — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.532,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4119,
+            "search_score": 0.6323,
+            "structural_score": 0.875,
+            "mmr_score": 0.4211,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_029/1",
+          "text": "Kurgusal Doruk Enerji tesisinde 2025 üretim kayıtlarının tamamı güneş panellerine aittir; o yıl başka elektrik üretim kaynağı işletilmedi.",
+          "title": "Kurgusal Doruk Enerji — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.5507,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4209,
+            "search_score": 0.6688,
+            "structural_score": 0.9062,
+            "mmr_score": 0.3316,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_029/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Enerji — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2166,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2471,
+            "search_score": 0.2757,
+            "structural_score": 0.0,
+            "mmr_score": 0.1775,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.8145672023038535,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_030",
+      "category": "ulaşım",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://inceleme.example.test/tr_core_030/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Ulaşım 2025 tarifesinde başlangıçtan 10.00 kalkış, son terminale 12.00 varış yazıyor; süre 120 dakikadır, 90 dakika değildir.",
+          "title": "Kurgusal Doruk Ulaşım — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.623,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5308,
+            "search_score": 0.687,
+            "structural_score": 0.9062,
+            "mmr_score": 0.5233,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://kayit.example.test/tr_core_030/1",
+          "text": "Kurgusal Doruk Ulaşım 2025 tarifesinde başlangıç terminalinden 10.00 kalkış, son terminale 11.30 varış yazıyor; aradaki süre bir buçuk saattir.",
+          "title": "Kurgusal Doruk Ulaşım — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5218,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.3811,
+            "search_score": 0.6505,
+            "structural_score": 0.9062,
+            "mmr_score": 0.3698,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_030/3",
+          "text": "Kurgusal Doruk Ulaşım tarifesi yalnız bir ara istasyona varışı gösteriyor; iki terminal arasındaki toplam süre belirtilmemiştir.",
+          "title": "Kurgusal Doruk Ulaşım — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.4431,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4691,
+            "search_score": 0.5398,
+            "structural_score": 0.1875,
+            "mmr_score": 0.2501,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_030/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Ulaşım — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2016,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2264,
+            "search_score": 0.2661,
+            "structural_score": 0.0,
+            "mmr_score": 0.164,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 1.0,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    },
+    {
+      "id": "tr_core_031",
+      "category": "eğitim",
+      "difficulty": "hard",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://inceleme.example.test/tr_core_031/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Üniversitesi 2025 yaz okulu ilk dersini 14 Temmuz tarihinde yaptı; 7 Temmuz yalnız kayıtların açılış tarihiydi.",
+          "title": "Kurgusal Doruk Üniversitesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7391,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.6778,
+            "search_score": 0.7546,
+            "structural_score": 0.9688,
+            "mmr_score": 0.6209,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://derleme.example.test/tr_core_031/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.7212,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.9045,
+            "structural_score": 0.0,
+            "mmr_score": 0.5961,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_031/1",
+          "text": "Kurgusal Doruk Üniversitesi 2025 akademik takvimi yaz okulu ilk ders gününü 7 Temmuz olarak belirtiyor; gerçekleşme tutanağı da aynı günü doğruluyor.",
+          "title": "Kurgusal Doruk Üniversitesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2025-12-31",
+          "retrieval_score": 0.6823,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.5892,
+            "search_score": 0.7462,
+            "structural_score": 0.9688,
+            "mmr_score": 0.529,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://kayit.example.test/tr_core_031/3",
+          "text": "Kurgusal Doruk Üniversitesi 2025 yaz okulu ders listesini yayımladı; derslerin başlangıç günü bu listede açıklanmadı.",
+          "title": "Kurgusal Doruk Üniversitesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.5897,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.516,
+            "search_score": 0.5614,
+            "structural_score": 0.9375,
+            "mmr_score": 0.342,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_5",
+          "url": "https://derleme.example.test/tr_core_031/5",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Üniversitesi 2025 yaz okulu derslerini 7 Temmuz tarihinde başlattı.",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6877,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.8277,
+            "search_score": 0.7587,
+            "structural_score": 0.0,
+            "mmr_score": 0.3177,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 1.0,
+        "ndcg_at_5": 0.9143091486983557,
+        "irrelevant_evidence_rate": 0.4,
+        "primary_official_source_rate": 0.4,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.4,
+        "selected_count": 5
+      },
+      "fetch_methods": {
+        "tavily_snippet": 5
+      }
+    },
+    {
+      "id": "tr_core_032",
+      "category": "kamusal bilgi",
+      "difficulty": "medium",
+      "sources": [
+        {
+          "id": "source_1",
+          "url": "https://kayit.example.test/tr_core_032/3",
+          "text": "Kurgusal Doruk Kütüphanesi 2024 döneminde pazar günleri açıktı; 2025 hizmet günleri kayıtta belirtilmemiştir.",
+          "title": "Kurgusal Doruk Kütüphanesi — bağlam notu",
+          "domain": "kayit.example.test",
+          "published_date": "2024-01-10",
+          "retrieval_score": 0.8777,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.9,
+            "search_score": 0.738,
+            "structural_score": 1.0,
+            "mmr_score": 0.7373,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_2",
+          "url": "https://inceleme.example.test/tr_core_032/2",
+          "text": "Bağımsız kayıt incelemesi: Kurgusal Doruk Kütüphanesi 2025 çizelgesinde pazar günü kapalı olarak işaretlenmiştir; yalnız cumartesi ziyaret kabul edilmiştir.",
+          "title": "Kurgusal Doruk Kütüphanesi — bağımsız inceleme",
+          "domain": "inceleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.5743,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.4636,
+            "search_score": 0.6561,
+            "structural_score": 0.9062,
+            "mmr_score": 0.4491,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_3",
+          "url": "https://kayit.example.test/tr_core_032/1",
+          "text": "Kurgusal Doruk Kütüphanesi 2025 hizmet çizelgesinde pazar ziyaret saatleri 10.00 ile 16.00 arasıdır; giriş kayıtları hizmet verildiğini doğruluyor.",
+          "title": "Kurgusal Doruk Kütüphanesi — ölçüm kaydı",
+          "domain": "kayit.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.6564,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.56,
+            "search_score": 0.7328,
+            "structural_score": 0.9375,
+            "mmr_score": 0.4077,
+            "fetch_method": "tavily_snippet"
+          }
+        },
+        {
+          "id": "source_4",
+          "url": "https://derleme.example.test/tr_core_032/4",
+          "text": "Bu belge yalnız bahçe aydınlatmasının bakım takvimini anlatır. İddiada sözü edilen kurumun hizmeti veya ölçümü hakkında kayıt içermez.",
+          "title": "Kurgusal Doruk Kütüphanesi — bahçe bakım duyurusu",
+          "domain": "derleme.example.test",
+          "published_date": "2026-10-01",
+          "retrieval_score": 0.2349,
+          "candidate_type": "lite_chunk",
+          "metadata": {
+            "retrieval_version": "5.2-lite-512mb",
+            "api_version": "search-v1",
+            "scoring_mode": "lite_lexical",
+            "lexical_score": 0.2723,
+            "search_score": 0.2873,
+            "structural_score": 0.0,
+            "mmr_score": 0.187,
+            "fetch_method": "tavily_snippet"
+          }
+        }
+      ],
+      "metrics": {
+        "recall_at_5": 1.0,
+        "precision_at_5": 0.4,
+        "mrr": 0.5,
+        "ndcg_at_5": 0.8145672023038535,
+        "irrelevant_evidence_rate": 0.25,
+        "primary_official_source_rate": 0.5,
+        "unique_domain_count": 3,
+        "duplicate_domain_rate": 0.25,
+        "selected_count": 4
+      },
+      "fetch_methods": {
+        "tavily_snippet": 4
+      }
+    }
+  ],
+  "verifier": {
+    "status": "skipped",
+    "message": "verifier evaluation skipped",
+    "reason": "retrieval-only; verifier requires real Groq network",
+    "metrics": null
+  },
+  "validation": {
+    "passed": true,
+    "total_cases": 32,
+    "semantic_scope": "Automated schema/stance consistency; text meaning and same-scope contradictions are manually authored/reviewed, not machine-proven.",
+    "negative_tests_passed": 6
+  },
+  "deterministic_repeat_equal": true,
+  "evaluation_timestamp": "2026-10-18T00:04:48.596313+03:00",
+  "environment": {
+    "python": "3.14.0 (v3.14.0:ebf955df7a8, Oct  7 2025, 08:20:14) [Clang 16.0.0 (clang-1600.0.26.6)]",
+    "platform": "macOS-26.5.1-arm64-arm-64bit-Mach-O"
+  },
+  "protected_hashes": {
+    "retrieval_demo_lite/search_retrieval_lite.py": "59a8857e12b9e486cc68aade46080405321a8125bc0057d2bbd600bd77a3541f",
+    "backend_v2/app/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "backend_v2/app/config.py": "63c7a97d5bde4fa547da086c21d7ba32defb329be46732d2201b5a5849d0e2eb",
+    "backend_v2/app/llm.py": "93cfde8e92a2a63173b1fbfb300dbb408475b7bcd07a478e0a66ae1196050619",
+    "backend_v2/app/main.py": "06a06377c5d35b6b73058e3629b492a109c22ddba6230500ec6ea623380a210e",
+    "backend_v2/app/pipeline.py": "42e835cbb5eaf0c946bcc0b4a2d276c42f7f5acb510f33d882bc21ab553c797a",
+    "backend_v2/app/retrieval.py": "4710c543274977aeee044b71fe72343048ae4644be7a878ec930cac3b2c0555c",
+    "ai-engine/ai_engine.py": "3257f5b9aad8783dd955d623481845b32ae017c3d9736abf5b7dd9741ec21347",
+    "ai-engine/test_ai_engine.py": "bd10133bef46a251fe35066799fc5625d25ea82e3473a23c621df4362f052105",
+    "retrieval_demo_lite/tests/benchmark_retrieval_quality.py": "e74eaff2ab2e9efba4241fed555bd65f8221019916f66c0060e23d2956897884",
+    "retrieval_demo_lite/tests/benchmark_results_retrieval_quality.json": "19b10e2c82defb08eb1adf30399ed8e662ba6050ff5aeb049cdd25442cf51f8e"
+  },
+  "production_and_stress_unchanged": true
+}
