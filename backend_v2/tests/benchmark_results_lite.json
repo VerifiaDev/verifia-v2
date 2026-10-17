@@ -1,0 +1,2362 @@
+{
+  "platform": {
+    "os": "macOS-26.5.1-arm64-arm-64bit-Mach-O",
+    "python": "3.14.0",
+    "machine": "arm64"
+  },
+  "config": {
+    "repeats": 3,
+    "source_count": 8,
+    "max_sources": 5,
+    "small_payload_bytes": 131072,
+    "large_payload_bytes": 1939865,
+    "chunk_bytes": 16384,
+    "header_delay_seconds": 0.05,
+    "chunk_delay_seconds": 0.01,
+    "sample_interval_seconds": 0.05,
+    "memory_guard_mb": 405.0,
+    "stress_headroom_mb": 320.0,
+    "child_wall_guard_seconds": 100,
+    "late_deadline_seconds": 0.3,
+    "late_hold_after_new_claim_seconds": 0.2
+  },
+  "rss_units": "MiB",
+  "source_hashes_before": {
+    "backend_v2/app/retrieval.py": "a72ed0341b19651ad44d0152f4d2816578dfe54628c555597b7b3fea2b3f29f1",
+    "retrieval_demo_lite/search_retrieval_lite.py": "754e587c5e1f3ce88151d73b92dda5b5d6f8b59961ce4c6fd84a2d7c462b2b34",
+    "backend_v2/tests/test_lite_adapter.py": "74cda85ee88b7d48f28d97b6774ac62a6703d2ddd6f87347fb028b52755511dd",
+    "retrieval_demo_lite/tests/test_source_fetch_security.py": "3807dd888872cc324f77e40b43cdab9b8094b58bfff36e164538376cdef0db3b"
+  },
+  "raw_runs": [
+    {
+      "scenario": "A",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.359375,
+      "peak_sampled_rss_mb": 52.078125,
+      "delta_rss_mb": 3.71875,
+      "ru_maxrss_mb": 52.078125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 1.3602385420017526,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.34375,
+      "total_child_workload_seconds": 1.3608897080048337,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "A",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.109375,
+      "peak_sampled_rss_mb": 51.75,
+      "delta_rss_mb": 3.640625,
+      "ru_maxrss_mb": 51.75,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 1.3604239160049474,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.09375,
+      "total_child_workload_seconds": 1.3610989590015379,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "A",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.09375,
+      "peak_sampled_rss_mb": 51.734375,
+      "delta_rss_mb": 3.640625,
+      "ru_maxrss_mb": 51.734375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 1.3561358750012005,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.078125,
+      "total_child_workload_seconds": 1.3568322080027428,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "B",
+      "claim_count": 1,
+      "workers_per_claim": 2,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.234375,
+      "peak_sampled_rss_mb": 52.6875,
+      "delta_rss_mb": 4.453125,
+      "ru_maxrss_mb": 52.6875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 4,
+      "peak_active_fetches": 2,
+      "retrieval_latency_seconds": 0.8085916659983923,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.21875,
+      "total_child_workload_seconds": 0.8092688329998055,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "B",
+      "claim_count": 1,
+      "workers_per_claim": 2,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.0625,
+      "peak_sampled_rss_mb": 52.640625,
+      "delta_rss_mb": 4.578125,
+      "ru_maxrss_mb": 52.640625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 4,
+      "peak_active_fetches": 2,
+      "retrieval_latency_seconds": 0.8193023339990759,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.046875,
+      "total_child_workload_seconds": 0.8199985839964938,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "B",
+      "claim_count": 1,
+      "workers_per_claim": 2,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.171875,
+      "peak_sampled_rss_mb": 52.796875,
+      "delta_rss_mb": 4.625,
+      "ru_maxrss_mb": 52.796875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 4,
+      "peak_active_fetches": 2,
+      "retrieval_latency_seconds": 0.8066624159982894,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.15625,
+      "total_child_workload_seconds": 0.8074157079972792,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "C",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.296875,
+      "peak_sampled_rss_mb": 54.21875,
+      "delta_rss_mb": 5.921875,
+      "ru_maxrss_mb": 54.21875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 0.5879935419943649,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.28125,
+      "total_child_workload_seconds": 0.5887388330011163,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "C",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.234375,
+      "peak_sampled_rss_mb": 53.265625,
+      "delta_rss_mb": 5.03125,
+      "ru_maxrss_mb": 53.265625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 0.5710943750018487,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.21875,
+      "total_child_workload_seconds": 0.5717993340003886,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "C",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.09375,
+      "peak_sampled_rss_mb": 53.765625,
+      "delta_rss_mb": 5.671875,
+      "ru_maxrss_mb": 53.765625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 0.5963397090017679,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.078125,
+      "total_child_workload_seconds": 0.5970757499962929,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "D",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.0,
+      "peak_sampled_rss_mb": 54.953125,
+      "delta_rss_mb": 6.953125,
+      "ru_maxrss_mb": 54.953125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 0.5499598749956931,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 47.984375,
+      "total_child_workload_seconds": 0.5506644589986536,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "D",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.171875,
+      "peak_sampled_rss_mb": 54.046875,
+      "delta_rss_mb": 5.875,
+      "ru_maxrss_mb": 54.046875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 0.5497530840002582,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.15625,
+      "total_child_workload_seconds": 0.5504712499969173,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "D",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.21875,
+      "peak_sampled_rss_mb": 53.84375,
+      "delta_rss_mb": 5.625,
+      "ru_maxrss_mb": 53.84375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 0.5448490420021699,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.203125,
+      "total_child_workload_seconds": 0.545582042002934,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "E",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.09375,
+      "peak_sampled_rss_mb": 59.421875,
+      "delta_rss_mb": 11.328125,
+      "ru_maxrss_mb": 59.421875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 19,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 0.9442562089971034,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.078125,
+      "total_child_workload_seconds": 0.9449459159950493,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "E",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.203125,
+      "peak_sampled_rss_mb": 61.015625,
+      "delta_rss_mb": 12.8125,
+      "ru_maxrss_mb": 61.015625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 19,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 0.9398901669992483,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.1875,
+      "total_child_workload_seconds": 0.9405467920005322,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "E",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.25,
+      "peak_sampled_rss_mb": 60.265625,
+      "delta_rss_mb": 12.015625,
+      "ru_maxrss_mb": 60.265625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 19,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 0.9374773329982418,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.234375,
+      "total_child_workload_seconds": 0.9381924170011189,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "F",
+      "claim_count": 3,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.0,
+      "peak_sampled_rss_mb": 64.46875,
+      "delta_rss_mb": 16.46875,
+      "ru_maxrss_mb": 64.46875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 28,
+      "peak_active_fetches": 24,
+      "retrieval_latency_seconds": 1.3278407089965185,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 47.984375,
+      "total_child_workload_seconds": 1.3285457079982734,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "F",
+      "claim_count": 3,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.1875,
+      "peak_sampled_rss_mb": 63.6875,
+      "delta_rss_mb": 15.5,
+      "ru_maxrss_mb": 63.6875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 28,
+      "peak_active_fetches": 24,
+      "retrieval_latency_seconds": 1.3180620420025662,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.171875,
+      "total_child_workload_seconds": 1.318808916999842,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "F",
+      "claim_count": 3,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.28125,
+      "peak_sampled_rss_mb": 65.3125,
+      "delta_rss_mb": 17.03125,
+      "ru_maxrss_mb": 65.3125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 28,
+      "peak_active_fetches": 24,
+      "retrieval_latency_seconds": 1.3408469580026576,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.265625,
+      "total_child_workload_seconds": 1.3415992089940119,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "H",
+      "claim_count": 4,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.140625,
+      "peak_sampled_rss_mb": 67.75,
+      "delta_rss_mb": 19.609375,
+      "ru_maxrss_mb": 67.75,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 37,
+      "peak_active_fetches": 32,
+      "retrieval_latency_seconds": 1.7198307500002556,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.125,
+      "total_child_workload_seconds": 1.720597124993219,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "H",
+      "claim_count": 4,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.078125,
+      "peak_sampled_rss_mb": 68.6875,
+      "delta_rss_mb": 20.609375,
+      "ru_maxrss_mb": 68.6875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 37,
+      "peak_active_fetches": 32,
+      "retrieval_latency_seconds": 1.7364420000012615,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.0625,
+      "total_child_workload_seconds": 1.7371972079999978,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "H",
+      "claim_count": 4,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.359375,
+      "peak_sampled_rss_mb": 70.390625,
+      "delta_rss_mb": 22.03125,
+      "ru_maxrss_mb": 70.390625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 37,
+      "peak_active_fetches": 32,
+      "retrieval_latency_seconds": 1.7372030830010772,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.34375,
+      "total_child_workload_seconds": 1.7379914999983157,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "G",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.140625,
+      "peak_sampled_rss_mb": 55.515625,
+      "delta_rss_mb": 7.375,
+      "ru_maxrss_mb": 55.859375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 18,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 0.8557733750058105,
+      "late_worker_cleanup_seconds": 0.24511925000115298,
+      "returned_source_count": [
+        0,
+        5
+      ],
+      "timed_out": [
+        true,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 48.125,
+      "timeout_response_seconds": 0.3054077910055639,
+      "timeout_active_fetches": 8,
+      "timeout_python_threads": 10,
+      "new_claim_latency_seconds": 0.5503097499968135,
+      "total_child_workload_seconds": 0.8565204580008867,
+      "after_new_peak_active_fetches": 16,
+      "after_new_peak_python_threads": 18,
+      "timeout_stage": [
+        "parallel_fetch",
+        null
+      ]
+    },
+    {
+      "scenario": "G",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.28125,
+      "peak_sampled_rss_mb": 56.59375,
+      "delta_rss_mb": 8.3125,
+      "ru_maxrss_mb": 56.984375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 18,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 0.8664572500056238,
+      "late_worker_cleanup_seconds": 0.24106658399978187,
+      "returned_source_count": [
+        0,
+        5
+      ],
+      "timed_out": [
+        true,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 48.265625,
+      "timeout_response_seconds": 0.3057592500044848,
+      "timeout_active_fetches": 8,
+      "timeout_python_threads": 10,
+      "new_claim_latency_seconds": 0.5605830420026905,
+      "total_child_workload_seconds": 0.8671385000052396,
+      "after_new_peak_active_fetches": 16,
+      "after_new_peak_python_threads": 18,
+      "timeout_stage": [
+        "parallel_fetch",
+        null
+      ]
+    },
+    {
+      "scenario": "G",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.09375,
+      "peak_sampled_rss_mb": 55.703125,
+      "delta_rss_mb": 7.609375,
+      "ru_maxrss_mb": 55.703125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 18,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 0.856625874999736,
+      "late_worker_cleanup_seconds": 0.24938070800271817,
+      "returned_source_count": [
+        0,
+        5
+      ],
+      "timed_out": [
+        true,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 48.078125,
+      "timeout_response_seconds": 0.305958416996873,
+      "timeout_active_fetches": 8,
+      "timeout_python_threads": 10,
+      "new_claim_latency_seconds": 0.5505744999973103,
+      "total_child_workload_seconds": 0.8573295410024002,
+      "after_new_peak_active_fetches": 16,
+      "after_new_peak_python_threads": 18,
+      "timeout_stage": [
+        "parallel_fetch",
+        null
+      ]
+    },
+    {
+      "scenario": "S1",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.15625,
+      "peak_sampled_rss_mb": 122.265625,
+      "delta_rss_mb": 74.109375,
+      "ru_maxrss_mb": 124.15625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 14.815105500005302,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.140625,
+      "total_child_workload_seconds": 14.815773291993537,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S1",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.0625,
+      "peak_sampled_rss_mb": 117.734375,
+      "delta_rss_mb": 69.671875,
+      "ru_maxrss_mb": 128.046875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 14.793352457993024,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.046875,
+      "total_child_workload_seconds": 14.79409258299711,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S1",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.390625,
+      "peak_sampled_rss_mb": 115.890625,
+      "delta_rss_mb": 67.5,
+      "ru_maxrss_mb": 126.171875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 14.811675999997533,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.375,
+      "total_child_workload_seconds": 14.812398709000263,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S2",
+      "claim_count": 1,
+      "workers_per_claim": 2,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.046875,
+      "peak_sampled_rss_mb": 125.484375,
+      "delta_rss_mb": 77.4375,
+      "ru_maxrss_mb": 132.703125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 4,
+      "peak_active_fetches": 2,
+      "retrieval_latency_seconds": 9.12905029200192,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.03125,
+      "total_child_workload_seconds": 9.129740083997604,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S2",
+      "claim_count": 1,
+      "workers_per_claim": 2,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.09375,
+      "peak_sampled_rss_mb": 126.3125,
+      "delta_rss_mb": 78.21875,
+      "ru_maxrss_mb": 132.859375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 4,
+      "peak_active_fetches": 2,
+      "retrieval_latency_seconds": 9.132327624996833,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.078125,
+      "total_child_workload_seconds": 9.13305012499768,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S2",
+      "claim_count": 1,
+      "workers_per_claim": 2,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.25,
+      "peak_sampled_rss_mb": 126.15625,
+      "delta_rss_mb": 77.90625,
+      "ru_maxrss_mb": 132.953125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 4,
+      "peak_active_fetches": 2,
+      "retrieval_latency_seconds": 9.1306924169985,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.234375,
+      "total_child_workload_seconds": 9.131453000001784,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S4",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.28125,
+      "peak_sampled_rss_mb": 137.796875,
+      "delta_rss_mb": 89.515625,
+      "ru_maxrss_mb": 141.390625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 6.798164625004574,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.265625,
+      "total_child_workload_seconds": 6.798832624997885,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S4",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.265625,
+      "peak_sampled_rss_mb": 133.359375,
+      "delta_rss_mb": 85.09375,
+      "ru_maxrss_mb": 139.21875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 6.804610500003037,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.25,
+      "total_child_workload_seconds": 6.805298083003436,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S4",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.078125,
+      "peak_sampled_rss_mb": 129.171875,
+      "delta_rss_mb": 81.09375,
+      "ru_maxrss_mb": 137.203125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 6.849991249997402,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.0625,
+      "total_child_workload_seconds": 6.850744583003689,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S8",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.203125,
+      "peak_sampled_rss_mb": 150.921875,
+      "delta_rss_mb": 102.71875,
+      "ru_maxrss_mb": 153.859375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 6.559461707998707,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.1875,
+      "total_child_workload_seconds": 6.560145791998366,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S8",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.078125,
+      "peak_sampled_rss_mb": 149.90625,
+      "delta_rss_mb": 101.828125,
+      "ru_maxrss_mb": 152.0625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 6.505826916996739,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.0625,
+      "total_child_workload_seconds": 6.506514749999042,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S8",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.203125,
+      "peak_sampled_rss_mb": 149.828125,
+      "delta_rss_mb": 101.625,
+      "ru_maxrss_mb": 152.765625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 6.718818708999606,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.1875,
+      "total_child_workload_seconds": 6.719539249999798,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "S8x2",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.265625,
+      "peak_sampled_rss_mb": 237.390625,
+      "delta_rss_mb": 189.125,
+      "ru_maxrss_mb": 238.375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 19,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 11.440940749998845,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.25,
+      "total_child_workload_seconds": 11.441701666000881,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S8x2",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.0,
+      "peak_sampled_rss_mb": 224.3125,
+      "delta_rss_mb": 176.3125,
+      "ru_maxrss_mb": 225.578125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 19,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 11.426569000002928,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 47.984375,
+      "total_child_workload_seconds": 11.427282749995356,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S8x2",
+      "claim_count": 2,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.234375,
+      "peak_sampled_rss_mb": 239.390625,
+      "delta_rss_mb": 191.15625,
+      "ru_maxrss_mb": 240.96875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 19,
+      "peak_active_fetches": 16,
+      "retrieval_latency_seconds": 11.539822207996622,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.21875,
+      "total_child_workload_seconds": 11.540494583998225,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S8x3",
+      "claim_count": 3,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.234375,
+      "peak_sampled_rss_mb": 293.65625,
+      "delta_rss_mb": 245.421875,
+      "ru_maxrss_mb": 297.265625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 28,
+      "peak_active_fetches": 24,
+      "retrieval_latency_seconds": 16.638675667003554,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.21875,
+      "total_child_workload_seconds": 16.639594332998968,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S8x3",
+      "claim_count": 3,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.234375,
+      "peak_sampled_rss_mb": 305.65625,
+      "delta_rss_mb": 257.421875,
+      "ru_maxrss_mb": 305.65625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 28,
+      "peak_active_fetches": 24,
+      "retrieval_latency_seconds": 16.578973374998895,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.21875,
+      "total_child_workload_seconds": 16.579672040999867,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S8x3",
+      "claim_count": 3,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.25,
+      "peak_sampled_rss_mb": 312.703125,
+      "delta_rss_mb": 264.453125,
+      "ru_maxrss_mb": 313.515625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 28,
+      "peak_active_fetches": 24,
+      "retrieval_latency_seconds": 16.750824000002467,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        false,
+        false,
+        false
+      ],
+      "partial_result": [
+        false,
+        false,
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.234375,
+      "total_child_workload_seconds": 16.751551250003104,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null,
+        null,
+        null
+      ]
+    },
+    {
+      "scenario": "S8x4",
+      "claim_count": 4,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.0625,
+      "peak_sampled_rss_mb": 398.109375,
+      "delta_rss_mb": 350.046875,
+      "ru_maxrss_mb": 398.84375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 37,
+      "peak_active_fetches": 32,
+      "retrieval_latency_seconds": 20.65011329099798,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "partial_result": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 48.046875,
+      "total_child_workload_seconds": 20.650895917002345,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        "chunking",
+        "ranking",
+        "chunking",
+        "ranking"
+      ]
+    },
+    {
+      "scenario": "S8x4",
+      "claim_count": 4,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": null,
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.328125,
+      "peak_sampled_rss_mb": 395.765625,
+      "delta_rss_mb": 347.4375,
+      "ru_maxrss_mb": 398.453125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 37,
+      "peak_active_fetches": 32,
+      "retrieval_latency_seconds": 21.221906541999488,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5,
+        5,
+        5,
+        5
+      ],
+      "timed_out": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "partial_result": [
+        true,
+        true,
+        true,
+        true
+      ],
+      "result_status": "timed_out",
+      "import_ru_maxrss_mb": 48.3125,
+      "total_child_workload_seconds": 21.222672874995624,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        "ranking",
+        "ranking",
+        "ranking",
+        "ranking"
+      ]
+    },
+    {
+      "scenario": "S8x4",
+      "claim_count": 4,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 1939865,
+      "tracemalloc": false,
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.125,
+      "peak_sampled_rss_mb": 407.71875,
+      "delta_rss_mb": 359.59375,
+      "ru_maxrss_mb": null,
+      "baseline_python_threads": 1,
+      "peak_python_threads": null,
+      "peak_active_fetches": null,
+      "retrieval_latency_seconds": null,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [],
+      "timed_out": [],
+      "partial_result": [],
+      "result_status": "aborted_by_memory_guard",
+      "import_ru_maxrss_mb": 48.109375,
+      "guard_observed_rss_mb": 407.71875
+    },
+    {
+      "scenario": "A",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 1.055903434753418,
+        "python_peak_mb": 3.4132299423217773
+      },
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.25,
+      "peak_sampled_rss_mb": 54.46875,
+      "delta_rss_mb": 6.21875,
+      "ru_maxrss_mb": 54.46875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 2.095373624993954,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.234375,
+      "total_child_workload_seconds": 2.096879667005851,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "A",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 1.055903434753418,
+        "python_peak_mb": 3.4132823944091797
+      },
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.03125,
+      "peak_sampled_rss_mb": 54.265625,
+      "delta_rss_mb": 6.234375,
+      "ru_maxrss_mb": 54.265625,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 2.097419917001389,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.015625,
+      "total_child_workload_seconds": 2.098997250002867,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "A",
+      "claim_count": 1,
+      "workers_per_claim": 1,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 1.0559558868408203,
+        "python_peak_mb": 3.4132299423217773
+      },
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.046875,
+      "peak_sampled_rss_mb": 54.359375,
+      "delta_rss_mb": 6.3125,
+      "ru_maxrss_mb": 54.359375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 3,
+      "peak_active_fetches": 1,
+      "retrieval_latency_seconds": 2.0997737500001676,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.03125,
+      "total_child_workload_seconds": 2.101218458999938,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "C",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 1.3073787689208984,
+        "python_peak_mb": 4.482063293457031
+      },
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.109375,
+      "peak_sampled_rss_mb": 55.921875,
+      "delta_rss_mb": 7.8125,
+      "ru_maxrss_mb": 55.921875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 2.011245208006585,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.09375,
+      "total_child_workload_seconds": 2.0128277919939137,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "C",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 1.5537405014038086,
+        "python_peak_mb": 4.535506248474121
+      },
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.109375,
+      "peak_sampled_rss_mb": 55.796875,
+      "delta_rss_mb": 7.6875,
+      "ru_maxrss_mb": 55.796875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 2.0144477499998175,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.09375,
+      "total_child_workload_seconds": 2.016195707998122,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "C",
+      "claim_count": 1,
+      "workers_per_claim": 4,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 1.8008031845092773,
+        "python_peak_mb": 4.783044815063477
+      },
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.234375,
+      "peak_sampled_rss_mb": 56.3125,
+      "delta_rss_mb": 8.078125,
+      "ru_maxrss_mb": 56.3125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 6,
+      "peak_active_fetches": 4,
+      "retrieval_latency_seconds": 2.0043557090029935,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.21875,
+      "total_child_workload_seconds": 2.006061292006052,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "D",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 2.0513219833374023,
+        "python_peak_mb": 5.051939964294434
+      },
+      "repeat": 1,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.109375,
+      "peak_sampled_rss_mb": 56.96875,
+      "delta_rss_mb": 8.859375,
+      "ru_maxrss_mb": 56.984375,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 1.9807598749976023,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.09375,
+      "total_child_workload_seconds": 1.9825008339976193,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "D",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 1.8050317764282227,
+        "python_peak_mb": 4.951125144958496
+      },
+      "repeat": 2,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.078125,
+      "peak_sampled_rss_mb": 56.671875,
+      "delta_rss_mb": 8.59375,
+      "ru_maxrss_mb": 56.671875,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 2.0046793749934295,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.0625,
+      "total_child_workload_seconds": 2.0063629590003984,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    },
+    {
+      "scenario": "D",
+      "claim_count": 1,
+      "workers_per_claim": 8,
+      "payload_bytes_per_page": 131072,
+      "tracemalloc": {
+        "python_current_mb": 2.051036834716797,
+        "python_peak_mb": 5.313230514526367
+      },
+      "repeat": 3,
+      "fetch_url_count_per_claim": 8,
+      "baseline_rss_mb": 48.203125,
+      "peak_sampled_rss_mb": 57.328125,
+      "delta_rss_mb": 9.125,
+      "ru_maxrss_mb": 57.328125,
+      "baseline_python_threads": 1,
+      "peak_python_threads": 10,
+      "peak_active_fetches": 8,
+      "retrieval_latency_seconds": 2.012411957999575,
+      "late_worker_cleanup_seconds": null,
+      "returned_source_count": [
+        5
+      ],
+      "timed_out": [
+        false
+      ],
+      "partial_result": [
+        false
+      ],
+      "result_status": "completed",
+      "import_ru_maxrss_mb": 48.1875,
+      "total_child_workload_seconds": 2.0141282499971567,
+      "after_new_peak_active_fetches": 0,
+      "after_new_peak_python_threads": 0,
+      "timeout_stage": [
+        null
+      ]
+    }
+  ],
+  "notes": [
+    "Local macOS/Linux process RSS is not Render container memory.",
+    "Main run latencies exclude imports and tracemalloc.",
+    "Active fetch spans transport entry through response close (including extraction).",
+    "Python thread peaks observed at fetch entry/exit; may miss unrelated brief threads.",
+    "HTML repeats prose paragraphs; DOM shape is fixed, not worst-case arbitrary HTML.",
+    "tracemalloc results must not be pooled with primary performance measurements."
+  ],
+  "scenario_summary": {
+    "A": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 1.3602385420017526,
+      "median_delta_rss_mb": 3.640625,
+      "maximum_observed_rss_mb": 52.078125,
+      "maximum_lifetime_rss_mb": 52.078125,
+      "maximum_active_fetches": 1,
+      "maximum_python_threads": 3
+    },
+    "B": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 0.8085916659983923,
+      "median_delta_rss_mb": 4.578125,
+      "maximum_observed_rss_mb": 52.796875,
+      "maximum_lifetime_rss_mb": 52.796875,
+      "maximum_active_fetches": 2,
+      "maximum_python_threads": 4
+    },
+    "C": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 0.5879935419943649,
+      "median_delta_rss_mb": 5.671875,
+      "maximum_observed_rss_mb": 54.21875,
+      "maximum_lifetime_rss_mb": 54.21875,
+      "maximum_active_fetches": 4,
+      "maximum_python_threads": 6
+    },
+    "D": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 0.5497530840002582,
+      "median_delta_rss_mb": 5.875,
+      "maximum_observed_rss_mb": 54.953125,
+      "maximum_lifetime_rss_mb": 54.953125,
+      "maximum_active_fetches": 8,
+      "maximum_python_threads": 10
+    },
+    "E": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 0.9398901669992483,
+      "median_delta_rss_mb": 12.015625,
+      "maximum_observed_rss_mb": 61.015625,
+      "maximum_lifetime_rss_mb": 61.015625,
+      "maximum_active_fetches": 16,
+      "maximum_python_threads": 19
+    },
+    "F": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 1.3278407089965185,
+      "median_delta_rss_mb": 16.46875,
+      "maximum_observed_rss_mb": 65.3125,
+      "maximum_lifetime_rss_mb": 65.3125,
+      "maximum_active_fetches": 24,
+      "maximum_python_threads": 28
+    },
+    "H": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 1.7364420000012615,
+      "median_delta_rss_mb": 20.609375,
+      "maximum_observed_rss_mb": 70.390625,
+      "maximum_lifetime_rss_mb": 70.390625,
+      "maximum_active_fetches": 32,
+      "maximum_python_threads": 37
+    },
+    "G": {
+      "runs": 3,
+      "statuses": [
+        "timed_out",
+        "timed_out",
+        "timed_out"
+      ],
+      "median_latency_seconds": 0.856625874999736,
+      "median_delta_rss_mb": 7.609375,
+      "maximum_observed_rss_mb": 56.59375,
+      "maximum_lifetime_rss_mb": 56.984375,
+      "maximum_active_fetches": 16,
+      "maximum_python_threads": 18
+    },
+    "S1": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 14.811675999997533,
+      "median_delta_rss_mb": 69.671875,
+      "maximum_observed_rss_mb": 122.265625,
+      "maximum_lifetime_rss_mb": 128.046875,
+      "maximum_active_fetches": 1,
+      "maximum_python_threads": 3
+    },
+    "S2": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 9.1306924169985,
+      "median_delta_rss_mb": 77.90625,
+      "maximum_observed_rss_mb": 126.3125,
+      "maximum_lifetime_rss_mb": 132.953125,
+      "maximum_active_fetches": 2,
+      "maximum_python_threads": 4
+    },
+    "S4": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 6.804610500003037,
+      "median_delta_rss_mb": 85.09375,
+      "maximum_observed_rss_mb": 137.796875,
+      "maximum_lifetime_rss_mb": 141.390625,
+      "maximum_active_fetches": 4,
+      "maximum_python_threads": 6
+    },
+    "S8": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 6.559461707998707,
+      "median_delta_rss_mb": 101.828125,
+      "maximum_observed_rss_mb": 150.921875,
+      "maximum_lifetime_rss_mb": 153.859375,
+      "maximum_active_fetches": 8,
+      "maximum_python_threads": 10
+    },
+    "S8x2": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 11.440940749998845,
+      "median_delta_rss_mb": 189.125,
+      "maximum_observed_rss_mb": 239.390625,
+      "maximum_lifetime_rss_mb": 240.96875,
+      "maximum_active_fetches": 16,
+      "maximum_python_threads": 19
+    },
+    "S8x3": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 16.638675667003554,
+      "median_delta_rss_mb": 257.421875,
+      "maximum_observed_rss_mb": 312.703125,
+      "maximum_lifetime_rss_mb": 313.515625,
+      "maximum_active_fetches": 24,
+      "maximum_python_threads": 28
+    },
+    "S8x4": {
+      "runs": 3,
+      "statuses": [
+        "timed_out",
+        "timed_out",
+        "aborted_by_memory_guard"
+      ],
+      "median_latency_seconds": 20.936009916498733,
+      "median_delta_rss_mb": 348.7421875,
+      "maximum_observed_rss_mb": 407.71875,
+      "maximum_lifetime_rss_mb": 398.84375,
+      "maximum_active_fetches": 32,
+      "maximum_python_threads": 37
+    },
+    "A_trace": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 2.097419917001389,
+      "median_delta_rss_mb": 6.234375,
+      "maximum_observed_rss_mb": 54.46875,
+      "maximum_lifetime_rss_mb": 54.46875,
+      "maximum_active_fetches": 1,
+      "maximum_python_threads": 3
+    },
+    "C_trace": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 2.011245208006585,
+      "median_delta_rss_mb": 7.8125,
+      "maximum_observed_rss_mb": 56.3125,
+      "maximum_lifetime_rss_mb": 56.3125,
+      "maximum_active_fetches": 4,
+      "maximum_python_threads": 6
+    },
+    "D_trace": {
+      "runs": 3,
+      "statuses": [
+        "completed",
+        "completed",
+        "completed"
+      ],
+      "median_latency_seconds": 2.0046793749934295,
+      "median_delta_rss_mb": 8.859375,
+      "maximum_observed_rss_mb": 57.328125,
+      "maximum_lifetime_rss_mb": 57.328125,
+      "maximum_active_fetches": 8,
+      "maximum_python_threads": 10
+    }
+  },
+  "source_hashes_after": {
+    "backend_v2/app/retrieval.py": "a72ed0341b19651ad44d0152f4d2816578dfe54628c555597b7b3fea2b3f29f1",
+    "retrieval_demo_lite/search_retrieval_lite.py": "754e587c5e1f3ce88151d73b92dda5b5d6f8b59961ce4c6fd84a2d7c462b2b34",
+    "backend_v2/tests/test_lite_adapter.py": "74cda85ee88b7d48f28d97b6774ac62a6703d2ddd6f87347fb028b52755511dd",
+    "retrieval_demo_lite/tests/test_source_fetch_security.py": "3807dd888872cc324f77e40b43cdab9b8094b58bfff36e164538376cdef0db3b"
+  }
+}
