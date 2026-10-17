@@ -40,6 +40,7 @@ class Settings:
     tavily_depth: str          # "basic" | "advanced"
     max_sources: int
     cache_ttl: int             # seconds
+    upstream_concurrency: int  # paid per-claim calls (search + verdict) at once, over ALL requests
     frontend_origin: str
     pipeline: PipelineConfig
 
@@ -55,6 +56,7 @@ class Settings:
             tavily_depth=os.getenv("TAVILY_DEPTH", "basic").strip().lower() or "basic",
             max_sources=_int("MAX_SOURCES", 5),
             cache_ttl=_int("CACHE_TTL_SECONDS", 6 * 3600),
+            upstream_concurrency=_int("MAX_UPSTREAM_CONCURRENCY", 8),
             frontend_origin=os.getenv("FRONTEND_ORIGIN", "").strip(),
             pipeline=PipelineConfig(
                 max_claims=_int("MAX_VERIFIABLE_CLAIMS", 8),

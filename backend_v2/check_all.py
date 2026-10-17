@@ -3,17 +3,19 @@
 check_all.py - ONE command that tests everything in backend_v2.
 
     python check_all.py                      offline tests + start the server + live checks
-    python check_all.py --skip-live          offline tests only (no keys, no internet needed)
+    python check_all.py --skip-live          offline tests only (no keys, no internet needed; what CI runs)
     python check_all.py --url http://localhost:8000     test a server that is ALREADY running
     python check_all.py --url https://your-app.onrender.com   ...or a deployed one
     python check_all.py --stress             also send a 10-claim text (uses more API credits)
 
 What it does
   [0] environment : packages installed? API keys present and plausible?
-  [1] offline     : tests/test_pipeline.py + tests/test_lite_adapter.py (fakes, no network)
+  [1] offline     : the whole tests/ folder with pytest (fakes, no network); without pytest,
+                    tests/test_pipeline.py + tests/test_lite_adapter.py as plain scripts
   [2] server      : starts uvicorn for you (unless --url is given)
   [3] live        : /health, /health/deep, /verify (verdicts, sources, timings), cache,
-                    error handling, CORS, /verify/stream
+                    error handling, CORS, X-Request-ID, /verify/stream, and the frontend
+                    JSON contract (tests/contract.py) on every live response
   [4] summary     : PASS / WARN / FAIL table + a report file (check_all_report.txt)
 
 PASS = works.  WARN = works but worth a look (e.g. the AI judged a claim differently).
@@ -40,6 +42,9 @@ except Exception:
     pass
 
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE / "tests"))
+import contract  # noqa: E402  (tests/contract.py: the frontend JSON contract, no dependencies)
+
 LINES: list = []
 RESULTS: list = []  # (status, name, detail)
 VALID_VERDICTS = {"SUPPORTED", "REFUTED", "NOT ENOUGH EVIDENCE", "CONFLICTING"}
@@ -107,7 +112,7 @@ def step_environment(check_keys: bool = True) -> bool:
         record("PASS", "ai-engine folder found")
 
     if not check_keys:
-        record("SKIP", "API keys", "not needed locally when testing a running/deployed server (--url)")
+        record("SKIP", "API keys", "not needed for --skip-live or --url")
         return ok
     env_file = read_env_file()
     for key, prefix in (("GROQ_API_KEY", "gsk_"), ("TAVILY_API_KEY", "tvly-")):
@@ -128,6 +133,31 @@ def step_environment(check_keys: bool = True) -> bool:
 
 def step_unit_tests() -> None:
     out("\n[1] Offline tests (fake search + fake AI, no network)")
+    if importlib.util.find_spec("pytest") is not None:
+        t = time.perf_counter()
+        try:
+            p = subprocess.run(
+                [sys.executable, "-m", "pytest", "-q", "-p", "no:cacheprovider"], cwd=HERE, capture_output=True,
+                text=True, encoding="utf-8", errors="replace", timeout=600, env={**os.environ, "PYTHONUTF8": "1"},
+            )
+        except subprocess.TimeoutExpired:
+            record("FAIL", "pytest tests/", "timed out after 600 s")
+            return
+        lines = p.stdout.strip().splitlines()
+        last = lines[-1].strip("= ") if lines else ""
+        took = f"{time.perf_counter() - t:.1f}s"
+        if p.returncode == 0:
+            record("PASS", "pytest tests/", f"{last} ({took})")
+            gaps = [l.split(" - ", 1)[-1] for l in lines if l.startswith("XFAIL")]
+            for g in gaps:
+                record("WARN", "known gap (xfail)", g)
+        else:
+            fails = [l for l in lines if l.startswith(("FAILED", "ERROR"))]
+            record("FAIL", "pytest tests/", "; ".join(fails[:3]) or last or (p.stderr.strip().splitlines() or [""])[-1])
+            for l in lines[-40:]:
+                out("     " + l)
+        return
+    out("  (pytest not installed: running the two script tests only. pip install -r requirements-dev.txt)")
     for rel in ("tests/test_pipeline.py", "tests/test_lite_adapter.py"):
         t = time.perf_counter()
         try:
@@ -272,6 +302,17 @@ def live_checks(base: str, stress: bool) -> None:
         st, r, el = 0, None, 0.0
     if st == 200 and isinstance(r, dict) and r.get("status") == "ok":
         first_ok = True
+        problems = contract.validate_verify_response(r, strict_dates=False)
+        record("PASS" if not problems else "FAIL", "/verify matches the frontend JSON contract",
+               "; ".join(problems[:3]))
+        bad_dates = [s.get("published_date") for c in r.get("results", []) for s in c.get("sources") or []
+                     if s.get("published_date") is not None
+                     and not contract.ISO_DATE.match(str(s.get("published_date")))]
+        record("PASS" if not bad_dates else "WARN", "published_date is YYYY-MM-DD or null",
+               f"{len(bad_dates)} other formats, e.g. {bad_dates[:2]}" if bad_dates else "")
+        bad_cites = [x for c in r.get("results", []) for x in contract.invalid_citations(c)]
+        record("PASS" if not bad_cites else "WARN", "explanations cite only listed sources",
+               f"unknown: {bad_cites[:3]}" if bad_cites else "")
         results = r.get("results", [])
         t = r.get("timings", {})
         record("PASS", "POST /verify answers", f"{el:.1f}s total ({len(results)} claims, "
@@ -356,6 +397,21 @@ def live_checks(base: str, stress: bool) -> None:
     st, _, r, _ = http("POST", "/verify", base, {"text": "   "})
     record("PASS" if st == 400 and isinstance(r, dict) and r.get("error") == "EMPTY_TEXT" else "FAIL",
            "blank text -> 400 EMPTY_TEXT", f"got HTTP {st}")
+    problems = contract.validate_error_body(r)
+    record("PASS" if not problems else "FAIL", "error body matches the frontend contract", "; ".join(problems))
+    st, _, r, _ = http("POST", "/verify/stream", base, {"text": "   "})
+    record("PASS" if st == 400 and isinstance(r, dict) and r.get("error") == "EMPTY_TEXT" else "FAIL",
+           "blank text on /verify/stream -> 400 EMPTY_TEXT (no LLM call)", f"got HTTP {st}")
+
+    # ---- request id --------------------------------------------------------
+    rid = "check-all-" + str(int(time.time()))
+    st, hd, _, _ = http("GET", "/health", base, headers={"X-Request-ID": rid})
+    if hd.get("x-request-id") == rid:
+        record("PASS", "X-Request-ID is echoed")
+    elif hd.get("x-request-id"):
+        record("FAIL", "X-Request-ID is echoed", f"sent {rid}, got {hd.get('x-request-id')}")
+    else:
+        record("FAIL", "X-Request-ID is echoed", "no X-Request-ID header (older backend?)")
 
     # ---- CORS --------------------------------------------------------------
     origin = "https://verify-test-swart.vercel.app"
@@ -410,18 +466,27 @@ def check_stream(base: str) -> None:
         record("FAIL", "POST /verify/stream", f"{type(exc).__name__}: {exc}")
         return
     kinds = [e[0] for e in events]
+    at = {k: next((e[1] for e in events if e[0] == k), None) for k in ("claims", "done")}
     if not events:
         record("FAIL", "POST /verify/stream", "no events received")
-    elif kinds[0] != "claims":
-        record("FAIL", "stream starts with the claim list", f"first event was {kinds[0]}")
     elif kinds[-1] == "error":
         record("FAIL", "stream finished", str(events[-1][2].get("detail") or events[-1][2].get("message")))
     elif "done" not in kinds or "result" not in kinds:
         record("FAIL", "stream delivers results and 'done'", f"events: {kinds}")
     else:
         results_at = [f"{e[1]:.1f}s" for e in events if e[0] == "result"]
-        record("PASS", "POST /verify/stream", f"claims at {events[0][1]:.1f}s, results at "
-               f"{', '.join(results_at)}, done at {events[-1][1]:.1f}s")
+        record("PASS", "POST /verify/stream", f"claims at {at['claims']:.1f}s, results at "
+               f"{', '.join(results_at)}, done at {at['done']:.1f}s")
+    if events:
+        problems = contract.validate_stream([(e[0], e[2]) for e in events], strict_dates=False)
+        record("PASS" if not problems else "FAIL", "stream matches the SSE contract", "; ".join(problems[:3]))
+        if "started" not in kinds:
+            record("WARN", "stream has started/stage events", "older backend: no request_id / stage events")
+        stages = [e for e in events if e[0] == "stage"]
+        if stages:
+            out("     stages: " + ", ".join(f"{e[2].get('stage')} {e[2].get('status')} at {e[1]:.1f}s"
+                                         + (f" ({e[2]['ms']} ms)" if e[2].get("ms") is not None else "")
+                                         for e in stages))
 
 
 # --------------------------------------------------------------------------
@@ -461,7 +526,8 @@ def main() -> int:
     args = ap.parse_args()
 
     out("backend_v2 - full check   " + time.strftime("%Y-%m-%d %H:%M:%S"))
-    env_ok = step_environment(check_keys=not args.url)
+    # keys are only needed when this script starts the server and talks to Groq/Tavily
+    env_ok = step_environment(check_keys=not args.url and not args.skip_live)
     if not args.skip_unit:
         step_unit_tests()
 

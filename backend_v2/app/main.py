@@ -11,13 +11,15 @@ Endpoints
                       per-claim `status`, `timings`, and `partial`.
                       Always answers within TOTAL_TIMEOUT seconds.
   POST /verify/stream Server-Sent Events: claims arrive first, then each
-                      verdict as soon as it is ready, then `done`.
+                      verdict as soon as it is ready, then `done`
+                      (event list: app/streaming.py).
+
+Every response has an X-Request-ID header (app/observability.py).
 """
 
 from __future__ import annotations
 
 import asyncio
-import json
 import logging
 import os
 import time
@@ -27,22 +29,29 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 load_dotenv()
 
 from .config import Settings  # noqa: E402
-from .pipeline import PipelineError, TTLCache, run_pipeline  # noqa: E402
-
-logging.basicConfig(
-    level=os.getenv("LOG_LEVEL", "INFO"),
-    format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+from .observability import (  # noqa: E402
+    RequestContextMiddleware,
+    current_request_id,
+    log_pipeline_result,
+    setup_logging,
 )
+from .limits import UpstreamGate  # noqa: E402
+from .pipeline import PipelineError, TTLCache, run_pipeline  # noqa: E402
+from .streaming import SSEResponse, VerificationStream  # noqa: E402
+
+setup_logging(os.getenv("LOG_LEVEL", "INFO"))
 log = logging.getLogger("verify.api")
 
 settings = Settings.from_env()
 state: dict = {"llm": None, "retriever": None, "cache": None, "init_error": None}
+# shared by all requests: global cap on paid calls + one call for identical in-flight claims
+upstream = UpstreamGate(settings.upstream_concurrency)
 
 
 @asynccontextmanager
@@ -86,7 +95,11 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    # Lets the frontend's JavaScript read the id (e.g. to show it with an error message).
+    expose_headers=["X-Request-ID"],
 )
+# Added last = outermost: every response, including CORS preflight, gets X-Request-ID.
+app.add_middleware(RequestContextMiddleware)
 
 
 class VerifyRequest(BaseModel):
@@ -125,15 +138,17 @@ def _error_response(e: PipelineError):
 
 
 async def _run(text: str, emit=None):
-    return await run_pipeline(
+    res = await run_pipeline(
         text,
         extract=state["llm"].extract,
-        retrieve=state["retriever"],
-        verify=state["llm"].verify,
+        retrieve=upstream.retrieve(state["retriever"]),
+        verify=upstream.verify(state["llm"].verify),
         cfg=settings.pipeline,
         cache=state["cache"],
         emit=emit,
     )
+    log_pipeline_result(res)
+    return res
 
 
 @app.get("/")
@@ -157,6 +172,7 @@ def health():
             "tavily_key_set": bool(settings.tavily_api_key),
             "max_claims": settings.pipeline.max_claims,
             "claim_concurrency": settings.pipeline.claim_concurrency,
+            "upstream_concurrency": upstream.max_concurrency,
             "total_timeout_s": settings.pipeline.total_timeout,
             "cache_entries": len(state["cache"]) if state["cache"] is not None else 0,
         },
@@ -227,44 +243,19 @@ async def verify_stream(request: VerifyRequest):
         return _not_ready()
 
     text = request.text.strip()
-    queue: asyncio.Queue = asyncio.Queue()
+    if not text:  # same answer as /verify; do not spend an LLM call on whitespace
+        return JSONResponse(
+            status_code=400,
+            content={
+                "status": "error",
+                "error": "EMPTY_TEXT",
+                "message": "Doğrulanacak metin boş olamaz.",
+            },
+        )
 
-    async def emit(event: dict):
-        await queue.put(event)
-
-    async def runner():
-        try:
-            res = await _run(text, emit=emit)
-            await queue.put({"type": "done", "partial": res["partial"], "timings": res["timings"]})
-        except PipelineError as e:
-            await queue.put({"type": "error", "error": e.code, "message": e.message, "detail": e.detail})
-        except Exception as exc:
-            log.exception("unexpected failure in /verify/stream")
-            await queue.put(
-                {"type": "error", "error": "VERIFY_FAILED", "message": "Doğrulama işlemi sırasında bir hata oluştu.",
-                 "detail": f"{type(exc).__name__}: {exc}"[:300]}
-            )
-        finally:
-            await queue.put(None)
-
-    task = asyncio.create_task(runner())
-
-    async def gen():
-        try:
-            while True:
-                try:
-                    event = await asyncio.wait_for(queue.get(), timeout=15)
-                except asyncio.TimeoutError:
-                    yield ": keep-alive\n\n"  # stops proxies from closing an idle connection
-                    continue
-                if event is None:
-                    break
-                yield f"event: {event['type']}\ndata: {json.dumps(event, ensure_ascii=False)}\n\n"
-        finally:
-            task.cancel()
-
-    return StreamingResponse(
-        gen(),
-        media_type="text/event-stream",
-        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    stream = VerificationStream(
+        lambda emit: _run(text, emit=emit),
+        request_id=current_request_id(),
+        expose_detail=settings.pipeline.expose_detail,
     )
+    return SSEResponse(stream)

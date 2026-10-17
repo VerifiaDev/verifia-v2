@@ -266,7 +266,16 @@ async def run_pipeline(
     tasks = {asyncio.create_task(run_one(i, c)): (i, c) for i, c in to_run}
     if tasks:
         remaining = max(0.1, cfg.total_timeout - (time.perf_counter() - t_start))
-        done, pending = await asyncio.wait(tasks.keys(), timeout=remaining)
+        try:
+            done, pending = await asyncio.wait(tasks.keys(), timeout=remaining)
+        except asyncio.CancelledError:
+            # The caller gave up (e.g. the SSE client disconnected). asyncio.wait does not
+            # cancel its tasks, so without this the claims (and claims still waiting on the
+            # semaphore) would keep running and spending Groq/Tavily quota.
+            for task in tasks:
+                task.cancel()
+            await asyncio.gather(*tasks, return_exceptions=True)
+            raise
 
         for task in pending:
             task.cancel()
