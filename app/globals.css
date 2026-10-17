@@ -134,6 +134,50 @@
   }
 }
 
+/* ---------- Gece modu ----------
+   Sistem tercihi izlenir; üstteki düğme tercihi `data-theme` ile ezer (app/layout.tsx, components/ThemeToggle.tsx).
+   Tüm renk çiftleri en az 4,5:1 (metin) ve 3:1 (form kenarı) kontrastına göre seçildi. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #11151a;
+  --surface: #181e25;
+  --ink: #e8ecf0;
+  --ink-2: #a7b1bc;
+  --rule: #2b333c;
+  --rule-strong: #6c7885;
+  --accent: #8dbbe0;
+  --accent-hover: #b3d3ec;
+  --accent-tint: #1e2c39;
+  --on-accent: #0c1620;
+  --placeholder: #8a95a1;
+  --ok: #5fc28f;
+  --bad: #f08a8a;
+  --unknown: #a3adb8;
+  --mixed: #e0b45e;
+  --mixed-tint: #2a2417;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --paper: #11151a;
+    --surface: #181e25;
+    --ink: #e8ecf0;
+    --ink-2: #a7b1bc;
+    --rule: #2b333c;
+    --rule-strong: #6c7885;
+    --accent: #8dbbe0;
+    --accent-hover: #b3d3ec;
+    --accent-tint: #1e2c39;
+    --on-accent: #0c1620;
+    --placeholder: #8a95a1;
+    --ok: #5fc28f;
+    --bad: #f08a8a;
+    --unknown: #a3adb8;
+    --mixed: #e0b45e;
+    --mixed-tint: #2a2417;
+  }
+}
+
 *,
 *::before,
 *::after {
@@ -275,6 +319,10 @@ a {
 
 header {
   border-bottom: var(--border) solid var(--rule);
+}
+
+header {
+  border-bottom: 1px solid var(--rule);
 }
 
 /* ---------- Ortak container ve düzen ---------- */
@@ -1013,6 +1061,22 @@ a.btn {
 .sample-tag strong {
   color: var(--ink);
 }
+/* Örnek sonuç: her iddia kesik çizgili çerçeve içinde ve etiketli; ekran görüntüsünde de ayırt edilir. */
+.claim-item--sample {
+  padding: var(--space-4);
+  border: 1.5px dashed var(--rule-strong);
+  border-radius: 4px;
+}
+.sample-tag {
+  margin-bottom: var(--space-3);
+  padding-bottom: var(--space-2);
+  border-bottom: 1.5px dashed var(--rule-strong);
+  color: var(--ink-2);
+  font-size: var(--text-source);
+}
+.sample-tag strong {
+  color: var(--ink);
+}
 
 /* Sonuç kutusu: renkli şerit + simge + etiket. Kâğıt zemin üstünde beyaz yüzeyle ayrışır. */
 .verdict {
@@ -1510,6 +1574,10 @@ a.btn {
   padding-top: 0;
   border-top: 0;
 }
+.trust-list > li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
 .trust-list > li:last-child {
   padding-bottom: 0;
 }
@@ -1621,6 +1689,9 @@ a.btn {
   textarea.field {
     height: 4.25rem;
     min-height: 4.25rem;
+  }
+  .layout {
+    padding-top: var(--space-5);
   }
   .hero {
     margin-bottom: var(--space-3);

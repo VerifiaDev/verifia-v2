@@ -6,7 +6,7 @@ import { SITE_ORIGIN } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Kullanım koşulları | ${SITE_NAME}`,
-  description: "verify'ın ne olduğu, sınırları, ücret ve iade durumu ve kullanırken uyulması gereken kurallar.",
+  description: `${SITE_NAME}'nın ne olduğu, sınırları, ücret ve iade durumu ve kullanırken uyulması gereken kurallar.`,
   ...(SITE_ORIGIN ? { alternates: { canonical: TERMS_PATH } } : {}),
   ...(LEGAL_COMPLETE ? {} : { robots: { index: false, follow: false } }),
 };
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 export default function TermsPage() {
   return (
     <LegalPage title="Kullanım koşulları" path={TERMS_PATH}>
-      <p>verify&apos;ı kullanarak aşağıdaki koşulları kabul etmiş olursunuz.</p>
+      <p>{SITE_NAME}&apos;yı kullanarak aşağıdaki koşulları kabul etmiş olursunuz.</p>
 
       <h2>Hizmeti sunan</h2>
       <p>
@@ -24,7 +24,7 @@ export default function TermsPage() {
 
       <h2>Hizmet nedir?</h2>
       <p>
-        verify, yapıştırdığınız metindeki iddiaları ayırır, her iddia için web&apos;de kaynak arar ve bulunan kaynaklara
+        {SITE_NAME}, yapıştırdığınız metindeki iddiaları ayırır, her iddia için web&apos;de kaynak arar ve bulunan kaynaklara
         göre otomatik bir ön değerlendirme gösterir. Değerlendirmeyi bir yapay zekâ modeli yapar; bir insan editör
         sonucu kontrol etmez.
       </p>
@@ -42,7 +42,7 @@ export default function TermsPage() {
 
       <h2>Sonuçları paylaşırken</h2>
       <ul>
-        <li>Sonucun otomatik bir ön değerlendirme olduğunu belirtin; verify tarafından verilmiş kesin bir doğrulama gibi sunmayın.</li>
+        <li>Sonucun otomatik bir ön değerlendirme olduğunu belirtin; {SITE_NAME} tarafından verilmiş kesin bir doğrulama gibi sunmayın.</li>
         <li>Sonuçları bir kişiyi ya da kurumu küçük düşürmek veya okuyanları yanıltmak için kullanmayın.</li>
         <li>Paylaştığınız içerikten siz sorumlusunuz.</li>
       </ul>
@@ -66,7 +66,7 @@ export default function TermsPage() {
 
       <h2>Ücret ve iade</h2>
       <p>
-        verify ücretsizdir. Ödeme alınmaz; ürün, abonelik ya da ücretli bir özellik satılmaz. Bu nedenle iade edilecek
+        {SITE_NAME} ücretsizdir. Ödeme alınmaz; ürün, abonelik ya da ücretli bir özellik satılmaz. Bu nedenle iade edilecek
         bir ödeme ve iade politikası yoktur. İleride ücretli bir özellik eklenirse fiyatı ve iade koşulları, ödeme
         alınmadan önce bu sayfada yayımlanır.
       </p>

@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Icon } from "./Icon";
 import { VERDICT_META, formatPercent } from "@/lib/format";
 import type { Verdict } from "@/lib/types";
@@ -36,10 +37,23 @@ export function VerdictSummary({ verdict, variant = "block", confidence = null }
       </p>}
       {m.caveat && <p className="verdict-caveat">{m.caveat}</p>}
       {confidence !== null && (
-        <p className="verdict-confidence">
-          Modelin güven puanı: <strong>{formatPercent(confidence)}</strong>. Bu, sonucun doğru olma olasılığı değil,
-          modelin kendi tahminidir; asıl dayanak aşağıdaki kaynaklardır.
-        </p>
+        <div className="verdict-confidence">
+          <p>
+            Modelin güven puanı: <strong>{formatPercent(confidence)}</strong>. Bu, sonucun doğru olma olasılığı değil,
+            modelin kendi tahminidir; asıl dayanak aşağıdaki kaynaklardır.
+          </p>
+          <div
+            className="confidence-meter"
+            role="meter"
+            aria-label="Modelin güven puanı"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(Math.max(0, Math.min(1, confidence)) * 100)}
+            style={{ "--confidence": Math.max(0, Math.min(1, confidence)) } as CSSProperties}
+          >
+            <span />
+          </div>
+        </div>
       )}
     </div>
   );

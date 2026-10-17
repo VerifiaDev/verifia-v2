@@ -30,7 +30,7 @@ const fontSans = localFont({
 const TITLE = `${SITE_NAME} | Kanıt temelli iddia incelemesi`;
 const DESCRIPTION = `${SITE_TAGLINE} Bir haber metni ya da iddia ekleyin; iddiaları ve ilgili kaynakları birlikte inceleyin.`;
 
-// Paylaşım görseli: app/opengraph-image.png ve app/twitter-image.png (dosya adı kuralıyla kendiliğinden eklenir).
+// Paylaşım görselleri, marka adı değişince otomatik güncellenen app/opengraph-image.tsx ve app/twitter-image.tsx rotalarıdır.
 // Yayın adresi (metadataBase) için bkz. lib/site.ts. Canonical yalnızca ana sayfada yazılır (app/page.tsx).
 export const metadata: Metadata = {
   ...(SITE_ORIGIN ? { metadataBase: new URL(SITE_ORIGIN) } : {}),

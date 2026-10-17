@@ -8,6 +8,10 @@
  *     Kaynakta ayrıca title, site_name, domain, published_date, retrieval_score bulunur (backend/main.py, 87ec895).
      Güven puanı yoktur; arayüz uydurmaz. retrieval_score ve used_sources okunmaz.
  *
+ *  Gerçek backend (backend/main.py, POST /verify):
+ *     { results: [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id:"source_1", url, text} ] } ] }
+ *     (güven puanı, kaynak adı ve tarih yoktur; arayüz bunları göstermez/uydurmaz)
+ *
  *  A) { claims: [ {
  *        id, text | claim, verdict, explanation, is_verifiable?,
  *        sources | evidence: [ { id?, url, source? | title?, text?, published_at?, score? } ]
