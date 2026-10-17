@@ -28,13 +28,32 @@ from __future__ import annotations
 import asyncio
 import contextvars
 import logging
+import os
 import sys
-from concurrent.futures import ThreadPoolExecutor
+import time
+from threading import Event
+from concurrent.futures import ThreadPoolExecutor, wait, FIRST_COMPLETED
 from pathlib import Path
 from typing import Optional
 from urllib.parse import urlparse
 
 log = logging.getLogger("verify.retrieval")
+
+
+_lite_workers = contextvars.ContextVar("lite_invocation_workers", default=None)
+
+
+def _validated_workers(value):
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, str):
+        value = value.strip()
+        if not value or len(value) > 16 or not value.isascii() or not value.isdecimal():
+            return None
+        value = int(value)
+    if not isinstance(value, int) or value <= 0:
+        return None
+    return min(value, 8)
 
 
 def _domain(url: str) -> str:
@@ -122,19 +141,15 @@ class ArdaRetriever:
 
 
 class LiteRetriever:
-    """Adapter for retrieval_demo_lite/search_retrieval_lite.py (not modified).
+    """Run Lite page fetches in parallel with the claim's cooperative deadline.
 
-    The lite module downloads up to FETCH_SOURCE_LIMIT pages ONE AFTER ANOTHER
-    (8 s timeout each). This adapter wraps two of its internal functions so the
-    downloads for one claim run in parallel threads instead. Nothing in the
-    lite file is edited, so `git pull` keeps working. If a future version of
-    the lite module renames those functions, the wrapper is skipped (with a
-    warning) and the module still works, just slower.
+    Each worker receives a separate context copy. Deadline expiry stops waiting
+    and cancels queued work, but cannot kill running DNS/network calls.
     """
 
     name = "lite"
 
-    def __init__(self, max_sources: int = 5, parallel_fetch: bool = True, workers: int = 8):
+    def __init__(self, max_sources: int = 5, parallel_fetch: bool = True, workers: Optional[int] = None):
         try:
             import search_retrieval_lite as mod
         except ImportError:
@@ -142,14 +157,17 @@ class LiteRetriever:
             sys.path.insert(0, str(repo / "retrieval_demo_lite"))
             import search_retrieval_lite as mod  # noqa: F811
         self._mod = mod
+        self.workers = (_validated_workers(workers)
+                        or _validated_workers(os.getenv("LITE_FETCH_WORKERS")) or 4)
         self.max_sources = max_sources
         self.parallel_fetch = False
         if parallel_fetch:
-            self.parallel_fetch = self._install_parallel_fetch(workers)
+            self.parallel_fetch = self._install_parallel_fetch()
 
-    def _install_parallel_fetch(self, workers: int) -> bool:
+    def _install_parallel_fetch(self) -> bool:
         mod = self._mod
-        needed = ("_fetch_page", "_build_candidates", "_is_pdf", "FETCH_SOURCE_LIMIT")
+        needed = ("_fetch_page", "_build_candidates", "_is_pdf", "FETCH_SOURCE_LIMIT", "_remaining",
+                  "_partial_state", "_process_ready_page", "_merge_candidate_pages")
         if not all(hasattr(mod, n) for n in needed) or getattr(mod, "_verify_parallel", False):
             if not getattr(mod, "_verify_parallel", False):
                 log.warning("lite module changed shape; parallel fetch NOT installed")
@@ -157,38 +175,73 @@ class LiteRetriever:
 
         orig_fetch = mod._fetch_page
         orig_build = mod._build_candidates
-        prefetched: contextvars.ContextVar = contextvars.ContextVar("lite_prefetched", default=None)
 
-        def fetch(url):
-            pre = prefetched.get()
-            if pre is not None and url in pre:
-                return pre[url]
-            return orig_fetch(url)
+        def fetch_result(url):
+            # A worker owns only its result and immutable completion timestamp.
+            text = orig_fetch(url)
+            return text, time.monotonic()
 
         def build(claim_text, rows):
-            urls = []
-            for r in rows[: mod.FETCH_SOURCE_LIMIT]:
-                u = r.get("url") or ""
-                if u and not mod._is_pdf(u) and u not in urls:
-                    urls.append(u)
-            pages = {}
-            if urls:
-                with ThreadPoolExecutor(max_workers=min(workers, len(urls))) as pool:
-                    for u, text in zip(urls, pool.map(orig_fetch, urls)):
-                        pages[u] = text
-            token = prefetched.set(pages)
-            try:
+            workers = _lite_workers.get()
+            if workers is None:
                 return orig_build(claim_text, rows)
+            rows = rows[:mod.FETCH_SOURCE_LIMIT]
+            urls = list(dict.fromkeys(r.get("url") for r in rows
+                                     if r.get("url") and not mod._is_pdf(r["url"])))
+            pages = {}
+            pool = ThreadPoolExecutor(max_workers=min(workers, len(urls))) if urls else None
+            futures = {}
+            try:
+                for url in urls:
+                    mod._remaining("parallel_fetch")
+                    context = contextvars.copy_context()
+                    # copy_context is shallow: never share coordinator partial state.
+                    context.run(mod._partial_state.set, None)
+                    futures[pool.submit(context.run, fetch_result, url)] = url
+                for index, row in enumerate(rows):
+                    if not row.get("url") or mod._is_pdf(row["url"]):
+                        pages[index] = mod._process_ready_page(claim_text, row, index, "")
+                pending = set(futures)
+                while pending:
+                    remaining = mod._remaining("parallel_fetch")
+                    done, pending = wait(
+                        pending, timeout=min(0.05, remaining),
+                        return_when=FIRST_COMPLETED,
+                    )
+                    mod._remaining("parallel_fetch")
+                    # Consume a ready batch in original source order, not set order.
+                    ready = {futures[future]: future.result() for future in done}
+                    for index, row in enumerate(rows):
+                        if row.get("url") in ready:
+                            text, completed_at = ready[row["url"]]
+                            pages[index] = mod._process_ready_page(
+                                claim_text, row, index, text, completed_at,
+                            )
+                return mod._merge_candidate_pages(pages)
             finally:
-                prefetched.reset(token)
+                for future in futures:
+                    future.cancel()
+                if pool is not None:
+                    # Running DNS/network calls cannot be killed or joined here.
+                    pool.shutdown(wait=False, cancel_futures=True)
 
-        mod._fetch_page = fetch
         mod._build_candidates = build
         mod._verify_parallel = True
         return True
 
     async def __call__(self, claim_text: str) -> list:
-        return await asyncio.to_thread(self._mod.search, claim_text, self.max_sources)
+        token = _lite_workers.set(self.workers if self.parallel_fetch else None)
+        cancellation = Event()
+        cancel_token = self._mod._cancellation_event.set(cancellation)
+        try:
+            return await asyncio.to_thread(self._mod.search, claim_text, self.max_sources)
+        except asyncio.CancelledError:
+            # Signals cooperative stop; does not kill a blocking DNS/SDK/socket call.
+            cancellation.set()
+            raise
+        finally:
+            self._mod._cancellation_event.reset(cancel_token)
+            _lite_workers.reset(token)
 
 
 def build_retriever(settings) -> object:
