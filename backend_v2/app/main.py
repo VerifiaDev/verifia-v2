@@ -41,11 +41,15 @@ from .observability import (  # noqa: E402
     log_pipeline_result,
     setup_logging,
 )
+from .resources import TrackingExecutor
+from .security import Guard, SecurityMiddleware
+from .safe_logging import install_safe_logging
 from .limits import UpstreamGate  # noqa: E402
 from .pipeline import PipelineError, TTLCache, run_pipeline  # noqa: E402
 from .streaming import SSEResponse, VerificationStream  # noqa: E402
 
 setup_logging(os.getenv("LOG_LEVEL", "INFO"))
+install_safe_logging()
 log = logging.getLogger("verify.api")
 
 settings = Settings.from_env()
@@ -56,6 +60,7 @@ upstream = UpstreamGate(settings.upstream_concurrency)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    asyncio.get_running_loop().set_default_executor(TrackingExecutor(max_workers=8))
     # A missing key must NOT crash the server: it should start and say what is wrong.
     missing = settings.missing()
     if missing:
@@ -81,6 +86,9 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Verify Backend", version="2.0.0", lifespan=lifespan)
 
+guard = Guard()
+app.add_middleware(SecurityMiddleware, guard=guard)
+
 allowed_origins = [
     "https://verify-test-swart.vercel.app",
     "http://localhost:3000",
@@ -89,7 +97,7 @@ allowed_origins = [
 # FRONTEND_ORIGIN may list several origins separated by commas (e.g. production + preview domain).
 for origin in (settings.frontend_origin or "").split(","):
     origin = origin.strip().rstrip("/")
-    if origin and origin not in allowed_origins:
+    if origin and origin != "*" and origin not in allowed_origins:
         allowed_origins.append(origin)
 
 app.add_middleware(
@@ -98,7 +106,7 @@ app.add_middleware(
     # The frontend sends no cookies or auth headers; keep the browser surface minimal.
     allow_credentials=False,
     allow_methods=["GET", "POST"],
-    allow_headers=["Content-Type"],
+    allow_headers=["Content-Type", "X-Request-ID"],
     # Lets the frontend's JavaScript read the id (e.g. to show it with an error message).
     expose_headers=["X-Request-ID"],
 )
