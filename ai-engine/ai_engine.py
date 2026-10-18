@@ -146,7 +146,9 @@ Kurallar:
   yapan kurum/kişinin adıyla birlikte yaz (ör. "X kurumu ... açıklamıştır"),
   çünkü bu iddianın kendisi aranacak olgu haline gelir.
 - Gelecek tahminlerini, öznel yargıları ve ölçülemez/muğlak ifadeleri
-  is_verifiable=false olarak işaretle (yine de listeye ekleyebilirsin).
+  is_verifiable=false olarak işaretle ve bunları MUTLAKA listeye ekle
+  (ör. "Bence ... en güzeldir" tek başına bile olsa listede is_verifiable=false
+  olarak yer almalı). İddia metnini kullanıcının dilinde bırak.
 - Sadece verilen JSON şemasında çıktı ver, başka hiçbir açıklama ekleme.
 - Eğer hiçbir doğrulanabilir iddia yoksa, boş bir claims listesi döndür.
 """
@@ -165,8 +167,11 @@ Kurallar:
   - NOT ENOUGH EVIDENCE: Kanıt, iddiayı doğrulamak/yalanlamak için yeterli
     detay içermiyor.
   - CONFLICTING: Kanıt metinlerinin kendi içinde çelişkili ifadeleri var.
+- 'explanation' alanını HER ZAMAN Türkçe yaz (iddia ve kanıtlar başka dilde
+  olsa bile). Kısa ve net ol: en fazla 2-3 cümle.
 - 'explanation' kısmında, hangi bilgiyi hangi kanıttan aldıysan, o cümlenin
-  sonuna [kaynak_id] şeklinde köşeli parantez içinde atıf yap.
+  sonuna kanıtın ID'sini köşeli parantez içinde atıf yap (ör. [source_1]).
+  Yalnızca sana verilen ID'leri kullan, yeni ID uydurma.
 - Konuyla alakasız kanıtları (tuzak kanıtları) tamamen yoksay ve
   'used_sources' listesine ekleme.
 - 'used_sources' alanına SADECE açıklama içinde gerçekten atıf yaptığın
