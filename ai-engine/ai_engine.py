@@ -155,10 +155,12 @@ Kurallar:
 - is_verifiable=false: YALNIZCA öznel yargılar/görüşler (ör. "Bence ...",
   "en güzel"), gelecek tahminleri ve ölçülemez/muğlak ifadeler. Bunlar da
   listeden çıkarılmaz; is_verifiable=false ile MUTLAKA listede yer alır.
+  Metin yalnızca tek bir görüş cümlesinden oluşsa bile o cümle listede
+  is_verifiable=false olarak döner; bu durumda liste boş OLMAZ.
 - İddia metnini kullanıcının dilinde ve anlamını değiştirmeden yaz.
 - Sadece verilen JSON şemasında çıktı ver, başka hiçbir açıklama ekleme.
-- Metinde hiçbir iddia ya da yargı yoksa (ör. yalnızca selamlaşma), boş bir
-  claims listesi döndür.
+- Boş liste YALNIZCA metinde hiçbir iddia, görüş ya da yargı yoksa döner
+  (ör. yalnızca "Merhaba" ya da anlamsız karakterler).
 """
 
 VERDICT_SYSTEM_PROMPT = """\
@@ -179,10 +181,15 @@ Kurallar:
     REFUTED say.
   - NOT ENOUGH EVIDENCE: Kanıt, iddiayı doğrulamak/yalanlamak için yeterli
     detay içermiyor.
-  - CONFLICTING: Güvenilir kanıtlar aynı olgu hakkında birbiriyle çelişen
-    şeyler ileri sürüyor. Bir kanıt iddiayı yalnızca alıntılıyor, soruyor
-    ya da tartışıyorsa (ör. test sorusu, "doğru mu?" sayfası) bu, iddiayı
-    destekleyen bir kanıt sayılmaz ve tek başına çelişki yaratmaz.
+  - CONFLICTING: En az iki kanıt, aynı olgu hakkında KENDİ ADINA birbiriyle
+    çelişen değerler ileri sürüyor.
+- Karar vermeden önce her kanıt için şunu sor: Bu kanıt iddiadaki olguyu
+  kendi adına ileri sürüyor mu, yoksa iddia cümlesini yalnızca alıntılıyor,
+  soru olarak soruyor ya da doğru/yanlış diye tartışıyor mu (ör. test
+  sorusu, ödev sitesi, "... doğru mu?" sayfası)? Yalnızca alıntılayan ya da
+  soran kanıt hiçbir yönde kanıt sayılmaz: iddiayı desteklemez, çelişki de
+  yaratmaz. Geriye kalan kanıtlar olgunun başka türlü olduğunu söylüyorsa
+  karar REFUTED'dir, CONFLICTING değil.
 - 'explanation' alanını HER ZAMAN Türkçe yaz (iddia ve kanıtlar başka dilde
   olsa bile). Kısa ve net ol: en fazla 2-3 cümle.
 - Atıf kuralları:

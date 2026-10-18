@@ -210,6 +210,15 @@ def test_citation_edge_cases_match_what_the_site_links():
         assert list(dict.fromkeys(linked)) == cited, f"used_sources must equal what the site links: {out}"
 
 
+def test_extraction_prompt_keeps_a_lone_opinion_and_verdict_prompt_ignores_quote_pages():
+    ex = ae.EXTRACTION_SYSTEM_PROMPT
+    assert "tek bir görüş cümlesinden oluşsa bile" in ex and "liste boş OLMAZ" in ex
+    assert "Boş liste YALNIZCA" in ex
+    v = ae.VERDICT_SYSTEM_PROMPT
+    assert "KENDİ ADINA" in v and "hiçbir yönde kanıt sayılmaz" in v
+    assert "REFUTED'dir, CONFLICTING değil" in v
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_") and callable(fn):
