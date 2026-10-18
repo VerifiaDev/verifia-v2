@@ -211,27 +211,49 @@ Kurallar:
 # "[Kaynak_2]", an id that was never given, used_sources out of sync).
 
 _BRACKET = re.compile(r"\s?\[([^\[\]]*)\]")
-_BRACKET_TOKEN = re.compile(r"(?i)^\s*(source|kaynak)[\s_-]?(\d+)\s*$")
-_BARE_TOKEN = re.compile(r"(?i)\b(source|kaynak)_(\d+)\b")
+_DOUBLE_BRACKET = re.compile(r"\[\s*\[([^\[\]]*)\]\s*\]")
+# "source_1", "Kaynak 2", "kanıt-3", "SRC_4" ... -> number N
+_SOURCE_TOKEN = re.compile(r"(?i)^(?:source|kaynak|kan[ıi]t|src|ref)[\s_-]?(\d+)$")
+# What the site (lib/citations.ts) treats as an id inside brackets: starts with a
+# letter, contains "_" (e.g. nasa_overview). Unknown ones show as a missing source.
+_ID_LIKE = re.compile(r"^[^\W\d_][^\W_]*_\w+$")
+_GROUP_SPLIT = re.compile(r"\s*(?:[,;&]|\bve\b|\band\b)\s*", re.IGNORECASE)
+# bare ids in prose; not inside URLs/paths (".../source_1") or query strings
+_BARE_TOKEN = re.compile(r"(?i)(?<![/=#?&.\w-])(?:source|kaynak)_(\d+)\b")
 
 
 def normalize_citations(explanation: str, valid_ids: List[str]) -> tuple[str, List[str]]:
     """Return (explanation, cited_ids) with every citation as [id] / [id, id].
 
-    * ids are matched case-insensitively against `valid_ids` and rewritten to
-      the exact evidence id; "kaynak_N" is accepted for "source_N" (same N)
-    * ids that are not in the evidence are dropped (an empty bracket is removed)
-    * bare ids in a sentence ("source_1'de") are wrapped as [source_1]
-    * cited_ids lists the ids actually cited, in order, without duplicates
+    Mirrors what the site links (lib/citations.ts): a bracket group whose parts
+    are all ids. For such groups:
+    * ids are matched case-insensitively and rewritten to the exact evidence id;
+      "kaynak_N" / "kanıt_N" / "Kaynak N" / "[N]" map to the evidence id with
+      the same number ("source_N") when it exists
+    * ids that are not in the evidence are dropped (an emptied bracket is
+      removed), so the site never shows "Kaynak eşleşmesi bulunamadı"
+    * "ve" / "and" / ";" / "&" separators become ", "; doubled brackets are
+      collapsed; empty parts ("[source_1,]") are ignored
+    Other brackets ([2023], [sic], [...]) are left untouched. Bare ids in a
+    sentence ("source_1'de") are wrapped as [source_1] unless part of a URL.
+    cited_ids lists the ids actually cited, in order, without duplicates.
     """
+    text = explanation or ""
     by_fold = {i.casefold(): i for i in valid_ids}
 
-    def resolve(num: str) -> Optional[str]:
+    def by_number(num: str) -> Optional[str]:
         for name in ("source", "kaynak"):
             hit = by_fold.get(f"{name}_{num}")
             if hit:
                 return hit
         return None
+
+    def resolve(part: str) -> Optional[str]:
+        exact = by_fold.get(part.casefold())
+        if exact:
+            return exact
+        m = _SOURCE_TOKEN.match(part)
+        return by_number(m.group(1)) if m else None
 
     cited: List[str] = []
 
@@ -241,33 +263,43 @@ def normalize_citations(explanation: str, valid_ids: List[str]) -> tuple[str, Li
         return ident
 
     def fix_bracket(m: "re.Match[str]") -> str:
-        parts = [p for p in re.split(r"[,;]", m.group(1))]
-        tokens = [_BRACKET_TOKEN.match(p) for p in parts]
-        if not parts or not all(tokens):
-            return m.group(0)  # not a citation (e.g. "[sic]"): leave as is
+        parts = [p for p in _GROUP_SPLIT.split(m.group(1).strip()) if p]
+        if not parts:
+            return m.group(0)
+        if all(p.isdigit() for p in parts):
+            # "[1, 2]" is a citation only if every number is an evidence number;
+            # otherwise it is ordinary text such as a year: "[2023]".
+            if not all(by_number(p) for p in parts):
+                return m.group(0)
+        elif not all(_SOURCE_TOKEN.match(p) or _ID_LIKE.match(p) or resolve(p) for p in parts):
+            return m.group(0)  # not a citation (e.g. "[sic]", "[...]"): leave as is
         ids: List[str] = []
-        for t in tokens:
-            ident = resolve(t.group(2))
+        for p in parts:
+            ident = by_number(p) if p.isdigit() else resolve(p)
             if ident and ident not in ids:
                 ids.append(note(ident))
         if not ids:
             return ""
-        lead = " " if m.group(0).startswith((" ", "\t", "\n")) else ""
+        lead = " " if m.group(0)[:1].isspace() else ""
         return f"{lead}[{', '.join(ids)}]"
 
-    def fix_bare(text: str) -> str:
+    def fix_bare(chunk: str) -> str:
         def wrap(m: "re.Match[str]") -> str:
-            ident = resolve(m.group(2))
+            ident = by_number(m.group(1))
             return f"[{note(ident)}]" if ident else m.group(0)
-        return _BARE_TOKEN.sub(wrap, text)
+        return _BARE_TOKEN.sub(wrap, chunk)
+
+    prev = None
+    while prev != text:  # "[[source_1]]" -> "[source_1]"
+        prev, text = text, _DOUBLE_BRACKET.sub(r"[\1]", text)
 
     out: List[str] = []
     pos = 0
-    for m in _BRACKET.finditer(explanation or ""):
-        out.append(fix_bare(explanation[pos:m.start()]))
+    for m in _BRACKET.finditer(text):
+        out.append(fix_bare(text[pos:m.start()]))
         out.append(fix_bracket(m))
         pos = m.end()
-    out.append(fix_bare((explanation or "")[pos:]))
+    out.append(fix_bare(text[pos:]))
     return "".join(out), cited
 
 

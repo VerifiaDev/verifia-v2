@@ -161,6 +161,55 @@ def test_no_citation_means_empty_used_sources():
     assert eng.verify_claim("İddia metni", SOURCES).used_sources == []
 
 
+# ---- citation edge cases, checked the way the site parses them (lib/citations.ts) ----
+
+_SITE_GROUP = re.compile(r"\[([^\]]+)\]")
+_SITE_ID_LIKE = re.compile(r"^[^\W\d_][^\W_]*_\w+$")
+
+
+def site_citations(text, valid):
+    """Python port of lib/citations.ts: (linked ids, ids the site shows as missing)."""
+    linked, missing = [], []
+    for m in _SITE_GROUP.finditer(text):
+        ids = [x.strip() for x in re.split(r"[,;]\s*", m.group(1)) if x.strip()]
+        if ids and all(_SITE_ID_LIKE.match(i) or i in valid for i in ids):
+            for i in ids:
+                (linked if i in valid else missing).append(i)
+    return linked, missing
+
+
+EDGE_CASES = [
+    # (model output, expected explanation, expected cited ids)
+    ("Ankara başkenttir [source_1 ve source_2].", "Ankara başkenttir [source_1, source_2].", ["source_1", "source_2"]),
+    ("Ankara başkenttir [source_1,].", "Ankara başkenttir [source_1].", ["source_1"]),
+    ("Ankara başkenttir [source_1, source_x].", "Ankara başkenttir [source_1].", ["source_1"]),
+    ("Ankara başkenttir [kanıt_2].", "Ankara başkenttir [source_2].", ["source_2"]),
+    ("Bilgi [nasa_overview] kaynağında.", "Bilgi kaynağında.", []),
+    ("Ankara başkenttir [[source_1]].", "Ankara başkenttir [source_1].", ["source_1"]),
+    ("Ankara başkenttir [1, 2].", "Ankara başkenttir [source_1, source_2].", ["source_1", "source_2"]),
+    ("Bkz. https://ornek.com/source_1 sayfası [source_1].",
+     "Bkz. https://ornek.com/source_1 sayfası [source_1].", ["source_1"]),
+    ("1923 [2023] yılında [source_1].", "1923 [2023] yılında [source_1].", ["source_1"]),
+    ("Metin [sic] böyle [...] [source_2].", "Metin [sic] böyle [...] [source_2].", ["source_2"]),
+    ("Bilgi [Source-1] ve [Kaynak 2]; SOURCE_3 de öyle.",
+     "Bilgi [source_1] ve [source_2]; [source_3] de öyle.", ["source_1", "source_2", "source_3"]),
+    ("Ankara ve İstanbul [Ankara ve İstanbul] [source_3].",
+     "Ankara ve İstanbul [Ankara ve İstanbul] [source_3].", ["source_3"]),
+    # an id that is not in the evidence is never turned into a link (left as plain text)
+    ("Bilgi source_9'da yazıyor.", "Bilgi source_9'da yazıyor.", []),
+]
+
+
+def test_citation_edge_cases_match_what_the_site_links():
+    valid = [s.id for s in SOURCES]
+    for raw, expected, expected_cited in EDGE_CASES:
+        out, cited = ae.normalize_citations(raw, valid)
+        assert (out, cited) == (expected, expected_cited), raw
+        linked, missing = site_citations(out, valid)
+        assert missing == [], f"site would show 'Kaynak eşleşmesi bulunamadı' for {missing}: {out}"
+        assert list(dict.fromkeys(linked)) == cited, f"used_sources must equal what the site links: {out}"
+
+
 if __name__ == "__main__":
     for name, fn in list(globals().items()):
         if name.startswith("test_") and callable(fn):
