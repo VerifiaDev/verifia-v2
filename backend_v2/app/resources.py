@@ -46,7 +46,11 @@ def positive_env(name, default):
 
 
 def memory_mb():
-    """Return current RSS and OS process peak in MiB (Windows or Linux)."""
+    """Return current RSS and reported peak in MiB (Windows or Linux).
+
+    The peak includes the current sample: independently read Linux RSS counters
+    can disagree, so the OS high-water mark alone can be below observed RSS.
+    """
     if os.name == "nt":
         import ctypes
         from ctypes import wintypes
@@ -73,10 +77,9 @@ def memory_mb():
     from pathlib import Path
 
     pages = int(Path("/proc/self/statm").read_text().split()[1])
-    return (
-        pages * os.sysconf("SC_PAGE_SIZE") / 1048576,
-        resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024,
-    )
+    rss = pages * os.sysconf("SC_PAGE_SIZE") / 1048576
+    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1024
+    return rss, max(rss, peak)
 
 
 @dataclass

@@ -182,6 +182,32 @@ def test_real_memory_probe():
     assert rss > 0 and peak >= rss
 
 
+@pytest.mark.parametrize("os_peak_kib, expected_peak", [(70444, 69.046875), (102400, 100.0)])
+def test_linux_memory_peak_includes_current_sample(monkeypatch, os_peak_kib, expected_peak):
+    import sys
+    from pathlib import Path
+    from types import SimpleNamespace
+    from app import resources
+
+    # Exercise Linux conversion/accounting on Windows too. These values reproduce
+    # the CI mismatch: current 69.046875 MiB versus OS peak 68.79296875 MiB.
+    monkeypatch.setattr(resources, "os", SimpleNamespace(
+        name="posix", sysconf=lambda name: 4096,
+    ))
+    monkeypatch.setitem(sys.modules, "resource", SimpleNamespace(
+        RUSAGE_SELF=0, getrusage=lambda who: SimpleNamespace(ru_maxrss=os_peak_kib),
+    ))
+
+    def statm(path):
+        assert path.as_posix() == "/proc/self/statm"
+        return "20000 17676 0 0 0 0 0\n"
+
+    monkeypatch.setattr(Path, "read_text", statm)
+    rss, peak = resources.memory_mb()
+    assert rss == 69.046875  # Never lower the current RSS used by admission control.
+    assert peak == expected_peak
+
+
 def test_thread_cancellation_retains_slot_until_worker_finishes():
     async def go():
         g = Guard()
