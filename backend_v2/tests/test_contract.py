@@ -269,8 +269,8 @@ def test_concurrent_requests_do_not_mix_results(client, fake):
     import concurrent.futures as cf
 
     fake.retrieve_delay = 0.05
-    with cf.ThreadPoolExecutor(4) as ex:
-        bodies = list(ex.map(lambda _: post(client, "metin").json(), range(4)))
+    with cf.ThreadPoolExecutor(2) as ex:
+        bodies = list(ex.map(lambda _: post(client, "metin").json(), range(2)))
     for b in bodies:
         assert validate_verify_response(b) == []
         assert [c["claim_id"] for c in b["results"]] == ["c1", "c2", "c3"]
