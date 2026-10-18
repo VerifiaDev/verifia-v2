@@ -225,7 +225,7 @@ export function VerificationInput({
         <button
           type="submit"
           className={demoteSubmit ? "btn btn-quiet" : "btn"}
-          disabled={disabled || busy}
+          disabled={disabled || busy || length === 0}
           aria-describedby={[noticeId, privacyId].filter(Boolean).join(" ")}
           aria-keyshortcuts="Control+Enter Meta+Enter"
         >

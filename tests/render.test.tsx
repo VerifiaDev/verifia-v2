@@ -122,6 +122,14 @@ describe("ClaimItem", () => {
     assert.ok(html.includes("Dayandığımız kanıtlar (1)"));
     assert.ok(html.includes("Diğer kaynaklar (1)"));
   });
+  it("üst satırdaki kaynak sayısı, atıf yapılanlardan fazlaysa ikisini de açıkça söyler", () => {
+    const html = render(claim({ explanation: "Açıklama [kaynak_1].", sources: [source(1), source(2)] }));
+    assert.ok(html.includes("2 kaynak bulundu, 1 tanesine dayanıldı"));
+  });
+  it("boş girişte 'İncelemeyi başlat' düğmesi pasif; metin varken değil", () => {
+    const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
+    assert.match(html, /<button[^>]*type="submit"[^>]*disabled/);
+  });
   it("atıf yoksa kaynaklara 'dayandık' demez; yalnızca bulunan kaynakları listeler", () => {
     const html = render(claim({ explanation: "Atıfsız açıklama.", sources: [source(1), source(2), source(3)] }));
     assert.ok(!html.includes("Dayandığımız kanıtlar"));
