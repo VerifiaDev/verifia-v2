@@ -45,7 +45,10 @@ describe("adres yönlendirmesi (backend CORS yalnızca asıl adrese izin verir)"
       assert.equal(r.destination, `https://${mod.CANONICAL_HOST}/:path*`);
       assert.equal(r.permanent, false);
     }
-    assert.ok(rules.some((r) => (r.has?.[0] as { value?: string } | undefined)?.value === "verify-test-efee2.vercel.app"));
+    assert.equal(mod.CANONICAL_HOST, "verifia-pi.vercel.app");
+    for (const old of ["verify-test-swart.vercel.app", "verify-test-efee2.vercel.app"]) {
+      assert.ok(rules.some((r) => (r.has?.[0] as { value?: string } | undefined)?.value === old), old);
+    }
   });
   it("yayın derlemesinin dal takma adı (git-main) da asıl adrese yönlendirilir", async () => {
     // 11 Ekim denetimi: bu adreste form açıktı ama backend'e giden her istek CORS'a takılıyordu.
@@ -54,7 +57,7 @@ describe("adres yönlendirmesi (backend CORS yalnızca asıl adrese izin verir)"
     const rule = rules.find((r) => (r.has?.[0] as { value?: string } | undefined)?.value === "verify-test-git-main-efee2.vercel.app");
     assert.ok(rule, "git-main adresi için yönlendirme kuralı yok");
     assert.equal(rule.source, "/:path*");
-    assert.equal(rule.destination, "https://verify-test-swart.vercel.app/:path*");
+    assert.equal(rule.destination, "https://verifia-pi.vercel.app/:path*");
     assert.equal((rule.has?.[0] as { type?: string }).type, "host");
   });
 });
