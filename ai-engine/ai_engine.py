@@ -38,6 +38,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import List, Optional
 
 from dotenv import load_dotenv
@@ -135,53 +136,143 @@ VALID_VERDICTS = {"SUPPORTED", "REFUTED", "NOT ENOUGH EVIDENCE", "CONFLICTING"}
 
 EXTRACTION_SYSTEM_PROMPT = """\
 Sen uzman bir fact-checking veri ayrıştırıcısısın. Görevin, sana verilen
-metindeki doğrulanabilir, nesnel ve somut iddiaları (claims) bulmak ve
-bunları tekil, bağımsız cümleler halinde parçalamaktır.
+metindeki iddiaları (claims) bulmak ve bunları tekil, bağımsız cümleler
+halinde parçalamaktır.
+
+Temel ilke: Ayıklama, iddianın doğru ya da yanlış olduğuna KARAR VERMEZ.
+- Açıkça yanlış görünen olgusal iddialar da AYNEN ve is_verifiable=true ile
+  listelenir. Doğruluk kararını yalnızca sonraki kanıt adımı verir.
+- Metinde olgusal bir iddia içeren hiçbir cümle atlanmaz.
 
 Kurallar:
-- Öznel yargıları, yorumları ve duyguları tamamen yoksay.
 - Bir cümlede birden fazla iddia varsa, bunları ayrı ayrı maddelere böl.
 - Zamirleri (o, bu, şu) bağlama göre asıl isimlerle değiştir.
 - Bir kurumun veya kişinin açıklaması aktarılıyorsa, iddiayı o açıklamayı
   yapan kurum/kişinin adıyla birlikte yaz (ör. "X kurumu ... açıklamıştır"),
   çünkü bu iddianın kendisi aranacak olgu haline gelir.
-- Gelecek tahminlerini, öznel yargıları ve ölçülemez/muğlak ifadeleri
-  is_verifiable=false olarak işaretle ve bunları MUTLAKA listeye ekle
-  (ör. "Bence ... en güzeldir" tek başına bile olsa listede is_verifiable=false
-  olarak yer almalı). İddia metnini kullanıcının dilinde bırak.
+- is_verifiable=true: Kanıtla sınanabilen her somut olgu (kim, ne, nerede,
+  ne zaman, kaç). Olgu doğru ya da yanlış görünse de true verilir.
+- is_verifiable=false: YALNIZCA öznel yargılar/görüşler (ör. "Bence ...",
+  "en güzel"), gelecek tahminleri ve ölçülemez/muğlak ifadeler. Bunlar da
+  listeden çıkarılmaz; is_verifiable=false ile MUTLAKA listede yer alır.
+- İddia metnini kullanıcının dilinde ve anlamını değiştirmeden yaz.
 - Sadece verilen JSON şemasında çıktı ver, başka hiçbir açıklama ekleme.
-- Eğer hiçbir doğrulanabilir iddia yoksa, boş bir claims listesi döndür.
+- Metinde hiçbir iddia ya da yargı yoksa (ör. yalnızca selamlaşma), boş bir
+  claims listesi döndür.
 """
 
 VERDICT_SYSTEM_PROMPT = """\
 Sen kesinlikle tarafsız bir doğruluk kontrol (fact-checking) yargıcısın.
-Sana bir 'İddia' ve referans numaralarıyla birlikte 'Kanıtlar' verilecek.
+Sana bir 'İddia' ve 'Kanıtlar' verilecek. Kanıtlar bölümünde her satır,
+köşeli parantez içinde o kanıtın kimliğiyle başlar (ör. [source_1]: ...).
 
 Kurallar:
 - Kendi içsel bilgini KESİNLİKLE kullanma. Sadece sana verilen kanıtlara
   dayanarak karar ver.
 - Kararını (verdict) şu 4 kategoriden birine oturt:
   - SUPPORTED: Kanıt, iddiayı tamamen doğruluyor.
-  - REFUTED: Kanıt, iddiayı yalanlıyor veya aksini söylüyor. İddianın bir
-    kısmı doğru olsa bile, geri kalanı kanıtla çelişiyorsa bütünü REFUTED say.
+  - REFUTED: Kanıt, iddiayı yalanlıyor veya aksini söylüyor. Kanıt,
+    iddiadaki olgunun başka türlü olduğunu açıkça söylüyorsa (ör. iddia
+    edilen yer, kişi, tarih, sayı ya da unvan yerine kanıt başka birini
+    veriyorsa) iddia REFUTED'dir; bunu NOT ENOUGH EVIDENCE sayma. İddianın
+    bir kısmı doğru olsa bile, geri kalanı kanıtla çelişiyorsa bütünü
+    REFUTED say.
   - NOT ENOUGH EVIDENCE: Kanıt, iddiayı doğrulamak/yalanlamak için yeterli
     detay içermiyor.
-  - CONFLICTING: Kanıt metinlerinin kendi içinde çelişkili ifadeleri var.
+  - CONFLICTING: Güvenilir kanıtlar aynı olgu hakkında birbiriyle çelişen
+    şeyler ileri sürüyor. Bir kanıt iddiayı yalnızca alıntılıyor, soruyor
+    ya da tartışıyorsa (ör. test sorusu, "doğru mu?" sayfası) bu, iddiayı
+    destekleyen bir kanıt sayılmaz ve tek başına çelişki yaratmaz.
 - 'explanation' alanını HER ZAMAN Türkçe yaz (iddia ve kanıtlar başka dilde
   olsa bile). Kısa ve net ol: en fazla 2-3 cümle.
-- 'explanation' kısmında, hangi bilgiyi hangi kanıttan aldıysan, o cümlenin
-  sonuna kanıtın ID'sini köşeli parantez içinde atıf yap (ör. [source_1]).
-  Yalnızca sana verilen ID'leri kullan, yeni ID uydurma.
+- Atıf kuralları:
+  - Atıfları yalnızca Kanıtlar bölümünde her satırın başında köşeli
+    parantez içinde gösterilen kimlikle, AYNEN kopyalayarak yap.
+    Örnek: [source_1] ya da [source_1, source_2].
+  - Kimliği cümle içinde yazma ("source_1'de", "Kaynak 3'te" gibi);
+    kimliği çevirme, büyük harfe çevirme ya da değiştirme. Atıf, dayandığı
+    cümlenin sonunda köşeli parantez içinde olsun.
+  - Kanıtlarda olmayan kimlik yazma.
 - Konuyla alakasız kanıtları (tuzak kanıtları) tamamen yoksay ve
   'used_sources' listesine ekleme.
-- 'used_sources' alanına SADECE açıklama içinde gerçekten atıf yaptığın
-  kaynakların ID'lerini ekle; hiçbiri kullanılmadıysa boş liste ([]) döndür.
+- 'used_sources' listesi, açıklamada atıf yaptığın kimliklerin AYNISI olsun;
+  hiçbirine atıf yapmadıysan boş liste ([]) döndür.
 - Sadece verilen JSON şemasında çıktı ver, başka hiçbir açıklama ekleme.
 """
 
 
 # ============================================================
-# 4. ENGINE
+# 4. CITATION NORMALISATION
+# ============================================================
+# The site links a citation to a source only when it is written in square
+# brackets with the evidence id copied exactly, e.g. [source_1] or
+# [source_1, source_2]. The prompt asks for that format; this is the
+# deterministic safety net for when the model drifts ("Source_3'te",
+# "[Kaynak_2]", an id that was never given, used_sources out of sync).
+
+_BRACKET = re.compile(r"\s?\[([^\[\]]*)\]")
+_BRACKET_TOKEN = re.compile(r"(?i)^\s*(source|kaynak)[\s_-]?(\d+)\s*$")
+_BARE_TOKEN = re.compile(r"(?i)\b(source|kaynak)_(\d+)\b")
+
+
+def normalize_citations(explanation: str, valid_ids: List[str]) -> tuple[str, List[str]]:
+    """Return (explanation, cited_ids) with every citation as [id] / [id, id].
+
+    * ids are matched case-insensitively against `valid_ids` and rewritten to
+      the exact evidence id; "kaynak_N" is accepted for "source_N" (same N)
+    * ids that are not in the evidence are dropped (an empty bracket is removed)
+    * bare ids in a sentence ("source_1'de") are wrapped as [source_1]
+    * cited_ids lists the ids actually cited, in order, without duplicates
+    """
+    by_fold = {i.casefold(): i for i in valid_ids}
+
+    def resolve(num: str) -> Optional[str]:
+        for name in ("source", "kaynak"):
+            hit = by_fold.get(f"{name}_{num}")
+            if hit:
+                return hit
+        return None
+
+    cited: List[str] = []
+
+    def note(ident: str) -> str:
+        if ident not in cited:
+            cited.append(ident)
+        return ident
+
+    def fix_bracket(m: "re.Match[str]") -> str:
+        parts = [p for p in re.split(r"[,;]", m.group(1))]
+        tokens = [_BRACKET_TOKEN.match(p) for p in parts]
+        if not parts or not all(tokens):
+            return m.group(0)  # not a citation (e.g. "[sic]"): leave as is
+        ids: List[str] = []
+        for t in tokens:
+            ident = resolve(t.group(2))
+            if ident and ident not in ids:
+                ids.append(note(ident))
+        if not ids:
+            return ""
+        lead = " " if m.group(0).startswith((" ", "\t", "\n")) else ""
+        return f"{lead}[{', '.join(ids)}]"
+
+    def fix_bare(text: str) -> str:
+        def wrap(m: "re.Match[str]") -> str:
+            ident = resolve(m.group(2))
+            return f"[{note(ident)}]" if ident else m.group(0)
+        return _BARE_TOKEN.sub(wrap, text)
+
+    out: List[str] = []
+    pos = 0
+    for m in _BRACKET.finditer(explanation or ""):
+        out.append(fix_bare(explanation[pos:m.start()]))
+        out.append(fix_bracket(m))
+        pos = m.end()
+    out.append(fix_bare((explanation or "")[pos:]))
+    return "".join(out), cited
+
+
+# ============================================================
+# 5. ENGINE
 # ============================================================
 
 def _strict_response_format(model: type[BaseModel], name: str) -> dict:
@@ -256,11 +347,16 @@ class FactCheckEngine:
             raise ValueError(
                 f"Model returned an unexpected verdict label: {result.verdict!r}"
             )
+        # Citations must match the evidence ids exactly, and used_sources must
+        # be exactly the ids cited in the explanation (see normalize_citations).
+        result.explanation, result.used_sources = normalize_citations(
+            result.explanation, [s.id for s in sources]
+        )
         return result
 
 
 # ============================================================
-# 5. SMOKE TEST (run this file directly: `python ai_engine.py`)
+# 6. SMOKE TEST (run this file directly: `python ai_engine.py`)
 # ============================================================
 
 if __name__ == "__main__":
