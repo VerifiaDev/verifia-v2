@@ -26,7 +26,7 @@ import time
 from contextlib import asynccontextmanager
 
 from dotenv import load_dotenv
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -43,6 +43,7 @@ from .observability import (  # noqa: E402
 )
 from .resources import TrackingExecutor
 from .security import Guard, SecurityMiddleware
+from .ip_diagnostics import IPDiagnostics
 from .safe_logging import install_safe_logging
 from .limits import UpstreamGate  # noqa: E402
 from .pipeline import PipelineError, TTLCache, run_pipeline  # noqa: E402
@@ -87,6 +88,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Verify Backend", version="2.0.0", lifespan=lifespan)
 
 guard = Guard()
+ip_diagnostics = IPDiagnostics()
 app.add_middleware(SecurityMiddleware, guard=guard)
 
 allowed_origins = [
@@ -164,7 +166,10 @@ async def _run(text: str, emit=None):
 
 
 @app.get("/")
-def root():
+def root(request: Request):
+    diagnostic = ip_diagnostics.response(request.scope, guard)
+    if diagnostic is not None:
+        return diagnostic
     return {"status": "ok", "message": "Backend çalışıyor!"}
 
 
