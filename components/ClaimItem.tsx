@@ -51,7 +51,7 @@ export function ClaimItem({ claim, index, total, sample = false, showcase = fals
           <span className="claim-summary-text">
             <span className="claim-summary-kicker">İDDİA {index + 1} / {total}{sample && <strong className="sample-badge">Örnek veri</strong>}</span>
             <span id={titleId} className="t-h3" role="heading" aria-level={3}>{claim.text}</span>
-            <span className="ci-meta"><VerdictSummary verdict={claim.verdict} variant="inline" /><span>{sources.length === 0 ? "Kaynak yok" : `${sources.length} kaynak`}</span></span>
+            <span className="ci-meta"><VerdictSummary verdict={claim.verdict} variant="inline" /><span>{sources.length === 0 ? "Kaynak yok" : hasCitations && keyNumbers.length < sources.length ? `${sources.length} kaynak bulundu, ${keyNumbers.length} tanesine dayanıldı` : `${sources.length} kaynak`}</span></span>
             {((claim.verdict === "SUPPORTED" || claim.verdict === "REFUTED") && !sources.length || !claim.explanation.trim()) && <span className="claim-evidence-warning">Kanıt bilgisi eksik: {sources.length === 0 ? "bu hükmü denetlemek için kaynak sunulmadı." : "sonucun gerekçesi paylaşılmadı."}</span>}
           </span>
           <Icon name="chevron" className="chevron" />
