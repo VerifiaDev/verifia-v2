@@ -16,6 +16,22 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
+pytest_plugins = ("tools.offline_guard",)
+
+
+@pytest.fixture(autouse=True)
+def isolated_guard(monkeypatch):
+    from collections import OrderedDict
+    from app import main
+
+    # SecurityMiddleware retains this object, even after its stack is built.
+    # Reset only per-run state; leave every configured security limit intact.
+    monkeypatch.setattr(main.guard, "clients", OrderedDict())
+    monkeypatch.setattr(main.guard, "global_count", (0, 0))
+    monkeypatch.setattr(main.guard, "active", 0)
+    yield
+    assert main.guard.active == 0, "verification admission lease leaked"
+
 
 class FakeBackend:
     """Behaviour is chosen per claim by keywords in the claim text:

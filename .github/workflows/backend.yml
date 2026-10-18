@@ -66,11 +66,10 @@ jobs:
       - name: check_all.py --skip-live
         run: python check_all.py --skip-live
 
-      # A real uvicorn process with the fake LLM/search: 200 requests, 20 at once, default
-      # MAX_UPSTREAM_CONCURRENCY=8 (expected p95 about 1.5 s). Limits are loose (shared runners);
-      # they catch a lock, a leak or broken answers.
+      # Exercise a real uvicorn process with fake services within the default
+      # 10/minute quota and two active verification slots. No limit overrides.
       - name: Load test (fake services)
-        run: python loadtest.py --spawn-fake --requests 200 --concurrency 20 --max-p95 4.0 --max-rss-mb 200
+        run: python loadtest.py --spawn-fake --requests 10 --concurrency 2 --max-p95 4.0 --max-rss-mb 200
 
       - name: Upload reports
         if: always()

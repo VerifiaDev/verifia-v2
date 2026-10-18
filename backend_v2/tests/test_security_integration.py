@@ -12,15 +12,28 @@ from app.security import Guard
 
 
 @pytest.fixture(autouse=True)
-def fresh_guard(monkeypatch):
-    # Middleware holds this object; reset it in place for each security test.
-    guard = Guard()
-    monkeypatch.setattr(main.guard, "clients", guard.clients)
-    monkeypatch.setattr(main.guard, "global_count", (0, 0))
-    monkeypatch.setattr(main.guard, "limits", [(60, 10000)])
-    monkeypatch.setattr(main.guard, "global_daily", 10000)
-    monkeypatch.setattr(main.guard, "maximum", 2)
+def memory_probe(monkeypatch):
     monkeypatch.setattr(security, "memory_mb", lambda: (100, 120))
+
+
+@pytest.mark.parametrize("repeat", range(2))
+def test_guard_is_fresh_and_enforces_default_quota(client, fake, monkeypatch, repeat):
+    # Both cases must start empty, including when middleware is already built.
+    assert main.guard.clients == {} and main.guard.global_count == (0, 0)
+    assert main.guard.active == 0
+    assert main.guard.maximum == 2
+    assert main.guard.memory_limit == 384
+    assert main.guard.limits == [(60, 10), (3600, 100), (86400, 500)]
+    assert main.guard.global_daily == 1000
+    from types import SimpleNamespace
+    monkeypatch.setattr(security, "time", SimpleNamespace(time=lambda: 100000))
+    for _ in range(10):
+        assert client.post("/verify", json={"text": "test"}).status_code == 200
+    calls = dict(fake.calls)
+    r = client.post("/verify/stream", json={"text": "test"})
+    assert r.status_code == 429 and r.json()["error"] == "RATE_LIMITED"
+    assert int(r.headers["retry-after"]) > 0
+    assert fake.calls == calls
 
 
 @pytest.mark.parametrize("path", ["/verify", "/verify/stream"])
