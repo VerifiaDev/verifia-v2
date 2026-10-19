@@ -34,6 +34,9 @@ const BACKEND_CODES: Record<string, ErrorCode> = {
   EXTRACTION_TIMEOUT: "TIMEOUT",
   EXTRACTION_FAILED: "SERVICE_UNAVAILABLE",
   CONFIG_ERROR: "SERVICE_UNAVAILABLE",
+  // backend_v2: bellek sınırı (security.py, 503 + Retry-After) ve yapay zekâ servisinin kullanım sınırı (upstream_errors.py)
+  LOW_MEMORY: "SERVER_BUSY",
+  UPSTREAM_RATE_LIMITED: "SERVICE_UNAVAILABLE",
 };
 
 /**
