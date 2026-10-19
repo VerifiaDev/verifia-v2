@@ -955,6 +955,14 @@ def _prefilter(
 # HTML FETCH
 # ==========================================================
 
+_BLOCK_TAGS = [
+    "address", "article", "blockquote", "br", "dd", "div", "dl", "dt",
+    "figcaption", "figure", "h1", "h2", "h3", "h4", "h5", "h6", "hr",
+    "li", "main", "ol", "p", "pre", "section", "table", "td", "th",
+    "tr", "ul",
+]
+
+
 def _html_to_text(
     html: str,
 ) -> str:
@@ -979,20 +987,35 @@ def _html_to_text(
     ]):
         tag.decompose()
 
-    root = (
-        soup.find("article")
-        or soup.find("main")
-        or soup.body
-        or soup
+    # Words are separated only where the browser separates them (block
+    # boundaries), so inline tags such as Ankara<b>'da</b> stay one word and
+    # a passage can be found on the page as written.
+    for tag in soup.find_all(_BLOCK_TAGS):
+        tag.insert_before("\n")
+        tag.insert_after("\n")
+
+    # Every top-level <article> (live blogs have one per entry); nested
+    # articles are read once, as part of their parent.
+    articles = [
+        article
+        for article in soup.find_all("article")
+        if article.find_parent("article") is None
+    ]
+
+    roots = (
+        articles
+        or [soup.find("main") or soup.body or soup]
     )
+
+    text = " ".join(
+        root.get_text("")
+        for root in roots
+    ).replace("­", "")  # soft hyphen: invisible on the page
 
     return re.sub(
         r"\s+",
         " ",
-        root.get_text(
-            " ",
-            strip=True,
-        ),
+        text,
     ).strip()
 
 
@@ -1222,6 +1245,13 @@ def _source_text(
 # CHUNKING
 # ==========================================================
 
+_ABBREVIATIONS = {
+    "dr", "prof", "doç", "yrd", "av", "op", "uzm", "öğr", "gör", "sn",
+    "t.c", "a.ş", "ltd", "şti", "vb", "vs", "örn", "bkz", "no", "st",
+    "mr", "mrs", "ms", "jr", "sr", "inc", "vd",
+}
+
+
 def _sentences(
     text: str,
 ) -> list[str]:
@@ -1246,15 +1276,31 @@ def _sentences(
         protected,
     )
 
+    # "Dr. Ayşe Kaya açıkladı." is one sentence: a split after an
+    # abbreviation is undone, so a passage never starts mid-sentence.
+    sentences = []
+
+    for part in parts:
+
+        if (
+            sentences
+            and sentences[-1].rsplit(" ", 1)[-1].rstrip(".").casefold()
+            in _ABBREVIATIONS
+        ):
+            sentences[-1] += " " + part
+
+        else:
+            sentences.append(part)
+
     return [
-        part.replace(
+        sentence.replace(
             "<DOT>",
             ".",
         ).strip()
 
-        for part in parts
+        for sentence in sentences
 
-        if part.strip()
+        if sentence.strip()
     ]
 
 
