@@ -1,5 +1,5 @@
-"""Offline concurrency check for the Groq path: 429 (per-minute / daily), timeouts, 5xx,
-retries, capacity (BUSY) and error-text leaks - WITHOUT any real Groq or Tavily call.
+"""Offline check of the Groq path: 429 (per-minute / daily), timeouts, 5xx, retries,
+capacity (BUSY), error-text leaks, and broken / empty model answers - WITHOUT any real Groq or Tavily call.
 
 How it works: a fake Groq server runs on 127.0.0.1 and the real backend (security middleware,
 UpstreamGate, pipeline, FastEngine + the real groq SDK) is pointed at it via GROQ_BASE_URL.
@@ -50,7 +50,7 @@ socket.socket.connect_ex = lambda s, addr: (_local_only(addr[0]) if isinstance(a
 
 # ---- 2. fake Groq ------------------------------------------------------------------------
 class FakeGroq:
-    mode = "ok"            # ok | tpm429 | tpd429 | slow | error500
+    mode = "ok"            # ok | tpm429 | tpd429 | slow | error500 | broken answers (see BROKEN)
     slow_seconds = 4.0
     every = 2              # tpm429: every Nth verdict call gets a 429
     lock = threading.Lock()
@@ -101,6 +101,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(500, {"error": {"message": f"internal error {SECRET}"}})
             if mode == "slow" and kind == "verdict_result":
                 time.sleep(FakeGroq.slow_seconds)
+            broken = BROKEN.get(mode)
+            if broken and broken[0] == kind:
+                raw = broken[1]
+                return self._send(200, {"id": "x", "object": "chat.completion", "created": 0,
+                                        "model": "openai/gpt-oss-20b",
+                                        "choices": [{"index": 0, "finish_reason": "stop",
+                                                     "message": {"role": "assistant", "content": raw}}],
+                                        "usage": {"prompt_tokens": 1, "completion_tokens": 1, "total_tokens": 2}})
             if kind == "extraction_result":
                 # claims depend on the input, so different users never share (deduplicated) calls
                 tag = str(user).replace("<metin>", "").replace("</metin>", "").replace("Metin:", "").strip()[:60]
@@ -117,6 +125,20 @@ class Handler(BaseHTTPRequestHandler):
         finally:
             with FakeGroq.lock:
                 FakeGroq.inflight -= 1
+
+
+# model answers that are broken in different ways: mode -> (which call, raw content returned)
+BROKEN = {
+    "v_empty":      ("verdict_result", ""),
+    "v_notjson":    ("verdict_result", "Bu iddia doğrudur."),
+    "v_badlabel":   ("verdict_result", json.dumps({"claim_id": "c", "verdict": "TRUE",
+                                                    "explanation": "Doğru [source_1].", "used_sources": ["source_1"]})),
+    "v_missing":    ("verdict_result", json.dumps({"claim_id": "c", "verdict": "SUPPORTED"})),
+    "v_nocitation": ("verdict_result", json.dumps({"claim_id": "c", "verdict": "SUPPORTED",
+                                                    "explanation": "Kanıtlar bunu doğruluyor.", "used_sources": []})),
+    "x_notjson":    ("extraction_result", "iddialar: birinci, ikinci"),
+    "x_empty":      ("extraction_result", ""),
+}
 
 
 class QuietServer(ThreadingHTTPServer):
@@ -263,6 +285,32 @@ async def run():
         await scenario("6. Healthy again right after the slow scenario (BUSY slots released?)", "ok", 2, lambda s: [
             (s["http"].get(200, 0) == 2, "slots still held after timeouts")]),
     ]
+    # ---- broken / empty model answers: must become "could not be checked", never a verdict ----
+    def unreadable_claims(s):
+        return [(s["http"].get(200, 0) == 2, "requests should still answer 200"),
+                (all(k.startswith("error") for k in s["claims"]) and s["claims"],
+                 "a broken answer must mark the claim as error (shown as 'incelenemedi'), not produce a verdict")]
+    for mode, label in (("v_empty", "empty answer"), ("v_notjson", "plain text instead of JSON"),
+                        ("v_badlabel", "unknown verdict label 'TRUE'"), ("v_missing", "JSON missing fields")):
+        ok.append(await scenario(f"{len(ok) + 1}. Verdict step: {label}", mode, 2, unreadable_claims))
+    for mode, label in (("x_notjson", "plain text instead of JSON"), ("x_empty", "empty answer")):
+        ok.append(await scenario(f"{len(ok) + 1}. Claim extraction: {label}", mode, 2, lambda s: [
+            (all(r["http"] >= 500 for r in s["res"]), "expected a 5xx error, not made-up claims"),
+            (not s["claims"], "no claims may be returned when extraction is broken")]))
+    # a well-formed answer without any citation: allowed through as a verdict (reported, not failed)
+    FakeGroq.reset("v_nocitation")
+    app_calls.clear()
+    main.upstream = UpstreamGate(main.settings.upstream_concurrency)
+    r = (await asyncio.gather(one_user()))[0]
+    try:
+        first = json.loads(r["body"]).get("results", [{}])[0]
+    except (ValueError, IndexError):
+        first = {}
+    print(f"\n=== {len(ok) + 1}. Verdict with no citation (well-formed JSON)  [info only]")
+    print(f"  claim status={first.get('status')} verdict={first.get('verdict')} used_sources={first.get('used_sources')}")
+    print("  -> a valid-looking verdict with no linked evidence is NOT rejected today" if first.get("verdict")
+          else "  -> rejected")
+
     print("\nALL OK" if all(ok) else f"\n{ok.count(False)} scenario(s) FAILED")
     return all(ok)
 
