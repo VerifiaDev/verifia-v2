@@ -24,6 +24,8 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Optional
 
+from .upstream_errors import InvalidModelResponse, UpstreamRateLimited, UpstreamTimeout
+
 log = logging.getLogger("verify.pipeline")
 
 NO_EVIDENCE = "NOT ENOUGH EVIDENCE"
@@ -97,6 +99,8 @@ def cache_key(text: str) -> str:
 
 
 def _detail(exc: BaseException, cfg: PipelineConfig) -> Optional[str]:
+    if isinstance(exc, InvalidModelResponse):
+        return None
     if not cfg.expose_detail:
         return None
     msg = str(exc) or "(no message)"
@@ -172,6 +176,15 @@ async def _process_claim(
             explanation="Bu iddia zamanında incelenemedi.",
             timings_ms=dict(timings),
         )
+    except (UpstreamRateLimited, UpstreamTimeout) as exc:
+        return _base(
+            claim,
+            status="timeout" if isinstance(exc, UpstreamTimeout) else "error",
+            error_code="UPSTREAM_TIMEOUT" if isinstance(exc, UpstreamTimeout) else "UPSTREAM_RATE_LIMITED",
+            failed_stage=stage["name"],
+            explanation=str(exc),
+            timings_ms=dict(timings),
+        )
     except Exception as exc:  # one claim failing must not kill the others
         log.exception("claim %s failed in stage %s", claim.id, stage["name"])
         return _base(
@@ -210,10 +223,12 @@ async def run_pipeline(
     t = time.perf_counter()
     try:
         extraction = await asyncio.wait_for(extract(text), cfg.extract_timeout)
-    except asyncio.TimeoutError:
+    except (asyncio.TimeoutError, UpstreamTimeout):
         raise PipelineError(
             "EXTRACTION_TIMEOUT", "İddialar ayrıştırılırken zaman aşımı oluştu.", http_status=504
         )
+    except UpstreamRateLimited as exc:
+        raise PipelineError("UPSTREAM_RATE_LIMITED", str(exc), http_status=503) from None
     except Exception as exc:
         log.exception("claim extraction failed")
         raise PipelineError(
