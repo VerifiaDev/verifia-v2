@@ -235,5 +235,6 @@ Teyit edilenler (koddan): `POST /verify`, `{text}`, 10 000 karakter, URL desteğ
 
 - `report` yanıt alanı isteğe bağlı olarak `title`, `summary`, `input`, `prepared_at`, `scope` taşıyabilir. Eksik alanlar üretilmez; geçersiz tarih gösterilmez. Otomatik servis raporu editörün hazırladığı örnek gibi etiketlenmez.
 - Kaynaklarda isteğe bağlı `relation` (`supports`, `contradicts`, `context`), `excerpt_kind: "summary"` ve `kind` desteklenir. Bu alanlar mevcut backend tarafından sağlanmış kabul edilmez; backend ekibinin sözleşmeyi doğrulaması gerekir.
+- `excerpt_kind: "snippet"` (19 Ekim 2026): pasaj kaynak sayfadan değil, arama servisinin (Tavily) özetinden gelir; sayfada bu sözcüklerle geçmeyebilir. backend_v2 gönderir (`backend_v2/app/retrieval.py`: lite modülünde `metadata.fetch_method` `tavily_*` ise; Tavily retriever'da her zaman). Arayüz bu pasajı tırnak içinde alıntı olarak göstermez. Alan yoksa pasaj sayfa metnidir.
 - Servis yokken metin alanı yazılabilir; gönderim eylemi sunulmaz ve gönderim işleyicisi istek başlatmaz. Hazır örnek yazılan metni kullanmaz.
 - Gerçek gönderim açılmadan önce veri saklama, hizmet sağlayıcıları, silme ve sorumlu/iletişim bilgileri kesinleştirilmelidir.

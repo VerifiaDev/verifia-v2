@@ -61,6 +61,19 @@ def _domain(url: str) -> str:
     return host[4:] if host.startswith("www.") else host
 
 
+def _mark_snippets(sources: list) -> list:
+    """Label passages that come from the search provider's summary, not the page itself.
+
+    The frontend shows such passages without quotation marks (`excerpt_kind: "snippet"`).
+    Page-text passages keep their shape unchanged.
+    """
+    for source in sources:
+        method = (source.get("metadata") or {}).get("fetch_method") or ""
+        if method.startswith("tavily"):
+            source["excerpt_kind"] = "snippet"
+    return sources
+
+
 class TavilyRetriever:
     name = "tavily"
 
@@ -113,6 +126,7 @@ class TavilyRetriever:
                     "published_date": r.get("published_date"),
                     "retrieval_score": round(float(r.get("score") or 0.0), 4),
                     "text": text[: self.snippet_chars],
+                    "excerpt_kind": "snippet",  # Tavily's extracted summary, never fetched page text
                 }
             )
             if len(out) >= self.max_sources:
@@ -234,7 +248,7 @@ class LiteRetriever:
         cancellation = Event()
         cancel_token = self._mod._cancellation_event.set(cancellation)
         try:
-            return await asyncio.to_thread(self._mod.search, claim_text, self.max_sources)
+            return _mark_snippets(await asyncio.to_thread(self._mod.search, claim_text, self.max_sources))
         except asyncio.CancelledError:
             # Signals cooperative stop; does not kill a blocking DNS/SDK/socket call.
             cancellation.set()
