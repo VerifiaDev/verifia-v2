@@ -19,7 +19,8 @@ export interface RawCheckRequest {
 export interface RawEvidence {
   /** İsteğe bağlı; yalnızca servis açıkça sağlıyorsa gösterilir. */
   relation?: "supports" | "contradicts" | "context";
-  excerpt_kind?: "summary";
+  /** "snippet": pasaj sayfadan değil arama servisinin özetinden gelir (backend_v2/app/retrieval.py). */
+  excerpt_kind?: "summary" | "snippet";
   kind?: string;
   id?: string;
   /** Kısa kanıt pasajı */

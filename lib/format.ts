@@ -214,3 +214,6 @@ export const UNFINISHED_REASON: Record<"timeout" | "error" | "skipped", string> 
   error: "incelenirken bir hata oluştu",
   skipped: "metinde çok iddia olduğu için incelenmedi",
 };
+
+/** Arama servisinin özetinden gelen pasajın etiketi (`excerptKind: "snippet"`). Ekranda ve kopyalanan raporda aynıdır. */
+export const SNIPPET_LABEL = "Arama motorunun özeti; kaynak sayfada bu sözcüklerle geçmeyebilir";

@@ -1,5 +1,5 @@
 import { Icon } from "./Icon";
-import { formatDate, hostOf, isSafeHttpUrl, sourceAnchor } from "@/lib/format";
+import { SNIPPET_LABEL, formatDate, hostOf, isSafeHttpUrl, sourceAnchor } from "@/lib/format";
 import type { Source } from "@/lib/types";
 
 const EXCERPT_MAX = 360;
@@ -26,9 +26,12 @@ export function EvidenceCard({ source, number, claimId }: Props) {
       ? `${source.excerpt.slice(0, EXCERPT_MAX).trimEnd()}…`
       : source.excerpt;
   const longExcerpt = Boolean(source.excerpt && source.excerpt.length > EXCERPT_MAX);
+  // Yalnızca sayfa metninden gelen pasaj tırnak içinde alıntıdır; özetler etiketlenir.
   const passage = (text: string) => source.excerptKind === "summary"
     ? <div><p className="t-meta muted">Kaynağın Türkçe özeti</p><p className="evidence-excerpt">{text}</p></div>
-    : <blockquote className="evidence-excerpt">“{text}”</blockquote>;
+    : source.excerptKind === "snippet"
+      ? <div><p className="t-meta muted">{SNIPPET_LABEL}</p><p className="evidence-excerpt">{text}</p></div>
+      : <blockquote className="evidence-excerpt">“{text}”</blockquote>;
 
   return (
     <li id={sourceAnchor(claimId, number)} className={hasMeta ? "evidence" : "evidence evidence--plain"}>

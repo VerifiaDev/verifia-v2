@@ -31,7 +31,8 @@ export type ErrorCode =
 export interface Source {
   /** Yalnızca servis veya editör açıkça belirttiğinde gösterilir; sonuçtan türetilmez. */
   relation?: "supports" | "contradicts" | "context";
-  excerptKind?: "summary";
+  /** "summary": editörün Türkçe özeti. "snippet": arama servisinin özeti; kaynak sayfadan birebir alıntı değildir. */
+  excerptKind?: "summary" | "snippet";
   kind?: string;
   /** Açıklamadaki atıfla eşleşen kimlik, örn. "kaynak_1" */
   id: string;

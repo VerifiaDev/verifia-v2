@@ -91,6 +91,7 @@ function parseSource(raw: unknown, index: number): Source | null {
     excerpt: str(raw.text) ?? str(raw.excerpt),
     ...(raw.relation === "supports" || raw.relation === "contradicts" || raw.relation === "context" ? { relation: raw.relation } : {}),
     ...(raw.excerpt_kind === "summary" || raw.excerptKind === "summary" ? { excerptKind: "summary" as const } : {}),
+    ...(raw.excerpt_kind === "snippet" || raw.excerptKind === "snippet" ? { excerptKind: "snippet" as const } : {}),
     ...(str(raw.kind) ? { kind: str(raw.kind)! } : {}),
   };
 }

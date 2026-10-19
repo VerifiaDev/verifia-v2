@@ -1,4 +1,4 @@
-import { UNFINISHED_REASON, VERDICT_META } from "./format";
+import { SNIPPET_LABEL, UNFINISHED_REASON, VERDICT_META } from "./format";
 import type { CheckResult } from "./types";
 import { numberCitations } from "./citations";
 
@@ -14,7 +14,7 @@ export function reportText(result: CheckResult, input?: string, sample = false):
       `${i + 1}. ${c.text}`, VERDICT_META[c.verdict].label,
       !c.sources.length ? "Bu sonuç için kaynak sunulmadı; hüküm kaynak üzerinden denetlenemiyor." : "",
       numberCitations(c.explanation, c.sources) || "Sonucun gerekçesi paylaşılmadı.",
-      ...c.sources.map((s, index) => `[${index + 1}] ${s.name ?? s.url}\n${s.publishedAt ? `Yayın tarihi: ${s.publishedAt}\n` : ""}${s.kind ? `${s.kind}\n` : ""}${s.relation ? `${s.relation === "supports" ? "İddiayı destekliyor" : s.relation === "contradicts" ? "İddiayla çelişiyor" : "Bağlam sağlıyor"}\n` : ""}${s.excerptKind === "summary" ? "Türkçe özet: " : ""}${s.excerpt ?? ""}\n${s.url}`),
+      ...c.sources.map((s, index) => `[${index + 1}] ${s.name ?? s.url}\n${s.publishedAt ? `Yayın tarihi: ${s.publishedAt}\n` : ""}${s.kind ? `${s.kind}\n` : ""}${s.relation ? `${s.relation === "supports" ? "İddiayı destekliyor" : s.relation === "contradicts" ? "İddiayla çelişiyor" : "Bağlam sağlıyor"}\n` : ""}${s.excerptKind === "summary" ? "Türkçe özet: " : s.excerptKind === "snippet" ? `${SNIPPET_LABEL}: ` : ""}${s.excerpt ?? ""}\n${s.url}`),
     ].filter(Boolean).join("\n")),
     result.unverifiable.length ? `İncelenmeyen ifadeler:\n${result.unverifiable.join("\n")}` : "",
     result.unfinished?.length ? `İncelenemeyen iddialar:\n${result.unfinished.map((u) => `${u.text} (${UNFINISHED_REASON[u.reason]})`).join("\n")}` : "",
