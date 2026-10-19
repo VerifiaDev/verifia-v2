@@ -17,14 +17,15 @@ from typing import Iterable, Optional
 VERDICTS = {"SUPPORTED", "REFUTED", "NOT ENOUGH EVIDENCE", "CONFLICTING"}
 CLAIM_STATUSES = {"ok", "error", "timeout", "skipped"}
 
-# request-level codes the frontend knows how to explain to the user
+# Request-level API codes; clients may use HTTP status fallback for newer codes.
 KNOWN_ERROR_CODES = {
     "EMPTY_TEXT", "VALIDATION_ERROR", "TEXT_TOO_LONG", "BUSY", "RATE_LIMITED",
     "DAILY_QUOTA_EXCEEDED", "UPSTREAM_UNAVAILABLE", "TIMEOUT", "CONFIG_ERROR",
-    "EXTRACTION_TIMEOUT", "EXTRACTION_FAILED", "VERIFY_FAILED",
+    "EXTRACTION_TIMEOUT", "EXTRACTION_FAILED", "VERIFY_FAILED", "UPSTREAM_RATE_LIMITED",
 }
 # per-claim codes (results[i].error_code when status != "ok")
-CLAIM_ERROR_CODES = {"CLAIM_TIMEOUT", "DEADLINE_EXCEEDED", "RETRIEVAL_FAILED", "VERDICT_FAILED", "INTERNAL_ERROR"}
+CLAIM_ERROR_CODES = {"CLAIM_TIMEOUT", "DEADLINE_EXCEEDED", "RETRIEVAL_FAILED", "VERDICT_FAILED", "INTERNAL_ERROR",
+                     "UPSTREAM_RATE_LIMITED", "UPSTREAM_TIMEOUT"}
 
 CLAIM_KEYS = {"claim_id", "claim", "is_verifiable", "verdict", "explanation", "used_sources", "sources", "status"}
 SOURCE_KEYS = {"id", "title", "domain", "url", "published_date", "text"}

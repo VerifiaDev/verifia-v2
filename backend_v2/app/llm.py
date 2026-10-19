@@ -10,22 +10,21 @@ ai_engine.py stays the single source of truth (no copy in backend_v2):
 Two things are added on top, both without editing ai_engine.py:
   1. `reasoning_effort="low"` for gpt-oss models. These are reasoning
      models; by default they "think" for several seconds before answering,
-     which is the biggest single latency cost of each LLM call. If Groq
-     rejects the parameter, it is dropped automatically and the call retried.
-  2. A short HTTP timeout and 1 retry on the Groq client, so a hung call
-     fails fast instead of eating the whole request budget.
+     which is the biggest single latency cost of each LLM call.
+  2. A short HTTP timeout with no automatic retries, avoiding duplicate
+     paid calls after quota errors or ambiguous timeouts.
 """
 
 from __future__ import annotations
 
 import asyncio
 import json
-import logging
 import sys
 from pathlib import Path
 
-log = logging.getLogger("verify.llm")
+from groq import APIError, APITimeoutError, RateLimitError
 
+from .upstream_errors import InvalidModelResponse, UpstreamError, UpstreamRateLimited, UpstreamTimeout
 
 def _import_ai_engine():
     try:
@@ -45,7 +44,6 @@ def make_engine(settings):
 
     class FastEngine(ae.FactCheckEngine):
         reasoning_effort = settings.reasoning_effort
-        _reasoning_ok = True
 
         def _generate(self, system_prompt, user_prompt, schema_model, schema_name):
             kwargs = dict(
@@ -59,7 +57,6 @@ def make_engine(settings):
             )
             use_effort = bool(
                 self.reasoning_effort
-                and self._reasoning_ok
                 and self.model_name.startswith("openai/gpt-oss")
             )
             if use_effort:
@@ -67,21 +64,27 @@ def make_engine(settings):
 
             try:
                 completion = self.client.chat.completions.create(**kwargs)
-            except Exception as exc:
-                if use_effort and "reasoning" in str(exc).lower():
-                    log.warning("Groq rejected reasoning_effort; retrying without it: %s", exc)
-                    type(self)._reasoning_ok = False
-                    kwargs.pop("reasoning_effort", None)
-                    completion = self.client.chat.completions.create(**kwargs)
-                else:
-                    raise
-            return schema_model.model_validate(json.loads(completion.choices[0].message.content))
+            except RateLimitError:
+                raise UpstreamRateLimited() from None
+            except APITimeoutError:
+                raise UpstreamTimeout() from None
+            except APIError:
+                raise UpstreamError() from None
+            try:
+                result = schema_model.model_validate(json.loads(completion.choices[0].message.content))
+            except (ValueError, TypeError, AttributeError, IndexError):
+                # ValidationError is a ValueError and may include raw input values.
+                raise InvalidModelResponse() from None
+            # The base engine's verdict check embeds the untrusted label in ValueError.
+            if schema_name == "verdict_result" and result.verdict not in ae.VALID_VERDICTS:
+                raise InvalidModelResponse()
+            return result
 
     engine = FastEngine(api_key=settings.groq_api_key, model_name=settings.model_name)
     try:
-        engine.client = engine.client.with_options(timeout=settings.llm_timeout, max_retries=1)
-    except Exception:  # older SDKs: keep defaults
-        log.warning("could not apply LLM timeout options; using SDK defaults")
+        engine.client = engine.client.with_options(timeout=settings.llm_timeout, max_retries=0)
+    except Exception:
+        raise RuntimeError("LLM istemci seçenekleri uygulanamadı.") from None
     return engine
 
 
