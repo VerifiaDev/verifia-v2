@@ -9,6 +9,8 @@ import { Icon } from "./Icon";
 import { ReportTools } from "./ReportTools";
 import { formatDate } from "@/lib/format";
 import { LegendDisclosure } from "./Legend";
+import { UnderlineKey } from "./UnderlineKey";
+import { annotateInput } from "@/lib/annotate";
 
 interface Props {
   input?: string;
@@ -28,6 +30,9 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
   const headingRef = useRef<HTMLHeadingElement>(null);
   const { claims, unverifiable, unreadable } = result;
   const unfinished = result.unfinished ?? [];
+  const shownInput = result.report?.input ?? input;
+  const segments = shownInput ? annotateInput(shownInput, claims) : [];
+  const hasMarks = segments.some((s) => s.tone);
   const preparedDate = formatDate(result.report?.preparedAt ?? null);
   const [expanded, setExpanded] = useState<Set<string>>(() => new Set(claims[0] ? [claims[0].id] : []));
   const [listOpen, setListOpen] = useState(false);
@@ -94,7 +99,9 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
           </p>
         )}
         {result.report?.summary && <details className="more report-brief"><summary>Kısa değerlendirmeyi oku <Icon name="chevron" className="chevron" /></summary><p>{result.report.summary}</p></details>}
-        {(result.report?.input ?? input) && <details className="more report-input"><summary>İncelenen metni gör <Icon name="chevron" /></summary><p>{result.report?.input ?? input}</p></details>}
+        {shownInput && <details className="more report-input" open={hasMarks}><summary>İncelenen metni gör <Icon name="chevron" /></summary><p>{segments.map((s, i) => s.tone
+          ? <span key={i} className={`ul-${s.tone}`}><span className="sr-only">{s.tone === "ok" ? "[Kanıtlar destekliyor:] " : "[Kanıtlar çelişiyor:] "}</span>{s.text}</span>
+          : s.text)}</p>{hasMarks && <p className="report-input-note muted t-meta">Alt çizgiler yalnızca metinde aynen geçen iddialar için çizilir. Diğer iddiaların sonucu aşağıdaki listededir.</p>}</details>}
 
         {unfinished.length > 0 && (
           <p className="note note--warn" role="note">
@@ -199,6 +206,7 @@ export function ResultView({ result, onReset, sample = false, showcase = false, 
           </ul>
         </section>
       )}
+      {hasMarks && <UnderlineKey />}
       <section className="report-scope" aria-labelledby="scope-title"><h3 id="scope-title" className="t-h4">Kapsam ve sınırlamalar</h3><p className="muted">{result.report?.scope ?? "Bu rapor yalnızca listelenen iddia ve kaynakları gösterir; metnin tamamı için tek bir doğruluk hükmü değildir. Servis, araştırmanın kapsamını paylaşmadı."}</p></section>
       <ReportTools result={result} input={input} sample={sample} showcase={showcase} />
 
