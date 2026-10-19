@@ -33,6 +33,21 @@ describe("atıfsız hüküm uyarısı", () => {
     assert.equal(isUncitedVerdict(claim("SUPPORTED", "Doğru [source_9].")), true);
   });
 
+  it("atıf olmayan köşeli parantez ([2023], [sic]) atıf sayılmaz", () => {
+    assert.equal(isUncitedVerdict(claim("SUPPORTED", "2023 verisi [2023] böyle diyor [sic].")), true);
+  });
+
+  it("açıklama boşsa yalnızca 'gerekçe paylaşılmadı' uyarısı çıkar; ekran ve rapor aynı", () => {
+    const empty = claim("SUPPORTED", "");
+    assert.equal(isUncitedVerdict(empty), false, "boş açıklamanın kendi uyarısı var");
+    const html = render(empty);
+    assert.ok(html.includes("Kanıt bilgisi eksik: sonucun gerekçesi paylaşılmadı."), html);
+    assert.ok(!html.includes(UNCITED_NOTE), html);
+    const text = reportText({ claims: [empty], unverifiable: [], unreadable: [] });
+    assert.ok(text.includes("Sonucun gerekçesi paylaşılmadı."), text);
+    assert.ok(!text.includes(UNCITED_NOTE), text);
+  });
+
   it("atıfsız hükümde hüküm korunur ve iddia satırında uyarı gösterilir", () => {
     const html = render(claim("SUPPORTED", "Kaynaklar doğruluyor."));
     assert.ok(html.includes(VERDICT_META.SUPPORTED.label), "hüküm değiştirilmez");

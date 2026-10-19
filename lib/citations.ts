@@ -57,10 +57,11 @@ export const UNCITED_NOTE = "sonuç hiçbir kaynağa atıf yapmıyor; kaynaklar�
 /**
  * Kaynak bulunmuş ve kesin bir hüküm verilmiş ama açıklama listedeki hiçbir kaynağa atıf yapmıyor mu?
  * Böyle bir hüküm kaynak üzerinden denetlenemez; hüküm değiştirilmez, yalnızca uyarı gösterilir.
- * Kaynaksız hükmün kendi uyarısı vardır; "yeterli kanıt yok" bir şey öne sürmediği için sayılmaz.
+ * Kaynaksız ve gerekçesiz (boş açıklamalı) hükmün kendi uyarısı vardır; "yeterli kanıt yok" bir şey öne sürmediği için sayılmaz.
  */
 export function isUncitedVerdict(claim: Pick<Claim, "verdict" | "explanation" | "sources">): boolean {
   return claim.verdict !== "NOT_ENOUGH_EVIDENCE"
     && claim.sources.length > 0
+    && claim.explanation.trim() !== ""
     && citedNumbers(claim.explanation, claim.sources).length === 0;
 }
