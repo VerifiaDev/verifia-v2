@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore, type CSSProperties } from "react";
 import { Icon } from "./Icon";
+import { UnderlineKey } from "./UnderlineKey";
 import { VERDICT_META } from "@/lib/format";
 import type { Verdict } from "@/lib/types";
 
@@ -18,9 +19,10 @@ import type { Verdict } from "@/lib/types";
  * - Yalnızca opaklık, küçük bir kayma ve alt çizgi rengi değişir; yeni renk ya da yazı tipi yoktur.
  */
 
-const SENTENCES: { text: string; claim: boolean }[] = [
-  { text: "Apollo 11, 20 Temmuz 1969'da Ay'a indi.", claim: true },
-  { text: "Görevdeki üç astronot da Ay yüzeyinde yürüdü.", claim: true },
+/** tone: alt çizgi rengi. Destekleniyor → yeşil, çelişiyor → kırmızı, yeterli kanıt yok → varsayılan (koyu mavi). */
+const SENTENCES: { text: string; claim: boolean; tone?: "ok" | "bad" }[] = [
+  { text: "Apollo 11, 20 Temmuz 1969'da Ay'a indi.", claim: true, tone: "ok" },
+  { text: "Görevdeki üç astronot da Ay yüzeyinde yürüdü.", claim: true, tone: "bad" },
   { text: "Görevden sonra Türkiye'de astronomiye ilgi iki katına çıktı.", claim: true },
   { text: "Bu, insanlığın en etkileyici yolculuğuydu.", claim: false },
 ];
@@ -85,7 +87,7 @@ export function ProcessDemo() {
         <p className="demo-label">Yapıştırılan metin</p>
         <p className="demo-text">
           {SENTENCES.map((s, i) => (
-            <span key={s.text} className={s.claim ? "demo-s demo-s--claim" : "demo-s demo-s--opinion"} style={{ "--i": i } as CSSProperties}>
+            <span key={s.text} className={s.claim ? `demo-s demo-s--claim${s.tone ? ` demo-s--${s.tone}` : ""}` : "demo-s demo-s--opinion"} style={{ "--i": i } as CSSProperties}>
               {s.text}{" "}
             </span>
           ))}
@@ -126,6 +128,7 @@ export function ProcessDemo() {
           </button>
         )}
       </figcaption>
+      <UnderlineKey />
     </figure>
   );
 }

@@ -1418,6 +1418,12 @@ a.btn {
   text-decoration-thickness: 2px;
   text-underline-offset: 0.25em;
 }
+.demo-s--ok {
+  text-decoration-color: var(--ok);
+}
+.demo-s--bad {
+  text-decoration-color: var(--bad);
+}
 .demo-s--opinion {
   color: var(--ink-2);
   text-decoration: underline dotted;
@@ -1897,4 +1903,36 @@ a.btn {
   .chevron, .excerpt-preview, .excerpt-full > summary, .claim-jump { display: none !important; }
   .report-input > p { display: block; }
   * { animation: none !important; transition: none !important; }
+}
+
+/* Alt çizgi renkleri: yapıştırılan metinde ve "Alt çizgiler ne anlama geliyor?" kutusunda aynı. Renkler açık ve
+   siyah modda ayrı değer alan --ok / --bad / --accent / --ink-2 değişkenlerinden gelir. */
+.ul-ok,
+.ul-bad,
+.ul-unknown,
+.ul-opinion {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.25em;
+}
+.ul-ok { text-decoration-color: var(--ok); }
+.ul-bad { text-decoration-color: var(--bad); }
+.ul-unknown { text-decoration-color: var(--accent); }
+.ul-opinion { text-decoration-style: dotted; text-decoration-color: var(--ink-2); color: var(--ink-2); }
+.ul-key {
+  margin-top: var(--space-5);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: var(--border) solid var(--rule);
+  border-radius: var(--radius);
+}
+.ul-key ul { display: grid; gap: var(--space-3); margin-top: var(--space-3); }
+.ul-key li { display: grid; gap: var(--space-1); font-size: var(--text-sm); }
+.ul-key .ul-sample { font-weight: 600; }
+.report-input-note { margin-top: var(--space-2); }
+@media (min-width: 40rem) {
+  .ul-key li { grid-template-columns: 8rem minmax(0, 1fr); column-gap: var(--space-4); }
+}
+@media print {
+  .ul-ok, .ul-bad { text-decoration-color: currentColor; }
 }
