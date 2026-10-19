@@ -3,7 +3,7 @@
  * Listede olmayan bir atıf hiçbir zaman kaynağa çevrilmez (kaynak uydurulmaz).
  * Atıf olmayan köşeli parantezli metin ([2023], [...], [sic]) olduğu gibi kalır; silinmez.
  */
-import type { Source } from "./types";
+import type { Claim, Source } from "./types";
 
 const CITATION = /\[([^\]]+)\]/g;
 
@@ -49,4 +49,18 @@ export function citedNumbers(explanation: string, sources: Source[]): number[] {
     }
   }
   return seen;
+}
+
+/** Kesin bir hüküm hiçbir kaynağa atıf yapmıyorsa ("Kanıt bilgisi eksik: ..."). Ekranda ve kopyalanan raporda aynıdır. */
+export const UNCITED_NOTE = "sonuç hiçbir kaynağa atıf yapmıyor; kaynakları kendiniz kontrol edin.";
+
+/**
+ * Kaynak bulunmuş ve kesin bir hüküm verilmiş ama açıklama listedeki hiçbir kaynağa atıf yapmıyor mu?
+ * Böyle bir hüküm kaynak üzerinden denetlenemez; hüküm değiştirilmez, yalnızca uyarı gösterilir.
+ * Kaynaksız hükmün kendi uyarısı vardır; "yeterli kanıt yok" bir şey öne sürmediği için sayılmaz.
+ */
+export function isUncitedVerdict(claim: Pick<Claim, "verdict" | "explanation" | "sources">): boolean {
+  return claim.verdict !== "NOT_ENOUGH_EVIDENCE"
+    && claim.sources.length > 0
+    && citedNumbers(claim.explanation, claim.sources).length === 0;
 }

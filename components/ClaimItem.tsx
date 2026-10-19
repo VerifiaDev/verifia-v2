@@ -2,7 +2,7 @@ import { EvidenceCard } from "./EvidenceCard";
 import { Explanation } from "./Explanation";
 import { Icon } from "./Icon";
 import { VerdictSummary } from "./VerdictSummary";
-import { citedNumbers } from "@/lib/citations";
+import { UNCITED_NOTE, citedNumbers, isUncitedVerdict } from "@/lib/citations";
 import { CLAIM_LIST_ID, claimAnchor } from "@/lib/format";
 import type { Claim } from "@/lib/types";
 
@@ -30,6 +30,7 @@ export function ClaimItem({ claim, index, total, sample = false, showcase = fals
   const { sources } = claim;
   const cited = citedNumbers(claim.explanation, sources);
   const hasCitations = cited.length > 0;
+  const uncited = isUncitedVerdict(claim);
   const keyNumbers = hasCitations ? cited : sources.slice(0, FALLBACK_KEY_COUNT).map((_, i) => i + 1);
   const restNumbers = sources.map((_, i) => i + 1).filter((n) => !keyNumbers.includes(n));
   const titleId = `${claimAnchor(claim.id)}-title`;
@@ -52,7 +53,7 @@ export function ClaimItem({ claim, index, total, sample = false, showcase = fals
             <span className="claim-summary-kicker">İDDİA {index + 1} / {total}{sample && <strong className="sample-badge">Örnek veri</strong>}</span>
             <span id={titleId} className="t-h3" role="heading" aria-level={3}>{claim.text}</span>
             <span className="ci-meta"><VerdictSummary verdict={claim.verdict} variant="inline" /><span>{sources.length === 0 ? "Kaynak yok" : hasCitations && keyNumbers.length < sources.length ? `${sources.length} kaynak bulundu, ${keyNumbers.length} tanesine dayanıldı` : `${sources.length} kaynak`}</span></span>
-            {((claim.verdict === "SUPPORTED" || claim.verdict === "REFUTED") && !sources.length || !claim.explanation.trim()) && <span className="claim-evidence-warning">Kanıt bilgisi eksik: {sources.length === 0 ? "bu hükmü denetlemek için kaynak sunulmadı." : "sonucun gerekçesi paylaşılmadı."}</span>}
+            {((claim.verdict === "SUPPORTED" || claim.verdict === "REFUTED") && !sources.length || !claim.explanation.trim() || uncited) && <span className="claim-evidence-warning">Kanıt bilgisi eksik: {sources.length === 0 ? "bu hükmü denetlemek için kaynak sunulmadı." : !claim.explanation.trim() ? "sonucun gerekçesi paylaşılmadı." : UNCITED_NOTE}</span>}
           </span>
           <Icon name="chevron" className="chevron" />
         </summary>
