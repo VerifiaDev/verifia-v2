@@ -86,7 +86,12 @@ class RequestContextMiddleware:
             if name == _HEADER_BYTES:
                 incoming = value.decode("latin-1")
                 break
-        rid = accept_request_id(incoming)
+        # Diagnostic requests must not reflect a secret/IP copied into request ID.
+        diagnostic_request = (
+            scope.get("method") == "GET" and scope.get("path") == "/"
+            and any(name == b"x-verifia-ip-diagnostics" for name, _ in scope.get("headers", []))
+        )
+        rid = new_request_id() if diagnostic_request else accept_request_id(incoming)
         token = request_id_var.set(rid)
         scope.setdefault("state", {})["request_id"] = rid
 
