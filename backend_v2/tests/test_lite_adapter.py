@@ -162,7 +162,7 @@ def test_parallel_fetch_is_faster_and_gives_the_same_sources():
         assert t_par < t_seq / 2, "parallel downloads should be much faster"
         assert [s["url"] for s in fast] == [s["url"] for s in base]
         assert fast == base, "all evidence and metadata must match"
-        assert fast == BASELINE_SOURCES, "normal output must match pre-partial baseline exactly"
+        assert fast == BASELINE_SOURCES, "normal output must match the canonical-page baseline exactly"
 
 
 def test_installing_twice_is_safe():
@@ -389,7 +389,8 @@ def test_context_cleanup_on_timeout_exception_and_cancellation():
         asyncio.run(go())
 
 
-# Captured from the pre-partial implementation with the same offline fixture.
+# Offline fixture baseline: best retrieval-scoring chunk per canonical page.
+# Source 2 formerly used a lower-scoring chunk chosen for MMR novelty.
 BASELINE_SOURCES = [{'id': 'source_1',
   'url': 'https://site0.example.com/claimalpha/haber/0',
   'text': 'claimalpha 2024 yılında üretim yüzde 20 arttı ve 0. çeyrekte büyüdü.',
@@ -408,20 +409,19 @@ BASELINE_SOURCES = [{'id': 'source_1',
                'fetch_method': 'requests'}},
  {'id': 'source_2',
   'url': 'https://site1.example.com/claimalpha/haber/1',
-  'text': 'claimalpha yıllık raporu üretim artışını yeni yatırımlarla açıkladı. claimalpha 2024 '
-          'yılında üretim yüzde 20 arttı ve 5. çeyrekte büyüdü.',
+  'text': 'claimalpha 2024 yılında üretim yüzde 20 arttı ve 0. çeyrekte büyüdü.',
   'title': 'claimalpha üretim raporu 1',
   'domain': 'site1.example.com',
   'published_date': None,
-  'retrieval_score': 0.8413,
+  'retrieval_score': 0.8818,
   'candidate_type': 'lite_chunk',
   'metadata': {'retrieval_version': '5.2-lite-512mb',
                'api_version': 'search-v1',
                'scoring_mode': 'lite_lexical',
-               'lexical_score': 0.8507,
+               'lexical_score': 0.916,
                'search_score': 0.7127,
                'structural_score': 1.0,
-               'mmr_score': 0.6107,
+               'mmr_score': 0.5807,
                'fetch_method': 'requests'}},
  {'id': 'source_3',
   'url': 'https://site2.example.com/claimalpha/haber/2',

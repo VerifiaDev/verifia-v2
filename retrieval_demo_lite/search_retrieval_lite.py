@@ -28,7 +28,7 @@ import re
 import socket
 import unicodedata
 from collections import Counter, OrderedDict
-from urllib.parse import urljoin, urlparse, urlunparse
+from urllib.parse import unquote, urljoin, urlparse, urlunparse
 
 import requests
 from bs4 import BeautifulSoup
@@ -1408,6 +1408,95 @@ def _focus(
 # CANDIDATES
 # ==========================================================
 
+def _intent_normalize(text: str) -> str:
+    # Turkish dotless i is not decomposed by NFKD. Keep this normalization
+    # local to intent detection so existing lexical ranking stays unchanged.
+    return re.sub(r"[\W_]+", " ", _normalize(text).replace("ı", "i")).strip()
+
+
+_QUESTION_TOKEN = r"(?:soru(?:lar)?|cevap(?:lar)?|cozum(?:ler)?|odev(?:ler)?|questions?|answers?|solutions?|quizzes|quiz|tests?|homework|exercises?)"
+_QUESTION_PATH_TOKEN = re.compile(rf"(?:{_QUESTION_TOKEN})+")
+# Whole-token category matching also accepts compounds (e.g. questionanswer),
+# without matching incidental substrings such as 'contest' or 'testimony'.
+def _question_path(url: str) -> bool:
+    path = _intent_normalize(unquote(urlparse(url).path))
+    return (any(_QUESTION_PATH_TOKEN.fullmatch(token) for token in path.split())
+            or bool(re.search(r"\bdogru mu yanlis mi\b", path)))
+
+
+_INSTRUCTION = re.compile(
+    r"\b(?:isaretle|cevapla|yanitla|siniflandir|eslestir|sec|doldur)(?:yin|yiniz|in|iniz|unuz)\b"
+    r"|\b(?:boslugu|bosluklari) doldurunuz\b"
+    r"|\basagidaki\b.{0,100}\b(?:yaziniz|belirtiniz|bulunuz)\b"
+)
+# Classification labels require a question particle;
+# a discussion of objective/subjective statements alone is not an exercise.
+_CLASSIFICATION_QUESTION = re.compile(
+    r"\b(?:nesnel|oznel|objective|subjective)\b.{0,35}\b(?:mi|midir|mu|mudur)\b"
+    r"|\bhangisi\b.{0,35}\b(?:dogru|yanlis)(?:dur|tur|tir|dir)?\b"
+)
+_ASSESSMENT_CONTEXT = re.compile(
+    r"\b(?:dogru (?:mu |veya |ya da |ve )?yanlis(?: mi)?"
+    r"|asagidakilerden hangisi|sorunun cevabi|true or false"
+    r"|choose the correct answer|answer the following|fill in the blanks)\b"
+)
+_TITLE_CONTEXT = re.compile(r"\b(?:hangisi|asagidaki|soru|cevap|cozum|quiz|homework|exercise)\b")
+
+
+def _exercise_context(text: str) -> bool:
+    normalized = _intent_normalize(text)
+    return bool(_INSTRUCTION.search(normalized)
+                or _CLASSIFICATION_QUESTION.search(normalized)
+                or _ASSESSMENT_CONTEXT.search(normalized)
+                or re.search(r"\b(?:soru|question)\s*:", text, re.IGNORECASE))
+
+
+def _evidence_intent(url: str, title: str, focused: str) -> tuple[float, list[str]]:
+    """Bounded, stance-neutral context cost; never excludes a candidate.
+
+    Each channel contributes once, so repeated keywords cannot amplify it.
+    A question mark alone is weak; explicit exercise instructions are stronger.
+    No claim matching or domain reputation is used.
+    """
+    flags = []
+    penalty = 0.0
+    if _question_path(url):
+        flags.append("question_path")
+        penalty += 0.04
+    normalized_title = _intent_normalize(title)
+    if _exercise_context(title):
+        flags.append("exercise_title")
+        penalty += 0.10
+    elif _TITLE_CONTEXT.search(normalized_title):
+        flags.append("question_title")
+        penalty += 0.04
+    elif title.rstrip().endswith("?"):
+        flags.append("question_mark_title")
+        penalty += 0.02
+    if _exercise_context(focused):
+        flags.append("exercise_text")
+        penalty += 0.14
+    return min(0.25, round(penalty, 4)), flags
+
+
+def _evidence_quality(intent_flags: list[str]) -> dict:
+    """Suitability is independent of relevance score and claim truth.
+
+    Require two distinct channels, including an explicit exercise channel.
+    Single-channel signals and combinations of weak cues remain eligible.
+    Keep this policy separate so future quality features can contribute here.
+    """
+    flags = set(intent_flags)
+    exercise_channels = flags & {"exercise_title", "exercise_text"}
+    strong = bool(exercise_channels) and (
+        "question_path" in flags or len(exercise_channels) == 2
+    )
+    return {
+        "evidence_intent_level": "strong_exercise" if strong else "weak_question" if flags else "normal",
+        "evidence_eligible": not strong,
+    }
+
+
 def _build_candidates_batch(
     claim_text: str,
     rows: list[dict],
@@ -1514,7 +1603,14 @@ def _build_candidates_batch(
                 * structural
             )
 
+            intent_penalty, intent_flags = _evidence_intent(
+                row.get("url") or "", row.get("title") or "", focused,
+            )
+
             candidates.append({
+                **_evidence_quality(intent_flags),
+                "evidence_intent_penalty": intent_penalty,
+                "evidence_intent_flags": intent_flags,
                 "text": focused,
 
                 "title": (
@@ -1566,7 +1662,7 @@ def _build_candidates_batch(
                     0.0,
                     min(
                         1.0,
-                        retrieval_score,
+                        retrieval_score - intent_penalty,
                     ),
                 ),
             })
@@ -1656,7 +1752,19 @@ def _select_diverse(
     ):
         return []
 
-    pool = [dict(candidate) for candidate in candidates[:30]]
+    # Deduplicate before the pool limit so repeated chunks cannot crowd out
+    # other pages. Stable sorting keeps the first candidate on score ties.
+    pages = {}
+    for candidate in sorted(candidates, key=lambda item: item["retrieval_score"], reverse=True):
+        _remaining("ranking")
+        # Shared by normal output and committed timeout snapshots. Keep all
+        # candidates upstream for diagnostics; never fill slots with exercises.
+        if not candidate.get("evidence_eligible", True):
+            continue
+        canonical = _canonical_url(candidate["url"])
+        if canonical not in pages:
+            pages[canonical] = candidate
+    pool = [dict(candidate) for candidate in list(pages.values())[:30]]
 
     selected = []
 
@@ -1819,6 +1927,12 @@ def _sources_from_selected(selected):
             ),
 
             "metadata": {
+                # Keep ordinary source metadata byte-for-byte compatible.
+                **({
+                    "evidence_intent_penalty": candidate["evidence_intent_penalty"],
+                    "evidence_intent_flags": candidate["evidence_intent_flags"],
+                    **_evidence_quality(candidate["evidence_intent_flags"]),
+                } if candidate.get("evidence_intent_penalty", 0.0) else {}),
                 "retrieval_version": (
                     SURUM
                 ),
