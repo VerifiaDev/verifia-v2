@@ -8,6 +8,7 @@ import pytest
 from app.limits import UpstreamGate
 from app.resources import ClaimLease, Lease, TrackingExecutor, current_claim_lease, current_lease
 from test_executor_diagnosis import wait_until
+from test_request_lease import active_guard
 
 
 @pytest.mark.parametrize("shutdown", ["closed_before_completion", "queued_callback_then_close", "graceful_drain"])
@@ -28,7 +29,7 @@ def test_worker_completion_at_loop_shutdown(shutdown):
         semaphore = asyncio.BoundedSemaphore(1)
         await semaphore.acquire()
         claim = ClaimLease(semaphore, loop)
-        request = Lease(NS(active=1))
+        request = Lease(active_guard())
         a = current_claim_lease.set(claim)
         b = current_lease.set(request)
         try:
@@ -93,7 +94,7 @@ def test_cancel_and_real_future_completion_release_exactly_once(order):
             semaphore = asyncio.BoundedSemaphore(1)
             await semaphore.acquire()
             claim = ClaimLease(semaphore, loop)
-            request = Lease(NS(active=1))
+            request = Lease(active_guard())
             release = threading.Event()
             started = asyncio.Event()
 
@@ -156,7 +157,7 @@ def test_all_shared_waiters_cancel_without_losing_owner(state):
         semaphore = asyncio.BoundedSemaphore(1)
         await semaphore.acquire()
         claim = ClaimLease(semaphore, loop)
-        request = Lease(NS(active=1))
+        request = Lease(active_guard())
         gate = UpstreamGate(1)
         gate_sem = gate._semaphore()
         if state == "queued":
@@ -238,7 +239,7 @@ def test_parallel_future_completions_after_loop_close_balance_all_owners():
         semaphore = asyncio.BoundedSemaphore(1)
         await semaphore.acquire()
         claim = ClaimLease(semaphore, loop)
-        request = Lease(NS(active=1))
+        request = Lease(active_guard())
         a = current_claim_lease.set(claim)
         b = current_lease.set(request)
         try:
@@ -281,7 +282,7 @@ def test_duplicate_completion_receipt_is_idempotent_across_threads():
         semaphore = asyncio.BoundedSemaphore(1)
         await semaphore.acquire()
         claim = ClaimLease(semaphore, loop)
-        request = Lease(NS(active=1))
+        request = Lease(active_guard())
         a = current_claim_lease.set(claim)
         b = current_lease.set(request)
         try:

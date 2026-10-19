@@ -122,13 +122,31 @@ class Lease(_WorkOwner):
     pending: int = 0
     finished: bool = False
     released: bool = False
+    loop: object = field(default_factory=asyncio.get_running_loop, init=False, repr=False, compare=False)
+    _release_token: object = field(default_factory=object, init=False, repr=False, compare=False)
     _lock: object = field(default_factory=threading.RLock, init=False, repr=False, compare=False)
 
     def release_if_done(self):
         with self._lock:
-            if self.finished and not self.pending and not self.released:
-                self.released = True
-                self.guard.active -= 1
+            if not self.finished or self.pending or self.released:
+                return
+            self.guard.queue_release(self._release_token)
+            self.released = True
+        # Admission mutation belongs to the owner loop. The guarded receipt is
+        # already visible to capacity checks, so losing this callback is safe.
+        if self.loop.is_closed():
+            return
+        try:
+            running_loop = asyncio.get_running_loop()
+        except RuntimeError:
+            running_loop = None
+        if running_loop is self.loop:
+            self.guard.release(self._release_token)
+        else:
+            try:
+                self.loop.call_soon_threadsafe(self.guard.release, self._release_token)
+            except RuntimeError:
+                pass  # A later admission check can drain the completion receipt.
 
 
 @dataclass

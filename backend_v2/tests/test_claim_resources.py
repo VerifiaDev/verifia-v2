@@ -8,6 +8,7 @@ import pytest
 from app.limits import UpstreamGate
 from app.resources import ClaimLease, Lease, TrackingExecutor, current_claim_lease, current_lease
 from test_executor_diagnosis import wait_until
+from test_request_lease import active_guard
 
 
 @pytest.mark.parametrize("outcome", ["success", "exception", "cancel"])
@@ -18,7 +19,7 @@ def test_claim_slot_waits_for_real_future_and_releases_once(outcome):
         semaphore = asyncio.BoundedSemaphore(1)
         await semaphore.acquire()
         claim = ClaimLease(semaphore, loop)
-        guard = NS(active=1)
+        guard = active_guard()
         request = Lease(guard)
         started = asyncio.Event()
         release = threading.Event()
@@ -86,7 +87,7 @@ def test_executor_submit_failure_rolls_back_both_owners():
         semaphore = asyncio.BoundedSemaphore(1)
         await semaphore.acquire()
         claim = ClaimLease(semaphore, loop)
-        request = Lease(NS(active=1))
+        request = Lease(active_guard())
         a = current_claim_lease.set(claim)
         b = current_lease.set(request)
         try:
@@ -111,7 +112,7 @@ def test_shared_queued_task_retains_creator_after_creator_cancels():
         semaphore = asyncio.BoundedSemaphore(1)
         await semaphore.acquire()
         owner = ClaimLease(semaphore, loop)
-        guard = NS(active=1)
+        guard = active_guard()
         request = Lease(guard)
         gate = UpstreamGate(1)
         gate_sem = gate._semaphore()
