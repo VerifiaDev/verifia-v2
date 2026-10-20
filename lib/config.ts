@@ -14,14 +14,11 @@ export function sampleReportUrl(origin: string): string {
 export const REPO_URL = "";
 
 /**
- * Arayüzün metin sınırı. Backend 10.000 karakter kabul eder (`max_length=10000`), ama arayüz bilerek daha azını
- * gönderir: 11 Ekim 2026'da canlıdaki backend hâlâ 1.0.0 sürümüydü (`GET /openapi.json`). O sürüm iddia sayısını ve
- * toplam süreyi sınırlamıyor, iddiaları sırayla işliyor; uzun metin arayüzün süre sınırını aşıyor ve sunucu işi
- * sürdürüp kota harcıyor.
- * backend_v2 (en çok 8 iddia, 45 saniye; fazlası "atlandı" olarak bildirilir) canlıya çıkınca 10_000'e yükseltilebilir;
- * önce `GET /openapi.json` içinde sürümün 2.0.0 olduğu doğrulanmalıdır.
+ * Arayüzün metin sınırı = backend'in sınırı (`max_length=10000`, backend_v2/app/main.py).
+ * backend_v2 en çok 8 iddia işler, toplam süreyi 45 saniyeyle sınırlar ve fazlasını "atlandı" olarak bildirir;
+ * bu yüzden uzun metin artık süresiz sürmez. Sınır backend'den büyük olmamalıdır: aşarsa sunucu 422 döner.
  */
-export const MAX_INPUT_LENGTH = 3_000;
+export const MAX_INPUT_LENGTH = 10_000;
 
 /** Tek istek bu süreden uzun sürerse vazgeçilir (ms). Çok iddialı metinlerde uzun sürebilir. */
 export const REQUEST_TIMEOUT_MS = 90_000;

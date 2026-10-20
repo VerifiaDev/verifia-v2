@@ -51,9 +51,9 @@ describe("validateInput", () => {
     assert.equal(r.ok, false);
     if (!r.ok) assert.equal(r.error.code, "INPUT_TOO_LONG");
   });
-  it("3.000 karakteri kabul eder, 3.001 karakteri göndermeden reddeder (canlı backend iddia ve süre sınırı koymuyor)", () => {
-    assert.equal(validateInput("text", "a".repeat(3000)).ok, true);
-    const r = validateInput("text", "a".repeat(3001));
+  it("10.000 karakteri kabul eder, 10.001 karakteri göndermeden reddeder (backend max_length=10000)", () => {
+    assert.equal(validateInput("text", "a".repeat(10000)).ok, true);
+    const r = validateInput("text", "a".repeat(10001));
     assert.equal(r.ok, false);
     if (!r.ok) assert.equal(r.error.code, "INPUT_TOO_LONG");
   });

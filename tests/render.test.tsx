@@ -270,8 +270,8 @@ describe("VerificationInput örnekleri", () => {
   });
   it("sayaç sınırı görünür biçimde taşır; düğme metninde ok işareti yoktur", () => {
     const html = renderToStaticMarkup(<VerificationInput onSubmit={() => {}} />);
-    assert.match(html, /class="field-count tnum" data-state="ok"[^>]*>0 \/ 3\.000</);
-    assert.ok(html.includes("En fazla 3.000 karakter."));
+    assert.match(html, /class="field-count tnum" data-state="ok"[^>]*>0 \/ 10\.000</);
+    assert.ok(html.includes("En fazla 10.000 karakter."));
     assert.ok(!html.includes("→"));
   });
   it("içeriğin dış servislere gittiğini söyler ve kişisel bilgi yapıştırılmamasını ister (alanın açıklamasına bağlı)", () => {

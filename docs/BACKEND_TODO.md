@@ -19,7 +19,7 @@ Proje kodunun tamamı artık `VerifiaDev/verifia-v2` deposundadır (kök: Next.j
 1. Render'da backend'i `backend_v2` olarak yayına alın (Dockerfile: `backend_v2/Dockerfile`). Canlıdaki sürüm hâlâ 1.0.0.
 2. Render ortam değişkenleri: `GROQ_API_KEY`, `TAVILY_API_KEY`, `EXPOSE_ERROR_DETAIL=0` (ya da hiç tanımlamayın), `FRONTEND_ORIGIN=<Vercel adresi>[,<alan adı>]`.
 3. Yayından sonra `/health` → `"status": "ok"` görün; Vercel'de `NEXT_PUBLIC_API_BASE_URL` bu adrese ayarlı olsun ve yeniden dağıtın.
-4. Arayüzün metin sınırı (3.000) v2 canlıya çıkınca 10.000'e yükseltilebilir.
+4. ~~Arayüzün metin sınırı~~ 10.000'e yükseltildi.
 5. Açık güvenlik işleri: IP başına istek/günlük kota (madde 1), sayfa indirme güvenliği (2), `/docs`-`/openapi.json` kapatma (5), yayında `localhost` kökenlerini kaldırma (6), gövde boyutu sınırı (7), istem enjeksiyonu (8), sürüm sabitleme ve root olmayan Docker kullanıcısı (10), `/health` içindeki model/ayar bilgisinin azaltılması (4).
 6. Açık test: açıklamadaki geçersiz `[source_N]` atıfları temizlenmiyor (Mert / madde 12, `tests/test_contract.py` xfail).
 
@@ -30,7 +30,7 @@ Canlı servis (`verify-wb28.onrender.com`) yalnızca ücretsiz isteklerle denend
 **Durum**
 - Canlıdaki sürüm hâlâ 1.0.0: `GET /openapi.json` → `info.version: "1.0.0"`, `POST /verify/stream` → 404. backend_v2 yayında değil.
 - Uyuyan sunucunun ilk `/health` yanıtı yaklaşık 132 saniyede geldi (tek ölçüm). Arayüz artık sayfa açılınca `/health` ile ön ısıtma yapıyor ve 150 saniyeye kadar bekliyor; kök neden barındırma planı ve ağır imajdır.
-- Arayüz metin sınırını 3.000 karaktere geri aldı; v2 yayına alınınca haber verilirse 10.000'e yükseltilir.
+- Arayüz metin sınırı 10.000 karakter (backend ile aynı).
 
 **Güvenlik için yapılacaklar (öncelik sırasıyla)**
 1. `/verify` kimliksiz ve sınırsız (`backend/main.py:110-206`; v2'de `backend_v2/app/main.py:191-221`): IP başına istek sınırı, aynı anda tek inceleme, günlük kota, Groq ve Tavily panellerinde harcama tavanı. Aşımda `429` + `Retry-After`; arayüz `RATE_LIMITED`, `BUSY`, `DAILY_QUOTA_EXCEEDED` kodlarını tanıyor.
