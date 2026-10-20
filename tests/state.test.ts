@@ -76,3 +76,17 @@ describe("hazır örnek girişi", () => {
     assert.equal(sampleEntryVisible(analysisReducer(idle, { type: "done", result, sample: true })), false);
   });
 });
+
+describe("destek kodu (X-Request-ID)", () => {
+  it("geçerli başlığı hata ekranına taşır; geçersiz ya da yoksa göstermez", async () => {
+    const { readRequestId } = await import("@/lib/api/http");
+    const { ApiRequestError } = await import("@/lib/api");
+    const h = (v: string | null) => ({ headers: new Headers(v ? { "X-Request-ID": v } : {}) });
+    assert.equal(readRequestId(h("abc12345-def")), "abc12345-def");
+    assert.equal(readRequestId(h("<b>x</b>")), undefined);
+    assert.equal(readRequestId(h("kisa")), undefined);
+    assert.equal(readRequestId(h(null)), undefined);
+    assert.deepEqual(new ApiRequestError("TIMEOUT", "m", "abc12345").toApiError(), { code: "TIMEOUT", message: "m", requestId: "abc12345" });
+    assert.deepEqual(new ApiRequestError("TIMEOUT", "m").toApiError(), { code: "TIMEOUT", message: "m" });
+  });
+});

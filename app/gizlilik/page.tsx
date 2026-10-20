@@ -21,7 +21,8 @@ export const metadata: Metadata = {
  *   Services Agreement m.4.2 (eğitimde kullanılmaz, 22 Haziran 2026), Tavily gizlilik politikası (24 Kasım 2025:
  *   sorgu verisi geliştirme ve eğitim için kullanılabilir, hesap açık kaldıkça saklanır).
  *   Karşılaştırma ve bekleyen öneriler: docs/GIZLILIK_VERI_ISLEME.md.
- * backend_v2 yayına alınırsa (6 saatlik bellek önbelleği vb.) bu sayfa güncellenmelidir.
+ * backend_v2 (18 Ekim'den beri canlı): 6 saatlik bellek önbelleği (backend_v2/app/pipeline.py, TTLCache) ve
+ * metin/sorgu içermeyen kayıtlar (backend_v2/app/safe_logging.py, observability.py) sayfaya yansıtıldı (20 Ekim).
  */
 export default function PrivacyPage() {
   return (
@@ -106,7 +107,15 @@ export default function PrivacyPage() {
           Metniniz ve sonuçlarınız tarafımızdan bir veritabanına kaydedilmez. Sonuç yalnızca açık olan sayfada durur;
           sayfayı yenilediğinizde ya da kapattığınızda kaybolur.
         </li>
-        <li>Render sunucu kayıtları, barındırma planına göre 7 ile 30 gün arasında saklanır ve sonra silinir.</li>
+        <li>
+          Aynı iddia tekrar incelendiğinde hızlı yanıt vermek için iddia ve sonucu, sunucunun belleğinde en fazla 6 saat
+          tutarız; diske ya da veritabanına yazılmaz ve sunucu yeniden başlayınca silinir.
+        </li>
+        <li>
+          Uygulamamızın sunucu kayıtlarına metniniz ve arama sorgularınız yazılmaz; yalnızca isteğin türü, adresi, durum
+          kodu ve süresi yazılır. Render sunucu kayıtları, barındırma planına göre 7 ile 30 gün arasında saklanır ve
+          sonra silinir.
+        </li>
         <li>Groq ve Tavily&apos;deki saklama, yukarıda belirtildiği gibi bu şirketlerin kendi koşullarına bağlıdır.</li>
       </ul>
 

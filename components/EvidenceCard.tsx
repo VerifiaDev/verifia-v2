@@ -26,7 +26,15 @@ export function EvidenceCard({ source, number, claimId }: Props) {
       ? `${source.excerpt.slice(0, EXCERPT_MAX).trimEnd()}…`
       : source.excerpt;
   const longExcerpt = Boolean(source.excerpt && source.excerpt.length > EXCERPT_MAX);
-  const passage = (text: string) => source.excerptKind === "summary"
+  const provenance = {
+    requests: "Sayfadan seçilen pasaj", requests_short: "Kısa sayfadan seçilen pasaj",
+    tavily_snippet: "Arama özeti; sayfanın tamamı incelenmedi", tavily_pdf_snippet: "PDF arama özeti; belge metni alınmadı",
+    unknown: "Pasajın alınma yöntemi belirtilmedi",
+  }[source.fetchMethod ?? "unknown"];
+  const snippet = source.fetchMethod === "tavily_snippet" || source.fetchMethod === "tavily_pdf_snippet";
+  const passage = (text: string) => snippet
+    ? <p className="evidence-excerpt">{text}</p>
+    : source.excerptKind === "summary"
     ? <div><p className="t-meta muted">Kaynağın Türkçe özeti</p><p className="evidence-excerpt">{text}</p></div>
     : <blockquote className="evidence-excerpt">“{text}”</blockquote>;
 
@@ -47,7 +55,10 @@ export function EvidenceCard({ source, number, claimId }: Props) {
       </div>
 
       <div className="evidence-body">
-        {source.relation && <p className={`evidence-relation ${source.relation === "supports" ? "tone-ok" : source.relation === "contradicts" ? "tone-bad" : "muted"}`}>{source.relation === "supports" ? "İddiayı destekliyor" : source.relation === "contradicts" ? "İddiayla çelişiyor" : "Bağlam sağlıyor"}</p>}
+        {source.relation && <p className={`evidence-relation ${source.relation === "supports" ? "tone-ok" : source.relation === "contradicts" ? "tone-bad" : "muted"}`}>{source.relation === "supports" ? "İddiayı destekliyor" : source.relation === "contradicts" ? "İddiayla çelişiyor" : source.relation === "context" ? "Bağlam sağlıyor" : "Doğrudan kanıt değil / ilgili değil"}</p>}
+        {source.assessmentReason && <p className="t-meta">{source.assessmentReason}</p>}
+        {source.strength === "LIMITED" && <p className="t-meta muted">Sınırlı kanıt</p>}
+        <p className="t-meta muted">{provenance}</p>
         {excerpt ? (
           longExcerpt ? <div className="expandable-excerpt">
             <div className="excerpt-preview">{passage(excerpt)}</div>

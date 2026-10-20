@@ -1,6 +1,6 @@
 import { UNFINISHED_REASON, VERDICT_META } from "./format";
 import type { CheckResult } from "./types";
-import { numberCitations } from "./citations";
+import { UNCITED_NOTE, isUncitedVerdict, numberCitations } from "./citations";
 
 /** Ekrandaki değerlendirme ve kaynaklar, çıktı alınırken de birlikte kalır. */
 export function reportText(result: CheckResult, input?: string, sample = false): string {
@@ -12,9 +12,10 @@ export function reportText(result: CheckResult, input?: string, sample = false):
     result.report?.summary ?? "",
     ...result.claims.map((c, i) => [
       `${i + 1}. ${c.text}`, VERDICT_META[c.verdict].label,
-      !c.sources.length ? "Bu sonuç için kaynak sunulmadı; hüküm kaynak üzerinden denetlenemiyor." : "",
+      !c.sources.length ? "Bu sonuç için kaynak sunulmadı; hüküm kaynak üzerinden denetlenemiyor." : isUncitedVerdict(c) ? `Kanıt bilgisi eksik: ${UNCITED_NOTE}` : "",
+      c.usedSourceIds !== undefined ? `${c.sources.length} kaynak bulundu, ${c.usedSourceIds.length} tanesine dayanıldı` : "",
       numberCitations(c.explanation, c.sources) || "Sonucun gerekçesi paylaşılmadı.",
-      ...c.sources.map((s, index) => `[${index + 1}] ${s.name ?? s.url}\n${s.publishedAt ? `Yayın tarihi: ${s.publishedAt}\n` : ""}${s.kind ? `${s.kind}\n` : ""}${s.relation ? `${s.relation === "supports" ? "İddiayı destekliyor" : s.relation === "contradicts" ? "İddiayla çelişiyor" : "Bağlam sağlıyor"}\n` : ""}${s.excerptKind === "summary" ? "Türkçe özet: " : ""}${s.excerpt ?? ""}\n${s.url}`),
+      ...c.sources.map((s, index) => `[${index + 1}] ${s.name ?? s.url}\n${s.publishedAt ? `Yayın tarihi: ${s.publishedAt}\n` : ""}${s.kind ? `${s.kind}\n` : ""}${s.relation ? `${s.relation === "supports" ? "İddiayı destekliyor" : s.relation === "contradicts" ? "İddiayla çelişiyor" : s.relation === "context" ? "Bağlam sağlıyor" : "Doğrudan kanıt değil / ilgili değil"}\n` : ""}${s.assessmentReason ? `${s.assessmentReason}\n` : ""}${s.fetchMethod?.includes("snippet") ? "Arama özeti (tam sayfa incelenmedi): " : s.fetchMethod === "requests" ? "Sayfadan seçilen pasaj: " : s.fetchMethod === "requests_short" ? "Kısa sayfadan seçilen pasaj: " : ""}${s.excerptKind === "summary" ? "Türkçe özet: " : ""}${s.excerpt ?? ""}\n${s.url}`),
     ].filter(Boolean).join("\n")),
     result.unverifiable.length ? `İncelenmeyen ifadeler:\n${result.unverifiable.join("\n")}` : "",
     result.unfinished?.length ? `İncelenemeyen iddialar:\n${result.unfinished.map((u) => `${u.text} (${UNFINISHED_REASON[u.reason]})`).join("\n")}` : "",

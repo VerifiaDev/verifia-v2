@@ -30,7 +30,10 @@ export type ErrorCode =
 
 export interface Source {
   /** Yalnızca servis veya editör açıkça belirttiğinde gösterilir; sonuçtan türetilmez. */
-  relation?: "supports" | "contradicts" | "context";
+  relation?: "supports" | "contradicts" | "context" | "irrelevant";
+  assessmentReason?: string;
+  strength?: "STRONG" | "LIMITED" | "NONE";
+  fetchMethod?: "requests" | "requests_short" | "tavily_snippet" | "tavily_pdf_snippet" | "unknown";
   excerptKind?: "summary";
   kind?: string;
   /** Açıklamadaki atıfla eşleşen kimlik, örn. "kaynak_1" */
@@ -45,12 +48,13 @@ export interface Source {
 }
 
 export interface Claim {
+  usedSourceIds?: string[];
   id: string;
   text: string;
   verdict: Verdict;
   /** İçinde [kaynak_1] gibi atıflar olabilir */
   explanation: string;
-  /** Yalnızca açıklamanın dayandığı kaynaklar */
+  /** Bulunan tüm kaynaklar; dayanak kimlikleri usedSourceIds alanındadır. */
   sources: Source[];
   /** Modelin kendi güven puanı, 0 ile 1 arasında. Backend vermezse ya da geçersizse null (uydurulmaz). */
   confidence: number | null;
@@ -93,4 +97,6 @@ export interface CheckRequest {
 export interface ApiError {
   code: ErrorCode;
   message: string;
+  /** Sunucunun `X-Request-ID` başlığı (varsa). Kullanıcı hatayı bildirirken verir; ekip sunucu günlüğünde bulur. */
+  requestId?: string;
 }

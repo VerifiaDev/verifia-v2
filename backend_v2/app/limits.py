@@ -26,6 +26,7 @@ from typing import Any, Awaitable, Callable, Hashable, Optional
 
 from .pipeline import cache_key
 from .resources import retain_task_resources
+from .evidence import evidence_fingerprint, claim_frame_fingerprint, current_research, current_claim_frame
 
 log = logging.getLogger("verify.limits")
 
@@ -98,16 +99,20 @@ class UpstreamGate:
 
     # ---- wrappers with the right keys for the two pipeline steps -----------------------
 
+    def _research_key(self):
+        frame = current_claim_frame.get()
+        return id(current_research.get()) if isinstance(frame, dict) and frame.get("fallback_queries") else None
+
     def retrieve(self, fn: Callable[[str], Awaitable[list]]) -> Callable[[str], Awaitable[list]]:
         async def wrapped(claim_text: str) -> list:
-            return await self.call(("retrieve", cache_key(claim_text)), lambda: fn(claim_text))
+            return await self.call(("retrieve", cache_key(claim_text), claim_frame_fingerprint(), self._research_key()), lambda: fn(claim_text))
 
         return wrapped
 
     def verify(self, fn: Callable[[str, list], Awaitable[Any]]) -> Callable[[str, list], Awaitable[Any]]:
         async def wrapped(claim_text: str, sources: list) -> Any:
-            ids = tuple((s.get("id"), s.get("url")) for s in sources if isinstance(s, dict))
-            return await self.call(("verify", cache_key(claim_text), ids), lambda: fn(claim_text, sources))
+            ids = evidence_fingerprint(sources)
+            return await self.call(("verify", cache_key(claim_text), ids, claim_frame_fingerprint(), self._research_key()), lambda: fn(claim_text, sources))
 
         return wrapped
 

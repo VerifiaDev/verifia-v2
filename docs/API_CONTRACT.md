@@ -16,7 +16,7 @@
 > - Yol/istek aynı: `POST /verify` `{ "text" }` (en çok 10 000 karakter). Cevap: `{ status:"ok", results:[…], partial, timings }`.
 > - **Yeni:** her iddiada `status` (`ok` | `error` | `timeout` | `skipped`). `ok` dışında `verdict` **null** gelir; arayüz bunu hüküm olarak değil "İncelenemeyen iddialar" olarak gösterir (`unfinished`). Üst düzey `partial`, `timings`, iddiadaki `cached`, `timings_ms`, `error_code`, `failed_stage`, `detail` okunmaz.
 > - Hata gövdesi `{ status:"error", error:"KOD", message, detail? }`; yeni kodlar: `EXTRACTION_TIMEOUT` (504), `EXTRACTION_FAILED` (502), `CONFIG_ERROR` (503), `VALIDATION_ERROR` (422), `EMPTY_TEXT` (400), `VERIFY_FAILED` (500).
-> - Kaynak biçimi aynı (`id: "source_N"`, `url`, `text`); varsayılan `lite` arayıcı ayrıca `title`, `domain`, `published_date` ve `retrieval_score` verir (`retrieval_demo_lite/search_retrieval_lite.py`, kaynak sözlüğü; 11 Ekim'de koddan düzeltildi). Güven puanı yok. `published_date` arama servisinin verdiği değerdir; arayüz yalnızca ISO 8601 ve RFC 2822 biçimlerini gösterir. CORS listesinde `https://verify-test-swart.vercel.app` var.
+> - Kaynak biçimi aynı (`id: "source_N"`, `url`, `text`); varsayılan `lite` arayıcı ayrıca `title`, `domain`, `published_date` ve `retrieval_score` verir (`retrieval_demo_lite/search_retrieval_lite.py`, kaynak sözlüğü; 11 Ekim'de koddan düzeltildi). Güven puanı yok. `published_date` arama servisinin verdiği değerdir; arayüz yalnızca ISO 8601 ve RFC 2822 biçimlerini gösterir. CORS: koddaki sabit listede `https://verify-test-swart.vercel.app` var; resmî site `https://verifia-pi.vercel.app` ise Render'daki `FRONTEND_ORIGIN` ile izinlenir (20 Ekim'de canlıda doğrulandı).
 > - **Kullanılmayan fırsat:** `POST /verify/stream` (SSE) gerçek aşamaları ve iddiaları geldikçe verir; arayüz henüz tek istekle çalışıyor.
 > - Backend'in yayın adresi değişirse Vercel'de `NEXT_PUBLIC_API_BASE_URL` güncellenip yeniden dağıtılmalıdır.
 
@@ -152,8 +152,9 @@ backend_v2'de bu yoktur: hata veren iddia yalnızca kendisi `status: "error"` ol
 ## CORS (koddan okundu)
 
 İzinli kökenler: `https://verify-test-swart.vercel.app`, `http://localhost:3000`, `http://localhost:5173`, ayrıca
-`FRONTEND_ORIGIN` ortam değişkeni. Vercel'in diğer adresi (`verify-test-efee2.vercel.app`) ya da alınacak alan adı için
-backend'de `FRONTEND_ORIGIN` ayarlanmalıdır; yoksa tarayıcı isteği engeller ve arayüz "Sunucuya ulaşılamadı" gösterir.
+`FRONTEND_ORIGIN` ortam değişkeni (tek değer). Resmî site `https://verifia-pi.vercel.app`'tir ve `FRONTEND_ORIGIN` bununla
+eşleşmelidir; eski `verify-test-*` adresleri frontend'de bu adrese yönlendirilir. Alınacak alan adı için de
+`FRONTEND_ORIGIN` ayarlanmalıdır; yoksa tarayıcı isteği engeller ve arayüz "Sunucuya ulaşılamadı" gösterir.
 İzinsiz kökene `Access-Control-Allow-Origin` dönmediği `e2e/` testinde denetlenir.
 
 backend_v2 `Access-Control-Expose-Headers: X-Request-ID` gönderir (16 Ekim): tarayıcıdaki kod bu başlığı okuyabilir,

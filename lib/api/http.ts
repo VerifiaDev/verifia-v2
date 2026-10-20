@@ -34,6 +34,9 @@ const BACKEND_CODES: Record<string, ErrorCode> = {
   EXTRACTION_TIMEOUT: "TIMEOUT",
   EXTRACTION_FAILED: "SERVICE_UNAVAILABLE",
   CONFIG_ERROR: "SERVICE_UNAVAILABLE",
+  // backend_v2: bellek sınırı (security.py, 503 + Retry-After) ve yapay zekâ servisinin kullanım sınırı (upstream_errors.py)
+  LOW_MEMORY: "SERVER_BUSY",
+  UPSTREAM_RATE_LIMITED: "SERVICE_UNAVAILABLE",
 };
 
 /**
@@ -50,8 +53,17 @@ function codeFromStatus(status: number): ErrorCode {
   return "INTERNAL_ERROR";
 }
 
+/**
+ * Sunucunun `X-Request-ID` başlığı (backend_v2: her yanıtta var, CORS ile açık). Yalnızca backend'in kendi
+ * biçimine uyuyorsa (8-64 karakter, harf/rakam/. _ -) alınır; böylece ekrana beklenmedik içerik basılmaz.
+ */
+export function readRequestId(res: Pick<Response, "headers">): string | undefined {
+  const id = res.headers?.get("X-Request-ID");
+  return id && /^[A-Za-z0-9._-]{8,64}$/.test(id) ? id : undefined;
+}
+
 /** Backend hata gövdesinden kod çıkarır; tanımazsa durum koduna bakar. Ham sunucu metni kullanıcıya gösterilmez. */
-function errorFromResponse(body: unknown, status: number): ApiRequestError {
+function errorFromResponse(body: unknown, status: number, requestId?: string): ApiRequestError {
   const b = body as { error?: unknown; message?: unknown } | null;
   // Gerçek backend: { status:"error", error:"VERIFY_FAILED", message }  (error düz yazı).
   // Eski/varsayılan şekil: { error: { code, message } }.
@@ -60,7 +72,7 @@ function errorFromResponse(body: unknown, status: number): ApiRequestError {
   const rawMessage = typeof b?.message === "string" ? b.message : nested?.message;
   const code = KNOWN_CODES.find((c) => c === rawCode) ?? BACKEND_CODES[rawCode] ?? codeFromStatus(status);
   const message = typeof rawMessage === "string" && rawMessage ? rawMessage : "Sunucu isteği tamamlayamadı.";
-  return new ApiRequestError(code, message);
+  return new ApiRequestError(code, message, requestId);
 }
 
 /**
@@ -94,7 +106,7 @@ async function waitForHealth(base: string, signal: AbortSignal, onServerWait?: (
     const res = await fetch(`${base}/health`, { method: "GET", cache: "no-store", signal: controller.signal });
     const body: unknown = await res.json().catch(() => null);
     controller.signal.throwIfAborted();
-    if (!res.ok && res.status !== 404) throw errorFromResponse(body, res.status);
+    if (!res.ok && res.status !== 404) throw errorFromResponse(body, res.status, readRequestId(res));
     if (res.ok && typeof body === "object" && body !== null && "status" in body && (body.status === "degraded" || body.status === "error")) {
       throw new ApiRequestError("SERVICE_UNAVAILABLE", "İnceleme servisi henüz hazır değil.");
     }
@@ -160,7 +172,7 @@ export function httpService(baseUrl: string): VerificationService {
         });
         const body: unknown = await res.json().catch(() => null);
         controller.signal.throwIfAborted();
-        if (!res.ok) throw errorFromResponse(body, res.status);
+        if (!res.ok) throw errorFromResponse(body, res.status, readRequestId(res));
         return body as RawCheckResponse; // şekil adapter'da doğrulanır
       } catch (err) {
         if (err instanceof ApiRequestError) throw err;
