@@ -1,7 +1,7 @@
-import { HEALTH_TIMEOUT_MS, REQUEST_TIMEOUT_MS, SERVER_WAIT_NOTICE_MS } from "../config";
+import { HEALTH_TIMEOUT_MS, REQUEST_TIMEOUT_MS, SERVER_WAIT_NOTICE_MS, STREAM_IDLE_TIMEOUT_MS } from "../config";
 import { ApiRequestError } from "./errors";
-import type { RawCheckRequest, RawCheckResponse } from "./contract";
-import type { ErrorCode } from "../types";
+import type { RawCheckRequest, RawCheckResponse, RawClaim } from "./contract";
+import type { AnalysisStage, ErrorCode } from "../types";
 import type { VerificationService } from "./service";
 
 const KNOWN_CODES: ErrorCode[] = [
@@ -134,14 +134,103 @@ async function waitForHealth(base: string, signal: AbortSignal, onServerWait?: (
   }
 }
 
+/** Akıştaki bir olay bloğu: `event: <ad>` + `data: <json>`. `:` ile başlayan satırlar (keep-alive) yok sayılır. */
+function parseEvent(block: string): Record<string, unknown> | null {
+  let name = "";
+  const data: string[] = [];
+  for (const line of block.split("\n")) {
+    if (line.startsWith(":")) continue;
+    if (line.startsWith("event:")) name = line.slice(6).trim();
+    else if (line.startsWith("data:")) data.push(line.slice(5).replace(/^ /, ""));
+  }
+  if (!data.length) return null;
+  try {
+    const parsed: unknown = JSON.parse(data.join("\n"));
+    if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) return null;
+    const event = parsed as Record<string, unknown>;
+    return { ...event, type: typeof event.type === "string" ? event.type : name };
+  } catch {
+    return null; // bozuk satır: yok sayılır, sonuç done/error'a göre belirlenir
+  }
+}
+
+/** `request_id` yalnızca backend'in biçimine uyuyorsa alınır (bkz. readRequestId). */
+function safeRequestId(value: unknown): string | undefined {
+  return typeof value === "string" && /^[A-Za-z0-9._-]{8,64}$/.test(value) ? value : undefined;
+}
+
 /**
- * Gerçek servis: `POST {baseUrl}/verify` (backend/main.py, teyitli)  →  tek istek, tek cevap.
+ * POST /verify/stream olaylarını (backend_v2/app/streaming.py) okuyup /verify ile aynı ham cevabı kurar.
+ * Aşama yalnızca backend bildirdikçe verilir: ayrıştırma başladı → "extracting_claims"; doğrulama başladı →
+ * "retrieving_evidence"; ilk gerçek hüküm geldi → "verifying" (backend arama ile karşılaştırmayı ayrı bildirmez).
+ * Tanınmayan olaylar yok sayılır. `done` gelmeden akış biterse bağlantı kopmuş sayılır.
+ */
+async function readStream(
+  body: ReadableStream<Uint8Array>,
+  { signal, onStage, onActivity, requestId }: {
+    signal: AbortSignal; onStage?: (stage: AnalysisStage) => void; onActivity: () => void; requestId?: string;
+  },
+): Promise<RawCheckResponse> {
+  const reader = body.getReader();
+  // İptal edilince bekleyen okuma hemen biter (gerçek fetch'te bağlantı da kapanır; backend işi durdurur).
+  const cancel = () => { reader.cancel().catch(() => {}); };
+  signal.addEventListener("abort", cancel);
+  const decoder = new TextDecoder();
+  let buffer = "";
+  let order: string[] = [];
+  const results = new Map<string, RawClaim>();
+  let verdictSeen = false;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      signal.throwIfAborted();
+      if (done) break;
+      onActivity();
+      buffer = (buffer + decoder.decode(value, { stream: true })).replace(/\r\n/g, "\n");
+      let end: number;
+      while ((end = buffer.indexOf("\n\n")) >= 0) {
+        const event = parseEvent(buffer.slice(0, end));
+        buffer = buffer.slice(end + 2);
+        if (!event) continue;
+        if (event.type === "stage" && event.status === "started") {
+          if (event.stage === "extract") onStage?.("extracting_claims");
+          if (event.stage === "verify") onStage?.("retrieving_evidence");
+        } else if (event.type === "claims" && Array.isArray(event.claims)) {
+          order = event.claims.flatMap((c) => (typeof c === "object" && c && typeof c.claim_id === "string" ? [c.claim_id] : []));
+        } else if (event.type === "result" && typeof event.result === "object" && event.result !== null) {
+          const result = event.result as RawClaim;
+          results.set(typeof result.claim_id === "string" ? result.claim_id : `#${results.size}`, result);
+          if (!verdictSeen && result.verdict != null) {
+            verdictSeen = true;
+            onStage?.("verifying");
+          }
+        } else if (event.type === "error") {
+          throw errorFromResponse(event, 502, safeRequestId(event.request_id) ?? requestId);
+        } else if (event.type === "done") {
+          const ordered = [...order.filter((id) => results.has(id)), ...[...results.keys()].filter((id) => !order.includes(id))];
+          return { results: ordered.map((id) => results.get(id)!), partial: event.partial === true };
+        }
+      }
+    }
+    throw new ApiRequestError("NETWORK", "Sunucuyla bağlantı inceleme bitmeden kesildi.", requestId);
+  } finally {
+    signal.removeEventListener("abort", cancel);
+  }
+}
+
+/**
+ * Gerçek servis: önce `POST {baseUrl}/verify/stream` (backend_v2, Server-Sent Events).
+ *
+ * Akış sayesinde backend gerçek aşama bilgisi verir (`onStage`) ve kullanıcı vazgeçince bağlantı kapanır;
+ * backend bunu fark edip incelemeyi iptal eder (düz /verify'da iş sürüyordu). Sonuç /verify ile aynı ham
+ * şekildedir ve aynı adapter'dan geçer. `/verify/stream` yoksa (404/405, eski backend) `POST /verify` kullanılır;
+ * yanıt akış değil düz JSON gelirse eskisi gibi okunur.
  *
  * Backend yalnızca `{ text }` kabul eder. Bağlantı (URL) desteği henüz yok: bağlantıyı iddia gibi
  * göndermek anlamsız sonuç verirdi, bu yüzden "url" modu açık bir hata olarak döner
  * (URL_UNSUPPORTED: "sayfa açılamadı" değil, "bu özellik henüz yok").
  * Önce `GET /health` ile sunucunun yanıt verdiği denetlenir (bkz. waitForHealth).
- * Backend aşama bilgisi vermediği için `onStage` çağrılmaz.
+ * Süre: toplam REQUEST_TIMEOUT_MS; akışta ayrıca STREAM_IDLE_TIMEOUT_MS boyunca hiç veri gelmezse vazgeçilir.
  */
 export function httpService(baseUrl: string): VerificationService {
   // Sondaki "/" karakterleri atılır: ".../" + "/verify" çift eğik çizgiye ("//verify") dönüşmesin.
@@ -158,7 +247,7 @@ export function httpService(baseUrl: string): VerificationService {
         .then((res) => res.body?.cancel())
         .catch(() => {});
     },
-    async check(req: RawCheckRequest, { signal, onServerWait }): Promise<RawCheckResponse> {
+    async check(req: RawCheckRequest, { signal, onServerWait, onStage }): Promise<RawCheckResponse> {
       if (req.input_type === "url") {
         throw new ApiRequestError("URL_UNSUPPORTED", "Bağlantı ile doğrulama henüz desteklenmiyor.");
       }
@@ -167,20 +256,35 @@ export function httpService(baseUrl: string): VerificationService {
 
       const controller = new AbortController();
       let timedOut = false;
-      const onAbort = () => controller.abort();
-      signal.addEventListener("abort", onAbort);
-      const timer = setTimeout(() => {
+      const expire = () => {
         timedOut = true;
         controller.abort();
-      }, REQUEST_TIMEOUT_MS);
+      };
+      const onAbort = () => controller.abort();
+      signal.addEventListener("abort", onAbort);
+      const timer = setTimeout(expire, REQUEST_TIMEOUT_MS);
+      let idle: ReturnType<typeof setTimeout> | undefined;
+      const resetIdle = () => {
+        clearTimeout(idle);
+        idle = setTimeout(expire, STREAM_IDLE_TIMEOUT_MS);
+      };
+      const post = (path: string) => fetch(`${base}${path}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text: req.text }),
+        signal: controller.signal,
+      });
 
       try {
-        const res = await fetch(`${base}/verify`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ text: req.text }),
-          signal: controller.signal,
-        });
+        let res = await post("/verify/stream");
+        if (res.status === 404 || res.status === 405) {
+          await res.body?.cancel().catch(() => {});
+          res = await post("/verify"); // akış desteği olmayan eski backend
+        }
+        if (res.ok && res.body && (res.headers.get("Content-Type") ?? "").includes("text/event-stream")) {
+          resetIdle();
+          return await readStream(res.body, { signal: controller.signal, onStage, onActivity: resetIdle, requestId: readRequestId(res) });
+        }
         const body: unknown = await res.json().catch(() => null);
         controller.signal.throwIfAborted();
         if (!res.ok) throw errorFromResponse(body, res.status, readRequestId(res), readRetryAfter(res));
@@ -192,6 +296,7 @@ export function httpService(baseUrl: string): VerificationService {
         throw new ApiRequestError("NETWORK", "Sunucuya ulaşılamadı.");
       } finally {
         clearTimeout(timer);
+        clearTimeout(idle);
         signal.removeEventListener("abort", onAbort);
       }
     },

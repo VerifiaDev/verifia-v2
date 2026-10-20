@@ -45,7 +45,7 @@ describe("checkInput (gerçek API yolu)", () => {
     }) as typeof fetch;
     const r = await checkInput(REQ, new AbortController().signal);
     assert.equal(r.claims[0].sources.length, 1);
-    assert.equal(sent?.url, "http://backend.test/verify");
+    assert.equal(sent?.url, "http://backend.test/verify/stream");
     assert.deepEqual(JSON.parse(sent!.body), { text: "iddia" });
   });
 
@@ -194,7 +194,7 @@ describe("checkInput (gerçek API yolu)", () => {
     mock.timers.tick(132_000);
     const r = await p;
     assert.equal(r.claims.length, 1);
-    assert.deepEqual(urls, ["http://backend.test/health", "http://backend.test/verify"]);
+    assert.deepEqual(urls, ["http://backend.test/health", "http://backend.test/verify/stream"]);
   });
 
   it("sağlık yanıtı 5 saniyede gelmezse beklendiğini bildirir; yanıt gelince bildirimi kaldırır", async () => {
@@ -233,7 +233,7 @@ describe("checkInput (gerçek API yolu)", () => {
     }) as typeof fetch;
     const r = await checkInput(REQ, new AbortController().signal);
     assert.equal(r.claims.length, 1);
-    assert.deepEqual(urls, ["http://backend.test/health", "http://backend.test/verify"]);
+    assert.deepEqual(urls, ["http://backend.test/health", "http://backend.test/verify/stream"]);
 
     urls.length = 0;
     globalThis.fetch = (async (url: string) => {
@@ -288,7 +288,7 @@ describe("httpService adresi", () => {
     globalThis.fetch = realFetch;
   });
 
-  it("adresin sonundaki eğik çizgiyi atar (//verify oluşmaz)", async () => {
+  it("adresin sonundaki eğik çizgiyi atar (//verify/stream oluşmaz)", async () => {
     const { httpService } = await import("@/lib/api/http");
     const urls: string[] = [];
     globalThis.fetch = (async (url: string) => {
@@ -300,11 +300,11 @@ describe("httpService adresi", () => {
     }
     assert.deepEqual(urls, [
       "http://backend.test/health",
-      "http://backend.test/verify",
+      "http://backend.test/verify/stream",
       "http://backend.test/health",
-      "http://backend.test/verify",
+      "http://backend.test/verify/stream",
       "http://backend.test/health",
-      "http://backend.test/verify",
+      "http://backend.test/verify/stream",
     ]);
   });
 });
