@@ -26,6 +26,7 @@ from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Optional
 
+from .resources import ClaimLease, current_claim_lease
 from .upstream_errors import InvalidModelResponse, UpstreamRateLimited, UpstreamTimeout
 from .evidence import evidence_fingerprint, current_claim_frame, claim_frame_fingerprint, current_research, verifier_budget
 
@@ -339,8 +340,15 @@ async def run_pipeline(
     sem = asyncio.Semaphore(max(1, cfg.claim_concurrency))
 
     async def run_one(i: int, c: Any) -> None:
-        async with sem:
+        await sem.acquire()
+        lease = ClaimLease(sem, asyncio.get_running_loop())
+        token = current_claim_lease.set(lease)
+        try:
             res = await _process_claim(c, retrieve=retrieve, verify=verify, cfg=cfg, cache=cache)
+        finally:
+            lease.finished = True
+            lease.release_if_done()
+            current_claim_lease.reset(token)
         slots[i] = res
         await _emit({"type": "result", "result": res})
 

@@ -25,6 +25,7 @@ import logging
 from typing import Any, Awaitable, Callable, Hashable, Optional
 
 from .pipeline import cache_key
+from .resources import retain_task_resources
 from .evidence import evidence_fingerprint, claim_frame_fingerprint, current_research, current_claim_frame
 
 log = logging.getLogger("verify.limits")
@@ -73,6 +74,9 @@ class UpstreamGate:
         entry = self._inflight.get(key)
         if entry is None or entry.task.done():
             entry = _Shared(asyncio.ensure_future(self._limited(factory)))
+            # The task inherits the creator's context; retain that ownership until
+            # it ends, including queue waits and gaps between synchronous calls.
+            retain_task_resources(entry.task)
             self._inflight[key] = entry
 
             def _forget(task: asyncio.Task, key=key, entry=entry) -> None:

@@ -4,6 +4,7 @@ import logging
 import math
 import os
 import time
+import threading
 from collections import OrderedDict
 
 from fastapi.responses import JSONResponse
@@ -24,7 +25,9 @@ def error(code, status, retry=None):
 
 class Guard:
     def __init__(self):
-        self.active = 0
+        self._active_lock = threading.RLock()
+        self._active = 0
+        self._completed_releases = set()
         self.maximum = positive_env("MAX_ACTIVE_VERIFICATIONS", 2)
         self.memory_limit = positive_env("MAX_RSS_MB", 384)
         self.clients = OrderedDict()
@@ -44,6 +47,43 @@ class Guard:
             ]
         except ValueError:
             raise ValueError("Invalid trusted proxy configuration") from None
+
+    @property
+    def active(self):
+        with self._active_lock:
+            return self._active - len(self._completed_releases)
+
+    @active.setter
+    def active(self, value):
+        # Used by isolated test setup; runtime admission uses try_acquire.
+        with self._active_lock:
+            self._active = value
+            self._completed_releases.clear()
+
+    def try_acquire(self):
+        with self._active_lock:
+            # Drain receipts whose loop callbacks may have been discarded at shutdown.
+            self._active -= len(self._completed_releases)
+            self._completed_releases.clear()
+            if self._active >= self.maximum:
+                return False
+            self._active += 1
+            return True
+
+    def queue_release(self, token):
+        # Worker threads only record an idempotent completion receipt. Capacity
+        # reads account for it even if the owner loop never runs its callback.
+        with self._active_lock:
+            if token not in self._completed_releases:
+                if self._active <= len(self._completed_releases):
+                    raise RuntimeError("Unbalanced admission release")
+                self._completed_releases.add(token)
+
+    def release(self, token):
+        with self._active_lock:
+            if token in self._completed_releases:
+                self._completed_releases.remove(token)
+                self._active -= 1
 
     def client_ip(self, scope):
         peer = (scope.get("client") or ("unknown", 0))[0]
@@ -159,9 +199,8 @@ class SecurityMiddleware:
                     return await error("LOW_MEMORY", 503, 30)(scope, receive, output)
                 if rss >= self.guard.memory_limit:
                     return await error("LOW_MEMORY", 503, 30)(scope, receive, output)
-                if self.guard.active >= self.guard.maximum:
+                if not self.guard.try_acquire():
                     return await error("BUSY", 429, 1)(scope, receive, output)
-                self.guard.active += 1
                 lease = Lease(self.guard)
                 token = current_lease.set(lease)
             await self.app(scope, receive, output)
