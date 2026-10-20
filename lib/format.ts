@@ -45,8 +45,8 @@ export const VERDICT_META: Record<
 export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: string[]; retry: boolean }> = {
   RATE_LIMITED: {
     title: "İstek sınırına ulaşıldı",
-    what: "Kısa sürede gönderilebilecek inceleme sayısı aşıldı. Yazdığınız içerik yerinde duruyor.",
-    todo: ["Biraz bekledikten sonra yeniden deneyin."],
+    what: "Dakikalık, saatlik ya da günlük inceleme sınırı doldu. Aynı ağdan gelen istekler birlikte sayılabilir. Yazdığınız içerik yerinde duruyor.",
+    todo: ["Biraz bekledikten sonra yeniden deneyin. Sınır saatlik ya da günlükse bekleme uzun olabilir."],
     retry: true,
   },
   INVALID_INPUT: {
@@ -84,8 +84,8 @@ export const ERROR_COPY: Record<ErrorCode, { title: string; what: string; todo: 
   },
   TIMEOUT: {
     title: "Analiz zaman aşımına uğradı",
-    what: "Sunucu belirlenen sürede yanıt vermedi. Metin çok sayıda iddia içeriyor ya da sunucu yoğun olabilir.",
-    todo: ["Aynı içeriği yeniden deneyin.", "Metni kısaltıp daha az iddiayla deneyin."],
+    what: "Sunucu belirlenen sürede yanıt vermedi. Metin çok sayıda iddia içeriyor ya da sunucu yoğun olabilir. Sunucu önceki isteğinizi hâlâ işliyor olabilir.",
+    todo: ["Birkaç saniye bekleyip yeniden deneyin.", "Metni kısaltıp daha az iddiayla deneyin."],
     retry: true,
   },
   NETWORK: {

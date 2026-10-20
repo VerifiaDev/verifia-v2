@@ -320,6 +320,17 @@ describe("ErrorState ve AnalysisProgress", () => {
     const without = renderToStaticMarkup(<ErrorState error={{ code: "TIMEOUT", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
     assert.ok(!without.includes("Destek kodu"));
   });
+  it("Retry-After varsa bekleme süresi 'Yeniden dene' düğmesinde görünür ve düğme kapalıdır", () => {
+    const html = renderToStaticMarkup(<ErrorState error={{ code: "RATE_LIMITED", message: "m", retryAfterSeconds: 30 }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.match(html, /Yeniden dene \(30 sn\)/);
+    assert.match(html, /<button[^>]*disabled/);
+  });
+  it("zaman aşımında kısa bekleme uygulanır; bekleme gerektirmeyen hatada düğme açıktır", () => {
+    const timeout = renderToStaticMarkup(<ErrorState error={{ code: "TIMEOUT", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.match(timeout, /Yeniden dene \(8 sn\)/);
+    const net = renderToStaticMarkup(<ErrorState error={{ code: "NETWORK", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.ok(net.includes("Yeniden dene") && !net.includes(" sn)"));
+  });
   it("her hata kodu 'Ne oldu?' ve 'Şimdi ne yapabilirsiniz?' içerir", () => {
     for (const code of Object.keys(ERROR_COPY) as ErrorCode[]) {
       const html = renderToStaticMarkup(<ErrorState error={{ code, message: "m" }} onRetry={() => {}} onEdit={() => {}} />);

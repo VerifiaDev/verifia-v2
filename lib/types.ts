@@ -99,4 +99,6 @@ export interface ApiError {
   message: string;
   /** Sunucunun `X-Request-ID` başlığı (varsa). Kullanıcı hatayı bildirirken verir; ekip sunucu günlüğünde bulur. */
   requestId?: string;
+  /** Sunucunun `Retry-After` başlığı (saniye, varsa). Bu süre dolmadan yeniden denemek işe yaramaz. */
+  retryAfterSeconds?: number;
 }

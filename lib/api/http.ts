@@ -62,8 +62,19 @@ export function readRequestId(res: Pick<Response, "headers">): string | undefine
   return id && /^[A-Za-z0-9._-]{8,64}$/.test(id) ? id : undefined;
 }
 
+/**
+ * `Retry-After` başlığı (backend_v2: 429 ve 503'te saniye cinsinden tam sayı). Yalnızca 1-3600 arası
+ * tam sayı alınır; tarih biçimi ya da anlamsız değer yok sayılır (bekleme süresi uydurulmaz).
+ */
+export function readRetryAfter(res: Pick<Response, "headers">): number | undefined {
+  const raw = res.headers?.get("Retry-After");
+  if (!raw || !/^\d{1,4}$/.test(raw.trim())) return undefined;
+  const n = Number(raw);
+  return n >= 1 && n <= 3600 ? n : undefined;
+}
+
 /** Backend hata gövdesinden kod çıkarır; tanımazsa durum koduna bakar. Ham sunucu metni kullanıcıya gösterilmez. */
-function errorFromResponse(body: unknown, status: number, requestId?: string): ApiRequestError {
+function errorFromResponse(body: unknown, status: number, requestId?: string, retryAfter?: number): ApiRequestError {
   const b = body as { error?: unknown; message?: unknown } | null;
   // Gerçek backend: { status:"error", error:"VERIFY_FAILED", message }  (error düz yazı).
   // Eski/varsayılan şekil: { error: { code, message } }.
@@ -72,7 +83,7 @@ function errorFromResponse(body: unknown, status: number, requestId?: string): A
   const rawMessage = typeof b?.message === "string" ? b.message : nested?.message;
   const code = KNOWN_CODES.find((c) => c === rawCode) ?? BACKEND_CODES[rawCode] ?? codeFromStatus(status);
   const message = typeof rawMessage === "string" && rawMessage ? rawMessage : "Sunucu isteği tamamlayamadı.";
-  return new ApiRequestError(code, message, requestId);
+  return new ApiRequestError(code, message, requestId, retryAfter);
 }
 
 /**
@@ -106,7 +117,7 @@ async function waitForHealth(base: string, signal: AbortSignal, onServerWait?: (
     const res = await fetch(`${base}/health`, { method: "GET", cache: "no-store", signal: controller.signal });
     const body: unknown = await res.json().catch(() => null);
     controller.signal.throwIfAborted();
-    if (!res.ok && res.status !== 404) throw errorFromResponse(body, res.status, readRequestId(res));
+    if (!res.ok && res.status !== 404) throw errorFromResponse(body, res.status, readRequestId(res), readRetryAfter(res));
     if (res.ok && typeof body === "object" && body !== null && "status" in body && (body.status === "degraded" || body.status === "error")) {
       throw new ApiRequestError("SERVICE_UNAVAILABLE", "İnceleme servisi henüz hazır değil.");
     }
@@ -172,7 +183,7 @@ export function httpService(baseUrl: string): VerificationService {
         });
         const body: unknown = await res.json().catch(() => null);
         controller.signal.throwIfAborted();
-        if (!res.ok) throw errorFromResponse(body, res.status, readRequestId(res));
+        if (!res.ok) throw errorFromResponse(body, res.status, readRequestId(res), readRetryAfter(res));
         return body as RawCheckResponse; // şekil adapter'da doğrulanır
       } catch (err) {
         if (err instanceof ApiRequestError) throw err;
