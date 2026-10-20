@@ -17,7 +17,7 @@
 
 1. `used_sources` kimliklerinin anlamı. Anlam kesinleşmeden kaynak ilişkileri bundan veya verdict değerinden tahmin edilmemeli.
 2. Canlı sonuçlar için kaynak rolü (`supports`, `contradicts`, `context`), kaynak türü, pasaj türü ve rapor kapsamı. Adaptör artık bu isteğe bağlı alanları okuyor; backend'in alanları gerçekten sağlayacağı doğrulanmalı. Eksik değerler tahmin edilmiyor.
-3. Yanıt süresi (şu an 90 saniye; ayrıca 150 saniyeye kadar sunucu denetimi). Arayüz metin sınırı 3.000 (backend 10.000 kabul eder; backend_v2 canlıya çıkana kadar düşük tutulur).
+3. Yanıt süresi (şu an 90 saniye; ayrıca 150 saniyeye kadar sunucu denetimi). Arayüz metin sınırı 10.000 (backend ile aynı).
 4. URL desteği, CORS ve kısmi hata biçimi.
 5. Saklama süresi, sağlayıcılar, silme yöntemi ve gerçek bildirim kanalı.
 6. Şu an yalnızca hazır örnek bağlantısı paylaşılır; canlı sonuçlar saklanmaz. Rapor saklama yeni bir özellik olarak bu çalışmanın kapsamına alınmadı.
