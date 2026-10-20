@@ -31,6 +31,9 @@ export function EvidenceCard({ source, number, claimId }: Props) {
     tavily_snippet: "Arama özeti; sayfanın tamamı incelenmedi", tavily_pdf_snippet: "PDF arama özeti; belge metni alınmadı",
     unknown: "Pasajın alınma yöntemi belirtilmedi",
   }[source.fetchMethod ?? "unknown"];
+  // Yöntem bilinmiyorsa satır yalnızca gerçek bir pasaj için anlamlıdır: editör özeti kendini zaten
+  // "Kaynağın Türkçe özeti" diye tanıtır, pasaj hiç yoksa yöntemi de yoktur.
+  const showProvenance = (source.fetchMethod ?? "unknown") !== "unknown" || (Boolean(source.excerpt) && source.excerptKind !== "summary");
   const snippet = source.fetchMethod === "tavily_snippet" || source.fetchMethod === "tavily_pdf_snippet";
   const passage = (text: string) => snippet
     ? <p className="evidence-excerpt">{text}</p>
@@ -58,7 +61,7 @@ export function EvidenceCard({ source, number, claimId }: Props) {
         {source.relation && <p className={`evidence-relation ${source.relation === "supports" ? "tone-ok" : source.relation === "contradicts" ? "tone-bad" : "muted"}`}>{source.relation === "supports" ? "İddiayı destekliyor" : source.relation === "contradicts" ? "İddiayla çelişiyor" : source.relation === "context" ? "Bağlam sağlıyor" : "Doğrudan kanıt değil / ilgili değil"}</p>}
         {source.assessmentReason && <p className="t-meta">{source.assessmentReason}</p>}
         {source.strength === "LIMITED" && <p className="t-meta muted">Sınırlı kanıt</p>}
-        <p className="t-meta muted">{provenance}</p>
+        {showProvenance && <p className="t-meta muted">{provenance}</p>}
         {excerpt ? (
           longExcerpt ? <div className="expandable-excerpt">
             <div className="excerpt-preview">{passage(excerpt)}</div>
