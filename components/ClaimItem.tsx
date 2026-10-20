@@ -23,14 +23,17 @@ const FALLBACK_KEY_COUNT = 2;
 
 /**
  * Bir iddia ve sırasıyla: iddia → sonuç → açıklama → öne çıkan kanıtlar → diğer kaynaklar.
- * "Dayandığımız kanıtlar" yalnızca açıklamanın atıf yaptığı kaynaklar için söylenir. Atıf yoksa hangi
- * kaynağa dayanıldığı bilinmez: ilk ikisi yine açık gösterilir ama başlık yalnızca "Bulunan kaynaklar" der.
+ * Yapılandırılmış usedSourceIds varsa gruplamayı belirler. Eski yanıtlarda atıflar kullanılır;
+ * onlar da yoksa ilk iki kaynak "Bulunan kaynaklar" başlığıyla gösterilir.
  */
 export function ClaimItem({ claim, index, total, sample = false, showcase = false, expanded = true, onExpandedChange, onBackToList }: Props) {
   const { sources } = claim;
   const cited = citedNumbers(claim.explanation, sources);
-  const hasCitations = cited.length > 0;
-  const keyNumbers = hasCitations ? cited : sources.slice(0, FALLBACK_KEY_COUNT).map((_, i) => i + 1);
+  const structured = claim.usedSourceIds !== undefined;
+  const hasCitations = structured || cited.length > 0;
+  const keyNumbers = structured
+    ? sources.flatMap((s, i) => claim.usedSourceIds!.includes(s.id) ? [i + 1] : [])
+    : hasCitations ? cited : sources.slice(0, FALLBACK_KEY_COUNT).map((_, i) => i + 1);
   const restNumbers = sources.map((_, i) => i + 1).filter((n) => !keyNumbers.includes(n));
   const titleId = `${claimAnchor(claim.id)}-title`;
 
@@ -51,7 +54,7 @@ export function ClaimItem({ claim, index, total, sample = false, showcase = fals
           <span className="claim-summary-text">
             <span className="claim-summary-kicker">İDDİA {index + 1} / {total}{sample && <strong className="sample-badge">Örnek veri</strong>}</span>
             <span id={titleId} className="t-h3" role="heading" aria-level={3}>{claim.text}</span>
-            <span className="ci-meta"><VerdictSummary verdict={claim.verdict} variant="inline" /><span>{sources.length === 0 ? "Kaynak yok" : hasCitations && keyNumbers.length < sources.length ? `${sources.length} kaynak bulundu, ${keyNumbers.length} tanesine dayanıldı` : `${sources.length} kaynak`}</span></span>
+            <span className="ci-meta"><VerdictSummary verdict={claim.verdict} variant="inline" /><span>{sources.length === 0 ? "Kaynak yok" : hasCitations ? `${sources.length} kaynak bulundu, ${keyNumbers.length} tanesine dayanıldı` : `${sources.length} kaynak`}</span></span>
             {((claim.verdict === "SUPPORTED" || claim.verdict === "REFUTED") && !sources.length || !claim.explanation.trim()) && <span className="claim-evidence-warning">Kanıt bilgisi eksik: {sources.length === 0 ? "bu hükmü denetlemek için kaynak sunulmadı." : "sonucun gerekçesi paylaşılmadı."}</span>}
           </span>
           <Icon name="chevron" className="chevron" />
@@ -99,6 +102,7 @@ export function ClaimItem({ claim, index, total, sample = false, showcase = fals
             <h4 className="t-h4">
               {hasCitations ? `Dayandığımız kanıtlar (${keyNumbers.length})` : `Bulunan kaynaklar (${sources.length})`}
             </h4>
+            {structured && keyNumbers.length === 0 && <p className="evidence-note muted t-meta">Bulunan kaynaklar güçlü hüküm dayanağı olarak kullanılmadı.</p>}
             {!hasCitations && (
               <p className="evidence-note muted t-meta">
                 Açıklamanın hangi kaynaklara dayandığı belirtilmedi; aşağıdakiler bu iddia için bulunan kaynaklardır.

@@ -203,7 +203,7 @@ class EvidenceIntentTests(unittest.TestCase):
                 self.assertEqual(len(result['sources']), count)
                 self.assertEqual(result['diagnostics']['candidate_count'], count + 1)
                 self.assertEqual(mod.search(CLAIM, 5), result['sources'])
-                self.assertEqual(result['status'], 'evidence_found' if count else 'not_enough_evidence')
+                self.assertEqual(result['status'], 'evidence_found' if count else 'quality_filtered_empty')
 
     def candidates(self):
         rows = [dict(url='https://unknown.example/quiz', title=CLAIM + ' Doğru mu yanlış mı?',

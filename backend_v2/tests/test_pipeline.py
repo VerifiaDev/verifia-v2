@@ -146,13 +146,13 @@ def test_no_sources_skips_the_llm_call():
     assert calls["verify"] == 0
 
 
-def test_cache_hit_skips_work_and_normalizes_text():
+def test_cache_hit_retrieves_again_but_skips_verification_and_normalizes_text():
     cache = TTLCache()
     ex, rt, vf, calls = make_steps([claim(0, "Aynı   İddia")])
     run(run_pipeline("x", extract=ex, retrieve=rt, verify=vf, cache=cache))
     ex2, rt2, vf2, calls2 = make_steps([claim(7, "aynı iddia")])
     out = run(run_pipeline("y", extract=ex2, retrieve=rt2, verify=vf2, cache=cache))
-    assert calls["retrieve"] == 1 and calls2["retrieve"] == 0 and calls2["verify"] == 0
+    assert calls["retrieve"] == 1 and calls2["retrieve"] == 1 and calls2["verify"] == 0
     r = out["results"][0]
     assert r["cached"] is True and r["claim_id"] == "c7" and r["verdict"] == "SUPPORTED"
 
