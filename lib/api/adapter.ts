@@ -6,7 +6,7 @@
  *  Gerçek backend (backend/main.py, POST /verify):
  *     { results: [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id:"source_1", title, domain, url, published_date, text} ] } ] }
  *     Kaynakta ayrıca title, site_name, domain, published_date, retrieval_score bulunur (backend/main.py, 87ec895).
-     Güven puanı yoktur; arayüz uydurmaz. retrieval_score ve used_sources okunmaz.
+     Güven puanı yoktur; arayüz uydurmaz. retrieval_score okunmaz; used_sources gruplamayı belirler.
  *
  *  Gerçek backend (backend/main.py, POST /verify):
  *     { results: [ { claim_id, claim, is_verifiable, verdict, explanation, used_sources, sources: [ {id:"source_1", url, text} ] } ] }
@@ -83,13 +83,20 @@ function parseSource(raw: unknown, index: number): Source | null {
   const host = hostOnly(url);
   const lower = candidate?.toLowerCase().replace(/^www\./, "");
   const name = candidate && lower !== host && lower !== BACKEND_TITLE_PLACEHOLDER ? candidate : null;
+  const metadata = isRecord(raw.metadata) ? raw.metadata : {};
+  const method = str(raw.fetch_method) ?? str(metadata.fetch_method);
+  const fetchMethod = ["requests", "requests_short", "tavily_snippet", "tavily_pdf_snippet"].includes(method ?? "")
+    ? method as NonNullable<Source["fetchMethod"]> : "unknown";
   return {
+    fetchMethod,
+    ...(str(raw.assessment_reason) ? { assessmentReason: str(raw.assessment_reason)! } : {}),
+    ...(raw.strength === "STRONG" || raw.strength === "LIMITED" || raw.strength === "NONE" ? { strength: raw.strength } : {}),
     id: str(raw.id) ?? `kaynak_${index + 1}`,
     url,
     name,
     publishedAt: str(raw.published_at) ?? str(raw.published_date),
     excerpt: str(raw.text) ?? str(raw.excerpt),
-    ...(raw.relation === "supports" || raw.relation === "contradicts" || raw.relation === "context" ? { relation: raw.relation } : {}),
+    ...(raw.relation === "supports" || raw.relation === "contradicts" || raw.relation === "context" || raw.relation === "irrelevant" ? { relation: raw.relation } : {}),
     ...(raw.excerpt_kind === "summary" || raw.excerptKind === "summary" ? { excerptKind: "summary" as const } : {}),
     ...(str(raw.kind) ? { kind: str(raw.kind)! } : {}),
   };
@@ -124,6 +131,32 @@ function parseClaim(
 
   const rawSources = Array.isArray(raw.sources) ? raw.sources : Array.isArray(raw.evidence) ? raw.evidence : [];
   const sources = rawSources.map(parseSource).filter((s): s is Source => s !== null);
+  const uniqueIds = new Set(sources.filter(s => sources.filter(other => other.id === s.id).length === 1).map(s => s.id));
+  const assessments = Array.isArray(raw.source_assessments) ? raw.source_assessments.filter(isRecord) : null;
+  const dimensions = ["entity", "temporal", "predicate", "scope", "metric", "modality"];
+  const materiality = isRecord(raw.compatibility_materiality) &&
+    dimensions.every(k => typeof (raw.compatibility_materiality as Record<string, unknown>)[k] === "boolean")
+    ? raw.compatibility_materiality : null;
+  const validBearing = (id: string) => {
+    if (!assessments) {
+      const source = sources.find(s => s.id === id);
+      return source?.relation !== "context" && source?.relation !== "irrelevant" &&
+        source?.strength !== "LIMITED" && source?.strength !== "NONE";
+    }
+    if (!sources.every(s => assessments.filter(a => a.source_id === s.id).length === 1)) return false;
+    const entries = assessments.filter(a => a.source_id === id);
+    if (entries.length !== 1) return false;
+    const a = entries[0];
+    return (a.relation === "SUPPORTS" || a.relation === "CONTRADICTS") && a.strength === "STRONG" &&
+      isRecord(a.compatibility) && ["entity", "temporal", "predicate", "scope", "metric", "modality"]
+        .every(k => a.compatibility && isRecord(a.compatibility) &&
+          (a.compatibility[k] === "MATCH" || a.compatibility[k] === "NOT_APPLICABLE" ||
+           (materiality?.[k] === false && (a.compatibility[k] === "UNKNOWN" || a.compatibility[k] === "MISMATCH"))));
+  };
+  const usedSourceIds = "used_sources" in raw
+    ? [...new Set((Array.isArray(raw.used_sources) ? raw.used_sources : [])
+      .filter((id): id is string => typeof id === "string" && uniqueIds.has(id) && validBearing(id)))]
+    : undefined;
 
   // Sitenin sözü (Güven ilkeleri): hiç kaynak yoksa "doğru/yanlış/çelişkili" gösterilmez. Canlı backend 1.0.0
   // kaynak bulamasa da modele karar verdiriyor; model kendi bilgisinden hüküm verebilir. backend_v2 bunu zaten
@@ -136,6 +169,7 @@ function parseClaim(
     verdict: sourceless ? "NOT_ENOUGH_EVIDENCE" : verdict,
     explanation: sourceless ? SOURCELESS_EXPLANATION : (str(raw.explanation) ?? ""),
     sources,
+    ...(usedSourceIds !== undefined ? { usedSourceIds } : {}),
     confidence: parseConfidence(raw.confidence),
   };
 }

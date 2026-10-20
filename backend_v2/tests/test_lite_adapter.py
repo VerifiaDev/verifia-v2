@@ -351,10 +351,15 @@ def test_context_cleanup_on_timeout_exception_and_cancellation():
         r = LiteRetriever(workers=2)
         async def go():
             with patch.object(mod, "TOTAL_DEADLINE", 0.01):
-                assert await r(CLAIM) == []
+                try:
+                    await r(CLAIM)
+                except asyncio.TimeoutError:
+                    pass
+                else:
+                    raise AssertionError("empty timeout must remain operational failure")
             assert adapter._lite_workers.get() is None
             await asyncio.sleep(0.05)  # let timed-out fixture workers close
-            with patch.object(mod, "search", side_effect=RuntimeError("test failure")):
+            with patch.object(mod, "search_detailed", side_effect=RuntimeError("test failure")):
                 try:
                     await r(CLAIM)
                 except RuntimeError:
@@ -363,7 +368,7 @@ def test_context_cleanup_on_timeout_exception_and_cancellation():
                     raise AssertionError("expected failure")
             assert adapter._lite_workers.get() is None
             entered, release = Event(), Event()
-            def blocked(*args):
+            def blocked(*args, **kwargs):
                 entered.set()
                 release.wait(2)
                 return []
@@ -373,7 +378,7 @@ def test_context_cleanup_on_timeout_exception_and_cancellation():
                 except asyncio.CancelledError:
                     assert adapter._lite_workers.get() is None
                     raise
-            with patch.object(mod, "search", side_effect=blocked):
+            with patch.object(mod, "search_detailed", side_effect=blocked):
                 task = asyncio.create_task(cancelled_call())
                 while not entered.is_set():
                     await asyncio.sleep(0.001)
@@ -473,11 +478,19 @@ BASELINE_SOURCES = [{'id': 'source_1',
                'fetch_method': 'requests'}}]
 
 
+for _baseline_source in BASELINE_SOURCES:
+    _baseline_source["metadata"]["discovery_queries"] = [
+        "claimalpha 2024 yılında üretim yüzde 20 arttı",
+        "2024 claimalpha yılında uretim yuzde 20 arttı",
+        "claimalpha 2024 yılında üretim yüzde 20 arttı official source",
+    ]
+
+
 def test_cancellation_running_worker_queued_futures_and_claim_isolation():
     entered, release = Event(), Event()
     stopped = Event()
     observed = []
-    original = mod.search
+    original = mod.search_detailed
     def observe(*args, **kwargs):
         event = mod._cancellation_event.get()
         try:
@@ -486,7 +499,7 @@ def test_cancellation_running_worker_queued_futures_and_claim_isolation():
             observed.append(event)
             if event is not None and event.is_set(): stopped.set()
     with fake_external_services("claimalpha", entered, release, 0.001) as calls, \
-         patch.object(mod, "search", side_effect=observe):
+         patch.object(mod, "search_detailed", side_effect=observe):
         retriever = LiteRetriever(workers=1)
         async def go():
             slow = asyncio.create_task(retriever(CLAIM))
@@ -530,7 +543,7 @@ def test_upstream_gate_cancellation_reaches_lite_event():
     entered, release = Event(), Event()
     stopped = Event()
     observed = []
-    original = mod.search
+    original = mod.search_detailed
     def observe(*args, **kwargs):
         event = mod._cancellation_event.get()
         try:
@@ -539,7 +552,7 @@ def test_upstream_gate_cancellation_reaches_lite_event():
             observed.append(event)
             if event is not None and event.is_set(): stopped.set()
     with fake_external_services("claimalpha", entered, release, 0.001) as calls, \
-         patch.object(mod, "search", side_effect=observe):
+         patch.object(mod, "search_detailed", side_effect=observe):
         retriever = LiteRetriever(workers=1)
         gate = UpstreamGate(2)
         gated = gate.retrieve(retriever)

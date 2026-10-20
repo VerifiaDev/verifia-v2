@@ -55,13 +55,16 @@ export function citedNumbers(explanation: string, sources: Source[]): number[] {
 export const UNCITED_NOTE = "sonuç hiçbir kaynağa atıf yapmıyor; kaynakları kendiniz kontrol edin.";
 
 /**
- * Kaynak bulunmuş ve kesin bir hüküm verilmiş ama açıklama listedeki hiçbir kaynağa atıf yapmıyor mu?
+ * Kaynak bulunmuş ve kesin bir hüküm verilmiş ama hükmün dayandığı hiçbir kaynak belirtilmemiş mi?
+ * Backend yapılandırılmış `usedSourceIds` gönderiyorsa (ClaimItem gruplaması da ona göre) yalnızca ona bakılır;
+ * göndermiyorsa açıklamadaki atıflara bakılır.
  * Böyle bir hüküm kaynak üzerinden denetlenemez; hüküm değiştirilmez, yalnızca uyarı gösterilir.
  * Kaynaksız ve gerekçesiz (boş açıklamalı) hükmün kendi uyarısı vardır; "yeterli kanıt yok" bir şey öne sürmediği için sayılmaz.
  */
-export function isUncitedVerdict(claim: Pick<Claim, "verdict" | "explanation" | "sources">): boolean {
-  return claim.verdict !== "NOT_ENOUGH_EVIDENCE"
-    && claim.sources.length > 0
-    && claim.explanation.trim() !== ""
-    && citedNumbers(claim.explanation, claim.sources).length === 0;
+export function isUncitedVerdict(claim: Pick<Claim, "verdict" | "explanation" | "sources" | "usedSourceIds">): boolean {
+  if (claim.verdict === "NOT_ENOUGH_EVIDENCE" || claim.sources.length === 0 || claim.explanation.trim() === "") return false;
+  if (claim.usedSourceIds !== undefined) {
+    return !claim.sources.some((s) => claim.usedSourceIds!.includes(s.id));
+  }
+  return citedNumbers(claim.explanation, claim.sources).length === 0;
 }

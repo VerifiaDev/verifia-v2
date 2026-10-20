@@ -38,6 +38,11 @@ export function ErrorState({ error, onRetry, onEdit }: Props) {
           <li key={t}>{t}</li>
         ))}
       </ul>
+      {error.requestId && (
+        <p className="t-meta muted">
+          Destek kodu: <code>{error.requestId}</code> · Sorunu bildirirken bu kodu paylaşabilirsiniz.
+        </p>
+      )}
       <div className="actions">
         {copy.retry && (
           <button type="button" className="btn" onClick={onRetry}>

@@ -259,7 +259,7 @@ def test_cached_answer_has_the_same_shape(client, fake, monkeypatch):
     first = post(client, "metin").json()
     second = post(client, "metin").json()
     assert validate_verify_response(second) == []
-    assert fake.calls["retrieve"] == 2  # second request fully cached
+    assert fake.calls["retrieve"] == 4  # retrieve again; unchanged evidence reuses verification
     assert [c.get("cached", False) for c in second["results"] if c["is_verifiable"]] == [True, True]
     strip = lambda b: [{k: v for k, v in c.items() if k not in ("cached", "timings_ms")} for c in b["results"]]  # noqa: E731
     assert strip(first) == strip(second)

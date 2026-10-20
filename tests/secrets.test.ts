@@ -10,7 +10,7 @@ import { describe, it } from "node:test";
 
 /** Depoya girmiş (git tarafından izlenen) metin dosyaları. */
 const tracked = execFileSync("git", ["ls-files"], { encoding: "utf8" })
-  .split("\n")
+  .split(/\r?\n/)
   .filter((f) => f && !/(^|\/)package-lock\.json$|\.(png|ico|jpg|woff2?|ttf)$/.test(f));
 
 const SECRET_PATTERNS: [string, RegExp][] = [
@@ -38,19 +38,19 @@ describe("gizli anahtar koruması", () => {
     const envFiles = tracked.filter((f) => /(^|\/)\.env/.test(f));
     // backend_v2/.env.example: backend'in örnek ayar dosyası; anahtar satırları boştur (aşağıdaki test).
     assert.deepEqual(envFiles, [".env.example", "backend_v2/.env.example"]);
-    const ignore = readFileSync(".gitignore", "utf8").split("\n");
+    const ignore = readFileSync(".gitignore", "utf8").split(/\r?\n/);
     for (const rule of [".env", ".env.*", "!.env.example"]) assert.ok(ignore.includes(rule), rule);
   });
 
   it(".env.example yalnızca herkese açık değişken içerir ve değeri boştur", () => {
     const lines = readFileSync(".env.example", "utf8")
-      .split("\n")
+      .split(/\r?\n/)
       .filter((l) => l.trim() && !l.trim().startsWith("#"));
     assert.deepEqual(lines, ["NEXT_PUBLIC_API_BASE_URL="]);
   });
 
   it("backend_v2/.env.example içinde anahtar satırları boştur", () => {
-    const lines = readFileSync("backend_v2/.env.example", "utf8").split("\n");
+    const lines = readFileSync("backend_v2/.env.example", "utf8").split(/\r?\n/);
     for (const name of ["GROQ_API_KEY", "TAVILY_API_KEY"]) {
       const line = lines.find((l) => l.startsWith(`${name}=`));
       assert.ok(line, `${name} satırı yok`);

@@ -314,6 +314,12 @@ describe("VerificationInput örnekleri", () => {
 });
 
 describe("ErrorState ve AnalysisProgress", () => {
+  it("destek kodu yalnızca varsa gösterilir", () => {
+    const withId = renderToStaticMarkup(<ErrorState error={{ code: "TIMEOUT", message: "m", requestId: "abc12345-def" }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.match(withId, /Destek kodu: <code>abc12345-def<\/code>/);
+    const without = renderToStaticMarkup(<ErrorState error={{ code: "TIMEOUT", message: "m" }} onRetry={() => {}} onEdit={() => {}} />);
+    assert.ok(!without.includes("Destek kodu"));
+  });
   it("her hata kodu 'Ne oldu?' ve 'Şimdi ne yapabilirsiniz?' içerir", () => {
     for (const code of Object.keys(ERROR_COPY) as ErrorCode[]) {
       const html = renderToStaticMarkup(<ErrorState error={{ code, message: "m" }} onRetry={() => {}} onEdit={() => {}} />);

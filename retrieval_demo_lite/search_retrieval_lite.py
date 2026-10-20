@@ -128,6 +128,12 @@ TAVILY_TIMEOUT = _positive_env("LITE_TAVILY_TIMEOUT", 5.0)
 TOTAL_DEADLINE = _positive_env("LITE_TOTAL_DEADLINE", 20.0)
 
 # Immutable per-context value; workers get distinct context copies.
+_research_session = ContextVar("lite_research_session", default=None)
+MAX_RESEARCH_ROUNDS = 2
+MAX_RESEARCH_QUERIES = 6
+
+_passage_frame = ContextVar("lite_passage_frame", default=None)
+_assessment_mode = ContextVar("lite_assessment_mode", default=False)
 _total_deadline = ContextVar("lite_total_deadline", default=None)
 # Coordinator-owned state. Explicitly cleared from fetch worker contexts.
 _partial_state = ContextVar("lite_partial_state", default=None)
@@ -661,6 +667,41 @@ def _frame_hints(
 # QUERY GENERATION
 # ==========================================================
 
+def _research_unique(queries):
+    out, seen = [], set()
+    for query in queries:
+        if not isinstance(query, str) or not query.strip():
+            continue
+        query = re.sub(r"\s+", " ", query).strip()[:380]
+        key = _normalize(query.rstrip(".?!"))
+        if key and key not in seen:
+            seen.add(key)
+            out.append(query)
+    return out
+
+
+def research_fallbacks(claim_text, frame):
+    if not isinstance(frame, dict):
+        return []
+    primary = generate_queries(claim_text, frame)
+    all_queries = _research_unique(primary + list(frame.get("fallback_queries") or [])[:3])
+    return all_queries[len(primary):][:3]
+
+
+def _merge_search_row(old, new):
+    """Bounded provenance plus the better provider result; no trust inference."""
+    queries = _research_unique(old.get("discovery_queries", []) + new.get("discovery_queries", []))[:6]
+    best, other = (new, old) if float(new.get("tavily_score") or 0) > float(old.get("tavily_score") or 0) else (old, new)
+    merged = dict(best)
+    for key in ("title", "content", "published_date"):
+        if not merged.get(key):
+            merged[key] = other.get(key)
+    merged["discovery_queries"] = queries
+    old.clear()
+    old.update(merged)
+    return old
+
+
 def generate_queries(
     claim_text: str,
     claim_frame=None,
@@ -693,17 +734,26 @@ def generate_queries(
         )
     )
 
-    queries = [
-        base,
-        short_query,
-        f"{base} official source",
-    ]
+    diverse = []
+    if isinstance(claim_frame, dict):
+        neutral = claim_frame.get("primary_queries") or claim_frame.get("neutral_search_hints")
+        if isinstance(neutral, list):
+            diverse = [re.sub(r"\s+", " ", hint).strip()[:240]
+                       for hint in neutral[:2] if isinstance(hint, str) and hint.strip()]
+        # A neutral property lookup omits the asserted object/value. It does not
+        # invent an alternative answer or add a recency constraint.
+        parts = [claim_frame.get(key) for key in
+                 ("subject", "predicate", "explicit_time", "scope", "metric")]
+        if isinstance(parts[0], str) and isinstance(parts[1], str):
+            diverse.append(" ".join(p.strip() for p in parts
+                                    if isinstance(p, str) and p.strip())[:240])
+    queries = [base, *diverse, short_query, f"{base} official source"]
 
-    unique = _unique(queries)
+    unique = _research_unique(queries)
     state = _partial_state.get()
     if state is not None:
         state["diagnostics"].update(generated_query_count=len(queries), unique_query_count=len(unique))
-    return unique[:MAX_QUERY_COUNT]
+    return unique[:max(1, min(MAX_QUERY_COUNT, 3))]
 
 
 # ==========================================================
@@ -746,10 +796,11 @@ def _search_web(
 
     state = _partial_state.get()
     diagnostics = state["diagnostics"] if state is not None else _provider_defaults()
-    queries = generate_queries(claim_text, claim_frame)
+    session = _research_session.get()
+    queries = (session["queries"] if session is not None else generate_queries(claim_text, claim_frame))
     diagnostics["planned_query_count"] = len(queries)
     results = []
-    seen_urls = set()
+    seen_urls = {}
     try:
         _remaining("tavily")
         client = _get_tavily_client()
@@ -826,16 +877,10 @@ def _search_web(
             if not url:
                 continue
 
-            canonical = _canonical_url(
-                url
-            )
-
-            if canonical in seen_urls:
+            try:
+                canonical = _canonical_url(url)
+            except (ValueError, TypeError):
                 continue
-
-            seen_urls.add(
-                canonical
-            )
 
             results.append({
                 "title": re.sub(
@@ -860,6 +905,7 @@ def _search_web(
                     or "",
                 ).strip(),
 
+                "discovery_queries": [query],
                 "tavily_score": float(
                     row.get(
                         "score"
@@ -873,6 +919,10 @@ def _search_web(
                     )
                 ),
             })
+            if canonical in seen_urls:
+                _merge_search_row(seen_urls[canonical], results.pop())
+            else:
+                seen_urls[canonical] = results[-1]
 
     return (
         results,
@@ -892,52 +942,57 @@ def _prefilter(
     scored = []
 
     for row in rows:
+        _remaining("prefilter")
+        try:
+            urlparse(row.get("url", "")).hostname
+            if _is_social(
+                row.get(
+                    "url",
+                    "",
+                )
+            ):
+                continue
 
-        if _is_social(
-            row.get(
-                "url",
-                "",
+            combined = (
+                f"{row.get('title', '')} "
+                f"{row.get('content', '')}"
             )
-        ):
-            continue
 
-        combined = (
-            f"{row.get('title', '')} "
-            f"{row.get('content', '')}"
-        )
+            lexical = _lexical(
+                claim_text,
+                combined,
+            )
 
-        lexical = _lexical(
-            claim_text,
-            combined,
-        )
-
-        tavily_score = max(
-            0.0,
-            min(
-                1.0,
-                float(
-                    row.get(
-                        "tavily_score"
-                    )
-                    or 0.0
+            tavily_score = max(
+                0.0,
+                min(
+                    1.0,
+                    float(
+                        row.get(
+                            "tavily_score"
+                        )
+                        or 0.0
+                    ),
                 ),
-            ),
-        )
+            )
 
-        search_score = (
-            0.46 * lexical
-            + 0.54 * tavily_score
-        )
+            search_score = (
+                0.46 * lexical
+                + 0.54 * tavily_score
+            )
 
-        item = dict(row)
+            item = dict(row)
 
-        item["search_score"] = (
-            search_score
-        )
+            item["search_score"] = (
+                search_score
+            )
 
-        scored.append(
-            item
-        )
+            scored.append(item)
+        except (_RetrievalTimeout, _RetrievalCancelled):
+            raise
+        except Exception:
+            _remaining("prefilter")
+            continue
 
     scored.sort(
         key=lambda item: (
@@ -1351,10 +1406,44 @@ def _chunk_text(
     )
 
 
+def _passage_hints(claim_text, row):
+    frame = _passage_frame.get()
+    hints = list(row.get("discovery_queries") or [])[:6]
+    if isinstance(frame, dict):
+        neutral = frame.get("neutral_search_hints")
+        if isinstance(neutral, list):
+            hints += neutral[:2]
+        parts = [frame.get(k) for k in ("subject", "predicate", "explicit_time", "scope", "metric")]
+        if isinstance(parts[0], str) and isinstance(parts[1], str):
+            hints.append(" ".join(p for p in parts if isinstance(p, str)))
+    base = _normalize(claim_text.rstrip(".?!"))
+    return _unique([h[:240] for h in hints if isinstance(h, str) and h.strip()
+                    and _normalize(h.rstrip(".?!")) != base])[:6]
+
+
+def _passage_hint_score(claim_text, text, hints):
+    tokens = _token_set(text)
+    claim_overlap = bool(tokens.intersection(_token_set(claim_text)))
+    scores = []
+    for hint in hints:
+        hint_tokens = _token_set(hint)
+        matched = tokens.intersection(hint_tokens)
+        # A lone generic word cannot boost a passage. The claim must still
+        # overlap and half the lookup, or the entire multilingual lookup, must be present.
+        if len(matched) >= 2 and len(matched) / max(1, len(hint_tokens)) >= (.5 if claim_overlap else 1.0):
+            scores.append(_lexical(hint, text))
+    return max(scores, default=0.0)
+
+
+def _passage_relevance(claim_text, text, hints):
+    return _lexical(claim_text, text) + .35 * _passage_hint_score(claim_text, text, hints)
+
+
 def _focus(
     claim_text: str,
     chunk: str,
     max_sentences: int = 3,
+    hints=(),
 ) -> str:
 
     sentences = _sentences(
@@ -1372,10 +1461,7 @@ def _focus(
             len(sentences)
         ),
         key=lambda index: (
-            _lexical(
-                claim_text,
-                sentences[index],
-            )
+            _passage_relevance(claim_text, sentences[index], hints)
         ),
     )
 
@@ -1545,13 +1631,11 @@ def _build_candidates_batch(
             ]
 
         _remaining("ranking")
+        hints = _passage_hints(claim_text, row)
         chunks = sorted(
             chunks,
             key=lambda chunk: (
-                _lexical(
-                    claim_text,
-                    chunk,
-                )
+                _passage_relevance(claim_text, chunk, hints)
             ),
             reverse=True,
         )[:MAX_CHUNKS_PER_SOURCE]
@@ -1559,10 +1643,8 @@ def _build_candidates_batch(
         for chunk in chunks:
             _remaining("ranking")
 
-            focused = _focus(
-                claim_text,
-                chunk,
-            )
+            focused = (_focus(claim_text, chunk, hints=hints) if hints
+                       else _focus(claim_text, chunk))
 
             ranking_text = (
                 f"{row.get('title', '')}\n"
@@ -1612,6 +1694,9 @@ def _build_candidates_batch(
                 "evidence_intent_penalty": intent_penalty,
                 "evidence_intent_flags": intent_flags,
                 "text": focused,
+                "discovery_queries": row.get("discovery_queries", []),
+                "passage_score": (max(0.0, min(1.0, retrieval_score - intent_penalty))
+                                  + .35 * _passage_hint_score(claim_text, focused, hints)),
 
                 "title": (
                     row.get(
@@ -1711,7 +1796,13 @@ def _process_ready_page(claim_text, row, index, fetched_text=None, completed_at=
     if completed_at is not None and deadline is not None and completed_at >= deadline:
         raise _RetrievalTimeout("fetch")
     # A page's chunks/scores enter the pool only after the whole page succeeds.
-    page = _build_candidates_batch(claim_text, [row], fetched_text)
+    try:
+        page = _build_candidates_batch(claim_text, [row], fetched_text)
+    except (_RetrievalTimeout, _RetrievalCancelled):
+        raise
+    except Exception:
+        _remaining("source_processing")
+        return [], {"requests_sources": 0, "snippet_sources": 0}
     _remaining("ranking")
     state = _partial_state.get()
     if state is not None:
@@ -1757,14 +1848,18 @@ def _select_diverse(
     pages = {}
     for candidate in sorted(candidates, key=lambda item: item["retrieval_score"], reverse=True):
         _remaining("ranking")
-        # Shared by normal output and committed timeout snapshots. Keep all
-        # candidates upstream for diagnostics; never fill slots with exercises.
-        if not candidate.get("evidence_eligible", True):
+        # Public search excludes exercises. The opt-in semantic assessment path
+        # may inspect them: a claim ABOUT an exam can use that document as evidence.
+        # Penalties, diversity and bounded source counts still apply.
+        if not candidate.get("evidence_eligible", True) and not _assessment_mode.get():
             continue
         canonical = _canonical_url(candidate["url"])
-        if canonical not in pages:
+        previous = pages.get(canonical)
+        if previous is None or candidate.get("passage_score", candidate["retrieval_score"]) > previous.get("passage_score", previous["retrieval_score"]):
             pages[canonical] = candidate
-    pool = [dict(candidate) for candidate in list(pages.values())[:30]]
+    # Hints choose the passage within a page; they never inflate document rank.
+    ranked_pages = sorted(pages.values(), key=lambda c: c["retrieval_score"], reverse=True)
+    pool = [dict(candidate) for candidate in ranked_pages[:30]]
 
     selected = []
 
@@ -1927,6 +2022,8 @@ def _sources_from_selected(selected):
             ),
 
             "metadata": {
+                **({"discovery_queries": candidate["discovery_queries"]}
+                   if candidate.get("discovery_queries") else {}),
                 # Keep ordinary source metadata byte-for-byte compatible.
                 **({
                     "evidence_intent_penalty": candidate["evidence_intent_penalty"],
@@ -2055,10 +2152,45 @@ def _search_detailed_impl(
     if state is not None:
         state["diagnostics"].update(queries=queries, raw_search_results=len(search_rows))
     _remaining("prefilter")
-    prefiltered = _prefilter(
-        claim_text,
-        search_rows,
-    )
+    session = _research_session.get()
+    prior = session.get("candidates", []) if session is not None else []
+    if session is not None:
+        rows = session.setdefault("rows", {})
+        improved_snippets = set()
+        for row in search_rows:
+            key = _canonical_url(row["url"])
+            if key in rows:
+                old_content = rows[key].get("content")
+                _merge_search_row(rows[key], row)
+                rows[key]["content"] = (rows[key].get("content") or "")[:6000]
+                if rows[key].get("content") != old_content:
+                    improved_snippets.add(key)
+            elif len(rows) < 60:
+                rows[key] = {**row, "content": row.get("content", "")[:6000]}
+        for key in improved_snippets:
+            old = [c for c in prior if _canonical_url(c["url"]) == key]
+            if old and all(c["fetch_method"] in ("tavily_snippet", "tavily_pdf_snippet") for c in old):
+                ranked = _prefilter(claim_text, [rows[key]])
+                try:
+                    replacement, _ = _build_candidates_batch(claim_text, ranked, fetched_text="")
+                except (_RetrievalTimeout, _RetrievalCancelled):
+                    raise
+                except Exception:
+                    _remaining("source_processing")
+                    continue
+                if replacement:
+                    prior = [c for c in prior if _canonical_url(c["url"]) != key] + replacement
+        fetched = {_canonical_url(c["url"]) for c in prior}
+        search_rows = [r for key, r in rows.items() if key not in fetched]
+        for candidate in prior:
+            row = rows.get(_canonical_url(candidate["url"]), {})
+            candidate["discovery_queries"] = row.get("discovery_queries", [])
+            for field in ("title", "published_date"):
+                if row.get(field):
+                    candidate[field] = row[field]
+            hints = _passage_hints(claim_text, row)
+            candidate["passage_score"] = candidate["retrieval_score"] + .35 * _passage_hint_score(claim_text, candidate["text"], hints)
+    prefiltered = _prefilter(claim_text, search_rows)
 
     if state is not None:
         state["diagnostics"]["prefiltered_sources"] = len(prefiltered)
@@ -2069,6 +2201,9 @@ def _search_detailed_impl(
         )
     )
 
+    if session is not None:
+        candidates = (prior + candidates)[:2 * FETCH_SOURCE_LIMIT * MAX_CHUNKS_PER_SOURCE]
+        session["candidates"] = candidates
     _remaining("ranking")
     selected = _select_diverse(
         candidates,
@@ -2078,6 +2213,12 @@ def _search_detailed_impl(
     _remaining("ranking")
     sources = _sources_from_selected(selected)
 
+    if session is not None:
+        session["quality_weak"] = not any(
+            c.get("evidence_eligible", True) and (
+                c.get("lexical_score", 0) >= .35 or
+                _passage_hint_score(claim_text, c["text"], _passage_hints(claim_text, c)) >= .55)
+            for c in selected)
     result = {
         "version": SURUM,
 
@@ -2218,9 +2359,15 @@ def _initial_diagnostics():
 
 
 def search_detailed(claim_text: str, max_sources: int = 5, claim_frame=None,
-                    debug: bool = False) -> dict:
+                    debug: bool = False, *, assessment_mode: bool = False, research_session=None) -> dict:
+    research_token = _research_session.set(research_session)
+    frame_token = _passage_frame.set(claim_frame)
+    mode_token = _assessment_mode.set(assessment_mode)
     started = time.monotonic()
-    token = _total_deadline.set(started + TOTAL_DEADLINE)
+    deadline = started + TOTAL_DEADLINE
+    if research_session is not None:
+        deadline = research_session.setdefault("deadline", deadline)
+    token = _total_deadline.set(deadline)
     state = {"snapshot": [], "pages": {}, "max_sources": 5,
              "diagnostics": _initial_diagnostics()}
     state_token = _partial_state.set(state)
@@ -2230,9 +2377,12 @@ def search_detailed(claim_text: str, max_sources: int = 5, claim_frame=None,
         _remaining("result_construction")
         result["diagnostics"].update({key: state["diagnostics"][key]
                                       for key in _provider_defaults()})
-        if (not result["sources"] and state["diagnostics"]["provider_ok"] is False
-                and not state["diagnostics"]["successful_query_count"]):
+        if (state["diagnostics"]["provider_ok"] is False
+                and not state["diagnostics"]["successful_query_count"]
+                and not state["diagnostics"].get("cache_hit_count", 0)):
             result["status"] = "search_provider_error"
+        elif not result["sources"] and result["diagnostics"].get("candidate_count", 0):
+            result["status"] = "quality_filtered_empty"
         result["diagnostics"].update(cancelled=False, cancellation_stage=None,
                                      timed_out=False, partial_result=False,
                                      timeout_stage=None,
@@ -2263,6 +2413,9 @@ def search_detailed(claim_text: str, max_sources: int = 5, claim_frame=None,
     finally:
         _partial_state.reset(state_token)
         _total_deadline.reset(token)
+        _assessment_mode.reset(mode_token)
+        _passage_frame.reset(frame_token)
+        _research_session.reset(research_token)
 
 
 def search(

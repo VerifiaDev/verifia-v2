@@ -20,9 +20,14 @@ import asyncio
 import logging
 import re
 import time
+import hashlib
+from copy import deepcopy
 from collections import OrderedDict
 from dataclasses import dataclass
 from typing import Any, Awaitable, Callable, Optional
+
+from .upstream_errors import InvalidModelResponse, UpstreamRateLimited, UpstreamTimeout
+from .evidence import evidence_fingerprint, current_claim_frame, claim_frame_fingerprint, current_research, verifier_budget
 
 log = logging.getLogger("verify.pipeline")
 
@@ -67,10 +72,10 @@ class TTLCache:
             self._d.pop(key, None)
             return None
         self._d.move_to_end(key)
-        return dict(value)
+        return deepcopy(value)
 
     def set(self, key: str, value: dict) -> None:
-        self._d[key] = (time.monotonic() + self.ttl, dict(value))
+        self._d[key] = (time.monotonic() + self.ttl, deepcopy(value))
         self._d.move_to_end(key)
         while len(self._d) > self.max_items:
             self._d.popitem(last=False)
@@ -97,6 +102,8 @@ def cache_key(text: str) -> str:
 
 
 def _detail(exc: BaseException, cfg: PipelineConfig) -> Optional[str]:
+    if isinstance(exc, InvalidModelResponse):
+        return None
     if not cfg.expose_detail:
         return None
     msg = str(exc) or "(no message)"
@@ -121,37 +128,96 @@ def _base(claim: Any, **overrides: Any) -> dict:
 async def _process_claim(
     claim: Any, *, retrieve: Retrieve, verify: Verify, cfg: PipelineConfig, cache: Optional[TTLCache]
 ) -> dict:
-    key = cache_key(claim.text)
-    if cache is not None:
-        hit = cache.get(key)
-        if hit is not None:
-            return _base(claim, **hit, cached=True)
-
+    frame = getattr(claim, "claim_frame", None)
+    if hasattr(frame, "model_dump"):
+        frame = frame.model_dump()
+    frame_token = current_claim_frame.set(frame if isinstance(frame, dict) else None)
+    research = {}
+    research_token = current_research.set(research)
+    budget_token = verifier_budget.set({"repairs": 0, "attempts": 0})
     stage = {"name": "retrieval"}
     timings: dict = {}
+
+    def can_research():
+        return research.get("round") == 1 and bool(research.get("fallbacks")) and not research.get("stopped")
+
+    def grounded(v, sources):
+        if getattr(v, "source_assessments", None) is None:
+            return v
+        from .llm import _import_ai_engine
+        ae = _import_ai_engine()
+        return ae.normalize_assessments(ae.VerdictResult(
+            claim_id=getattr(v, "claim_id", claim.id), verdict=v.verdict,
+            explanation=v.explanation, used_sources=v.used_sources,
+            source_assessments=v.source_assessments), [s["id"] for s in sources], frame)
 
     async def body() -> dict:
         t = time.perf_counter()
         sources = await retrieve(claim.text)
+        if research.get("quality_weak") and can_research():
+            research["trigger"] = "passage_quality"
+            sources = await retrieve(claim.text)
         timings["retrieval_ms"] = _ms(t)
+        outcome = getattr(sources, "outcome", None)
+        outcome_fields = {"retrieval_outcome": outcome} if outcome else {}
+        key = hashlib.sha256((cache_key(claim.text) + ":" + claim_frame_fingerprint() + ":" + evidence_fingerprint(sources)).encode()).hexdigest()
+        if cache is not None and sources and not research.get("stopped"):
+            hit = cache.get(key)
+            if hit is not None:
+                return _base(claim, **hit, **outcome_fields, cached=True, timings_ms=dict(timings))
 
         if not sources:
+            if research.get("stopped"):
+                raise RuntimeError("Research interrupted without evidence")
             return _base(
                 claim,
                 verdict=NO_EVIDENCE,
                 explanation="Bu iddia için kaynak bulunamadı.",
                 no_sources=True,
+                **outcome_fields,
                 timings_ms=dict(timings),
             )
 
         stage["name"] = "verdict"
         t = time.perf_counter()
         v = await verify(claim.text, sources)
+        v = grounded(v, sources)
+        if getattr(v, "source_assessments", None) is not None and not v.used_sources and can_research():
+            stage["name"] = "retrieval"
+            research["trigger"] = "no_strong_evidence"
+            sources = await retrieve(claim.text)
+            outcome = getattr(sources, "outcome", None)
+            outcome_fields = {"retrieval_outcome": outcome} if outcome else {}
+            key = hashlib.sha256((cache_key(claim.text) + ":" + claim_frame_fingerprint() + ":" + evidence_fingerprint(sources)).encode()).hexdigest()
+            stage["name"] = "verdict"
+            v = grounded(await verify(claim.text, sources), sources)
+        if research.get("stopped") and not v.used_sources:
+            stage["name"] = "retrieval"
+            raise RuntimeError("Research interrupted before useful evidence was established")
         timings["verify_ms"] = _ms(t)
 
         ids = {s["id"] for s in sources}
         used = [s for s in (v.used_sources or []) if s in ids]  # drop hallucinated ids
+        assessments = getattr(v, "source_assessments", None)
+        if assessments is not None:
+            # Revalidate at the adapter boundary too; injected/alternative verifiers cannot
+            # bypass grounding merely by returning a structured-looking response.
+            from .llm import _import_ai_engine
+            ae = _import_ai_engine()
+            v = ae.normalize_assessments(ae.VerdictResult(
+                claim_id=getattr(v, "claim_id", claim.id), verdict=v.verdict,
+                explanation=v.explanation, used_sources=v.used_sources,
+                source_assessments=assessments), [s["id"] for s in sources], frame)
+            used = v.used_sources
+            by_id = {a.source_id: a for a in v.source_assessments}
+            sources = [{**s, **({"relation": by_id[s["id"]].relation.lower(),
+                                "strength": by_id[s["id"]].strength,
+                                "assessment_reason": by_id[s["id"]].reason}
+                               if s["id"] in by_id else {})} for s in sources]
         payload = {
+            **({"source_assessments": [a.model_dump() for a in v.source_assessments],
+                "compatibility_materiality": ae.compatibility_materiality(frame)}
+               if assessments is not None else {}),
             "verdict": v.verdict,
             "explanation": v.explanation,
             "used_sources": used,
@@ -159,7 +225,7 @@ async def _process_claim(
         }
         if cache is not None:
             cache.set(key, payload)
-        return _base(claim, **payload, timings_ms=dict(timings))
+        return _base(claim, **payload, **outcome_fields, timings_ms=dict(timings))
 
     try:
         return await asyncio.wait_for(body(), cfg.claim_timeout)
@@ -170,6 +236,15 @@ async def _process_claim(
             error_code="CLAIM_TIMEOUT",
             failed_stage=stage["name"],
             explanation="Bu iddia zamanında incelenemedi.",
+            timings_ms=dict(timings),
+        )
+    except (UpstreamRateLimited, UpstreamTimeout) as exc:
+        return _base(
+            claim,
+            status="timeout" if isinstance(exc, UpstreamTimeout) else "error",
+            error_code="UPSTREAM_TIMEOUT" if isinstance(exc, UpstreamTimeout) else "UPSTREAM_RATE_LIMITED",
+            failed_stage=stage["name"],
+            explanation=str(exc),
             timings_ms=dict(timings),
         )
     except Exception as exc:  # one claim failing must not kill the others
@@ -183,6 +258,10 @@ async def _process_claim(
             detail=_detail(exc, cfg),
             timings_ms=dict(timings),
         )
+    finally:
+        current_claim_frame.reset(frame_token)
+        current_research.reset(research_token)
+        verifier_budget.reset(budget_token)
 
 
 async def run_pipeline(
@@ -210,10 +289,12 @@ async def run_pipeline(
     t = time.perf_counter()
     try:
         extraction = await asyncio.wait_for(extract(text), cfg.extract_timeout)
-    except asyncio.TimeoutError:
+    except (asyncio.TimeoutError, UpstreamTimeout):
         raise PipelineError(
             "EXTRACTION_TIMEOUT", "İddialar ayrıştırılırken zaman aşımı oluştu.", http_status=504
         )
+    except UpstreamRateLimited as exc:
+        raise PipelineError("UPSTREAM_RATE_LIMITED", str(exc), http_status=503) from None
     except Exception as exc:
         log.exception("claim extraction failed")
         raise PipelineError(
@@ -306,7 +387,8 @@ async def run_pipeline(
 
     results = [s for s in slots if s is not None]
     total_ms = _ms(t_start)
-    partial = any(r["status"] in ("timeout", "error", "skipped") for r in results)
+    partial = any(r["status"] in ("timeout", "error", "skipped") or
+                  r.get("retrieval_outcome", {}).get("partial", False) for r in results)
     log.info(
         "pipeline done: claims=%d ran=%d extract=%dms total=%dms partial=%s",
         len(claims), len(to_run), extract_ms, total_ms, partial,

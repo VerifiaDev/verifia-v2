@@ -33,6 +33,15 @@ describe("atıfsız hüküm uyarısı", () => {
     assert.equal(isUncitedVerdict(claim("SUPPORTED", "Doğru [source_9].")), true);
   });
 
+  it("yapılandırılmış used_sources varsa yalnızca ona bakılır", () => {
+    const withUsed = (used: string[], explanation: string) => ({ ...claim("SUPPORTED", explanation), usedSourceIds: used });
+    assert.equal(isUncitedVerdict(withUsed([], "Kaynaklar doğruluyor [source_1].")), true, "metinde atıf olsa da dayanak yok");
+    assert.equal(isUncitedVerdict(withUsed(["source_2"], "Kaynaklar doğruluyor.")), false, "metinde atıf olmasa da dayanak var");
+    assert.equal(isUncitedVerdict(withUsed(["source_9"], "Kaynaklar doğruluyor.")), true, "listede olmayan kimlik dayanak sayılmaz");
+    assert.ok(render(withUsed([], "Kaynaklar doğruluyor.")).includes(`Kanıt bilgisi eksik: ${UNCITED_NOTE}`));
+    assert.ok(!render(withUsed(["source_1"], "Kaynaklar doğruluyor.")).includes(UNCITED_NOTE));
+  });
+
   it("atıf olmayan köşeli parantez ([2023], [sic]) atıf sayılmaz", () => {
     assert.equal(isUncitedVerdict(claim("SUPPORTED", "2023 verisi [2023] böyle diyor [sic].")), true);
   });

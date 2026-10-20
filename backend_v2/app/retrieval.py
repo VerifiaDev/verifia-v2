@@ -140,6 +140,13 @@ class ArdaRetriever:
         return await asyncio.to_thread(self._search, claim_text, self.max_sources)
 
 
+class RetrievalSources(list):
+    """List-compatible adapter result with an additive operational outcome."""
+    def __init__(self, sources, outcome):
+        super().__init__(sources)
+        self.outcome = outcome
+
+
 class LiteRetriever:
     """Run Lite page fetches in parallel with the claim's cooperative deadline.
 
@@ -210,7 +217,16 @@ class LiteRetriever:
                     )
                     mod._remaining("parallel_fetch")
                     # Consume a ready batch in original source order, not set order.
-                    ready = {futures[future]: future.result() for future in done}
+                    ready = {}
+                    for future in done:
+                        try:
+                            ready[futures[future]] = future.result()
+                        except (mod._RetrievalTimeout, mod._RetrievalCancelled):
+                            raise
+                        except Exception:
+                            mod._remaining("parallel_fetch")
+                            # Skip this source; do not reinterpret a broken fetch as evidence.
+                            continue
                     for index, row in enumerate(rows):
                         if row.get("url") in ready:
                             text, completed_at = ready[row["url"]]
@@ -234,7 +250,49 @@ class LiteRetriever:
         cancellation = Event()
         cancel_token = self._mod._cancellation_event.set(cancellation)
         try:
-            return await asyncio.to_thread(self._mod.search, claim_text, self.max_sources)
+            # The standalone legacy adapter import has no package context/frame.
+            if __package__:
+                from .evidence import current_claim_frame, current_research
+                frame = current_claim_frame.get()
+                session = current_research.get()
+            else:
+                frame = None
+                session = None
+            options = {}
+            if session is not None:
+                if session.get("round", 0) >= self._mod.MAX_RESEARCH_ROUNDS:
+                    raise RuntimeError("Research budget exhausted")
+                if not session.get("round"):
+                    session["fallbacks"] = self._mod.research_fallbacks(claim_text, frame)
+                    queries = self._mod.generate_queries(claim_text, frame)
+                else:
+                    queries = session.get("fallbacks", [])
+                used = session.setdefault("used_queries", [])
+                queries = self._mod._research_unique(used + queries)[len(used):][:min(3, self._mod.MAX_RESEARCH_QUERIES-len(used))]
+                if not queries:
+                    raise RuntimeError("No unused research queries")
+                used.extend(queries)
+                session["queries"] = queries
+                session["round"] = session.get("round", 0) + 1
+                session.setdefault("waves", []).append(list(queries))
+                options["research_session"] = session
+            result = await asyncio.to_thread(self._mod.search_detailed, claim_text,
+                                             self.max_sources, claim_frame=frame,
+                                             assessment_mode=True, **options)
+            diagnostics = result.get("diagnostics", {})
+            if result["status"] == "cancelled":
+                raise asyncio.CancelledError()
+            if result["status"] == "search_provider_error":
+                raise RuntimeError("Search provider failed")
+            if diagnostics.get("timed_out") and not result["sources"]:
+                raise asyncio.TimeoutError()
+            outcome = {"status": result["status"],
+                       "partial": bool(diagnostics.get("partial_result") or diagnostics.get("failed_query_count")),
+                       "timed_out": bool(diagnostics.get("timed_out")),
+                       "provider_ok": diagnostics.get("provider_ok")}
+            if session is not None:
+                session["stopped"] = bool(outcome["partial"] or outcome["timed_out"])
+            return RetrievalSources(result["sources"], outcome)
         except asyncio.CancelledError:
             # Signals cooperative stop; does not kill a blocking DNS/SDK/socket call.
             cancellation.set()
