@@ -244,3 +244,22 @@ def test_verdict_sdk_errors_preserve_partial_results(client, fake, monkeypatch, 
         assert len(calls) == 1
     finally:
         sdk.close()
+
+
+def test_valid_verdict_with_missing_assessments_repairs_once_without_raw_details(monkeypatch):
+    payload = broken_completion('verdict')
+    payload['choices'][0]['message']['content'] = json.dumps({
+        'claim_id': 'c', 'verdict': 'SUPPORTED', 'explanation': SENSITIVE,
+        'used_sources': ['source_1'],
+    })
+    instance, calls, sdk = mock_llm(monkeypatch, payload)
+    ae = llm._import_ai_engine()
+    try:
+        with pytest.raises(ae.AssessmentCoverageError) as caught:
+            instance.engine.verify_claim('offline input', [ae.Source(id='source_1', text='Synthetic evidence')])
+        assert len(calls) == 2
+        assert SENSITIVE not in str(caught.value)
+        assert caught.value.__suppress_context__
+        assert instance.engine.client.max_retries == 0
+    finally:
+        sdk.close()

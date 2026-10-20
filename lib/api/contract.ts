@@ -18,7 +18,11 @@ export interface RawCheckRequest {
 
 export interface RawEvidence {
   /** İsteğe bağlı; yalnızca servis açıkça sağlıyorsa gösterilir. */
-  relation?: "supports" | "contradicts" | "context";
+  relation?: "supports" | "contradicts" | "context" | "irrelevant";
+  assessment_reason?: string;
+  strength?: "STRONG" | "LIMITED" | "NONE";
+  metadata?: { fetch_method?: string };
+  fetch_method?: string;
   excerpt_kind?: "summary";
   kind?: string;
   id?: string;
@@ -39,7 +43,19 @@ export interface RawEvidence {
   retrieval_score?: number | null;
 }
 
+export interface RawSourceAssessment {
+  source_id: string;
+  relation: "SUPPORTS" | "CONTRADICTS" | "CONTEXT" | "IRRELEVANT";
+  strength: "STRONG" | "LIMITED" | "NONE";
+  reason: string;
+  compatibility: Record<"entity" | "temporal" | "predicate" | "scope" | "metric" | "modality",
+    "MATCH" | "MISMATCH" | "UNKNOWN" | "NOT_APPLICABLE">;
+}
+
 export interface RawClaim {
+  source_assessments?: RawSourceAssessment[];
+  compatibility_materiality?: Record<"entity" | "temporal" | "predicate" | "scope" | "metric" | "modality", boolean>;
+  retrieval_outcome?: { status: string; partial: boolean; timed_out: boolean; provider_ok?: boolean | null };
   id?: string;
   /** Gerçek backend iddia kimliğini `claim_id` olarak verir. */
   claim_id?: string;
@@ -48,7 +64,7 @@ export interface RawClaim {
    * ve `explanation` kısa bir açıklamadır; arayüz bunu hüküm olarak değil "incelenemedi" olarak gösterir.
    */
   status?: string;
-  /** Gerçek backend: açıklamada gerçekten kullanılan kaynak kimlikleri (arayüz şimdilik atıflardan okur). */
+  /** Gerçek backend: açıklamada gerçekten kullanılan kaynak kimlikleri (arayüzde varsa yetkili gruplama alanıdır). */
   used_sources?: string[];
   /** İddia metni; bazı biçimlerde `text` */
   claim?: string;

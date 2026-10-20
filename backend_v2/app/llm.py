@@ -21,6 +21,9 @@ import asyncio
 import json
 import sys
 from pathlib import Path
+from threading import Event
+
+from .evidence import current_claim_frame, verifier_budget
 
 from groq import APIError, APITimeoutError, RateLimitError
 
@@ -62,8 +65,16 @@ def make_engine(settings):
             if use_effort:
                 kwargs["reasoning_effort"] = self.reasoning_effort
 
+            budget = verifier_budget.get() if schema_name == "verdict_result" else None
+            def create():
+                if budget is not None:
+                    if budget["attempts"] >= 3:
+                        raise ae.AssessmentCoverageError("Verifier attempt budget exhausted")
+                    budget["attempts"] += 1
+                client = self.client.with_options(max_retries=0) if budget is not None else self.client
+                return client.chat.completions.create(**kwargs)
             try:
-                completion = self.client.chat.completions.create(**kwargs)
+                completion = create()
             except RateLimitError:
                 raise UpstreamRateLimited() from None
             except APITimeoutError:
@@ -71,7 +82,18 @@ def make_engine(settings):
             except APIError:
                 raise UpstreamError() from None
             try:
-                result = schema_model.model_validate(json.loads(completion.choices[0].message.content))
+                data = json.loads(completion.choices[0].message.content)
+                if schema_name == "verdict_result" and (not isinstance(data, dict) or data.get("verdict") not in ae.VALID_VERDICTS):
+                    raise InvalidModelResponse()
+                try:
+                    result = schema_model.model_validate(data)
+                except ae.ValidationError:
+                    if schema_name == "verdict_result":
+                        # Safe structural signal: repair at most once; never expose raw model input.
+                        raise ae.AssessmentCoverageError("Invalid verifier assessment schema") from None
+                    raise
+            except ae.AssessmentCoverageError:
+                raise
             except (ValueError, TypeError, AttributeError, IndexError):
                 # ValidationError is a ValueError and may include raw input values.
                 raise InvalidModelResponse() from None
@@ -100,6 +122,28 @@ class LLM:
 
     async def verify(self, claim_text: str, sources: list):
         srcs = [
-            self._ae.Source(id=s["id"], url=s.get("url"), text=s["text"]) for s in sources
+            self._ae.Source(id=s["id"], url=s.get("url"), text=s["text"],
+                            title=s.get("title"), domain=s.get("domain"),
+                            published_date=s.get("published_date"),
+                            fetch_method=s.get("fetch_method") or
+                            s.get("metadata", {}).get("fetch_method", "unknown")) for s in sources
         ]
-        return await asyncio.to_thread(self.engine.verify_claim, claim_text, srcs)
+        cancellation = Event()
+        budget = verifier_budget.get()
+        def repair_allowed():
+            if cancellation.is_set() or (budget is not None and budget["repairs"] >= 1):
+                return False
+            if budget is not None:
+                budget["repairs"] += 1
+            return True
+        try:
+            return await asyncio.to_thread(
+                self.engine.verify_claim, claim_text, srcs,
+                claim_frame=current_claim_frame.get(),
+                repair_allowed=repair_allowed,
+            )
+        except asyncio.CancelledError:
+            # The synchronous SDK call may finish later; never start a repair
+            # after the last waiting request has timed out or disconnected.
+            cancellation.set()
+            raise
