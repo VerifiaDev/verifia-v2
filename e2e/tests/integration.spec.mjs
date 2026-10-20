@@ -34,7 +34,7 @@ test("metin gönderilir, sonuç backend'den gelen iddialarla gösterilir", async
   const { calls, problems } = await open(page);
   const responses = [];
   page.on("response", (res) => {
-    if (res.url() === `${BACKEND_URL}/verify`) responses.push(res);
+    if (res.url() === `${BACKEND_URL}/verify/stream`) responses.push(res);
   });
 
   await submit(page, "Ankara Türkiye'nin başkentidir. İstanbul da başkenttir. Bence kahve güzeldir.");
@@ -42,23 +42,25 @@ test("metin gönderilir, sonuç backend'den gelen iddialarla gösterilir", async
   const heading = page.getByRole("heading", { level: 2, name: "2 iddia incelendi" });
   await expect(heading).toBeVisible();
 
-  // İstek: önce /health, sonra yalnızca { text } ile POST /verify
-  const verify = calls.filter((c) => c.path === "/verify");
+  // İstek: önce /health, sonra yalnızca { text } ile POST /verify/stream (akış; eski /verify kullanılmaz)
+  expect(calls.filter((c) => c.path === "/verify")).toHaveLength(0);
+  const verify = calls.filter((c) => c.path === "/verify/stream");
   expect(verify).toHaveLength(1);
   expect(JSON.parse(verify[0].body)).toEqual({
     text: "Ankara Türkiye'nin başkentidir. İstanbul da başkenttir. Bence kahve güzeldir.",
   });
-  const firstVerify = calls.findIndex((c) => c.path === "/verify");
+  const firstVerify = calls.findIndex((c) => c.path === "/verify/stream");
   expect(calls.slice(0, firstVerify).some((c) => c.path === "/health")).toBe(true);
 
-  // Yanıt gerçekten backend'den geldi ve sözleşmenin v2 alanlarını taşıyor
+  // Yanıt gerçekten backend'den geldi: olay akışı, üç sonuç ve done (backend_v2/app/streaming.py)
   expect(responses).toHaveLength(1);
   expect(responses[0].status()).toBe(200);
+  expect(responses[0].headers()["content-type"]).toContain("text/event-stream");
   expect(responses[0].headers()["x-request-id"]).toMatch(/^[A-Za-z0-9._-]{8,64}$/);
-  const body = await responses[0].json();
-  expect(body.status).toBe("ok");
-  expect(body.partial).toBe(false);
-  expect(body.results.map((r) => r.status)).toEqual(["ok", "ok", "ok"]);
+  const events = (await responses[0].text()).split(/\n\n/).filter((b) => b.includes("data:"))
+    .map((b) => JSON.parse(b.split(/\n/).find((l) => l.startsWith("data:")).slice(5)));
+  expect(events.filter((e) => e.type === "result").map((e) => e.result.status)).toEqual(["ok", "ok", "ok"]);
+  expect(events.at(-1)).toMatchObject({ type: "done", partial: false });
 
   // Arayüz: iki hüküm, doğrulanamayan ifade ayrı bölümde
   // Rapor bölgesi (sayfanın geri kalanında sonuç türlerini anlatan açıklamalar da var)
@@ -98,13 +100,14 @@ test("kısmi sonuç: incelenemeyen iddia hüküm olarak değil ayrı listede gö
   expect(problems, problems.join("\n")).toEqual([]);
 });
 
-test("backend hatası (502 EXTRACTION_FAILED) kullanıcıya anlaşılır hata olarak gösterilir", async ({ page }) => {
+test("backend hatası (EXTRACTION_FAILED olayı) kullanıcıya anlaşılır hata olarak gösterilir", async ({ page }) => {
   const { problems } = await open(page);
-  const failed = page.waitForResponse((r) => r.url() === `${BACKEND_URL}/verify`);
+  const failed = page.waitForResponse((r) => r.url() === `${BACKEND_URL}/verify/stream`);
   await submit(page, "HATA-AYRISTIRMA bu metin ayrıştırılamaz.");
   const res = await failed;
-  expect(res.status()).toBe(502);
-  expect((await res.json()).error).toBe("EXTRACTION_FAILED");
+  // Akışta hata HTTP durumu değil, error olayıdır
+  expect(res.status()).toBe(200);
+  expect(await res.text()).toContain('"error": "EXTRACTION_FAILED"');
 
   await expect(page.getByRole("heading", { level: 2, name: "İnceleme servisi geçici olarak kullanılamıyor" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Yeniden dene" })).toBeVisible();

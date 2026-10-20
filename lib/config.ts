@@ -27,6 +27,13 @@ export const MAX_INPUT_LENGTH = 3_000;
 export const REQUEST_TIMEOUT_MS = 90_000;
 
 /**
+ * Akışlı incelemede (POST /verify/stream) bu kadar süre hiç veri gelmezse bağlantı kopmuş sayılır (ms).
+ * Backend boşta kaldığında 15 saniyede bir keep-alive satırı gönderir (backend_v2/app/streaming.py);
+ * iki keep-alive'ın kaçırılmasına izin verilir. Toplam süre sınırı yine REQUEST_TIMEOUT_MS'dir.
+ */
+export const STREAM_IDLE_TIMEOUT_MS = 40_000;
+
+/**
  * İncelemeden önce sunucunun `/health` yanıtı en fazla bu kadar beklenir (ms). Uyuyan bir sunucunun
  * uyanmasına yetecek kadar uzun olmalı: 11 Ekim 2026'da canlıda ilk yanıt yaklaşık 132 saniyede geldi; eski
  * 60 saniyelik sınır bu süreyi karşılamıyordu. Sayfa açılınca gönderilen ön ısıtma

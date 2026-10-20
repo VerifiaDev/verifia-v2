@@ -86,7 +86,7 @@ it("cancellation while reading health prevents verification", async () => {
   assert.equal(calls, 1);
 });
 
-for (const stage of ["health", "verify"] as const) {
+for (const stage of ["health", "verify/stream"] as const) {
   it(`${stage} timeout still applies while reading the response body`, async () => {
     mock.timers.enable({ apis: ["setTimeout"] });
     try {
