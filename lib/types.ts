@@ -97,4 +97,6 @@ export interface CheckRequest {
 export interface ApiError {
   code: ErrorCode;
   message: string;
+  /** Sunucunun `X-Request-ID` başlığı (varsa). Kullanıcı hatayı bildirirken verir; ekip sunucu günlüğünde bulur. */
+  requestId?: string;
 }
