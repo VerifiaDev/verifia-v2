@@ -1034,21 +1034,27 @@ def _html_to_text(
     ]):
         tag.decompose()
 
-    root = (
-        soup.find("article")
-        or soup.find("main")
-        or soup.body
-        or soup
-    )
+    # Semantic roots stay in document order; nested articles belong to their
+    # outer article and must not be extracted twice.
+    roots = [tag for tag in soup.find_all("article") if tag.find_parent("article") is None]
+    if not roots:
+        roots = [soup.find("main") or soup.body or soup]
 
-    return re.sub(
-        r"\s+",
-        " ",
-        root.get_text(
-            " ",
-            strip=True,
-        ),
-    ).strip()
+    # Explicit HTML block/visible boundaries, not CSS layout. Inline nodes keep
+    # their original text-node whitespace (including no whitespace inside words).
+    separators = {"article", "main", "body", "p", "div", "section", "h1", "h2",
+                  "h3", "h4", "h5", "h6", "li", "ul", "ol", "dl", "dt", "dd",
+                  "blockquote", "pre", "figure", "figcaption", "br", "hr",
+                  "table", "thead", "tbody", "tfoot", "tr", "td", "th", "caption"}
+    texts = []
+    for root in roots:
+        for tag in root.find_all(separators):
+            tag.insert_before(" ")
+            tag.insert_after(" ")
+        texts.append(root.get_text("", strip=False))
+    # U+00AD is discretionary layout, unlike ordinary hyphens/dashes. Other
+    # Unicode punctuation is preserved; whitespace (including NBSP) is folded.
+    return re.sub(r"\s+", " ", " ".join(texts).replace("\u00ad", "")).strip()
 
 
 def _is_safe_source_url(url: str) -> bool:
@@ -1277,40 +1283,31 @@ def _source_text(
 # CHUNKING
 # ==========================================================
 
-def _sentences(
-    text: str,
-) -> list[str]:
+# Small continuation-title set for Turkish/English Lite evidence. Intentionally
+# excludes ambiguous end-of-sentence abbreviations such as "etc."/"vs.".
+# This handles title chains without language detection or a general NLP parser.
+_CONTINUATION_ABBREVIATION = re.compile(
+    r"(?<!\w)(?:dr|prof|doç|doc|uzm|av|yrd|mr|mrs|ms|sr|jr|assoc|asst)\.$",
+    re.IGNORECASE,
+)
 
-    text = re.sub(
-        r"\s+",
-        " ",
-        text or "",
-    ).strip()
 
+def _sentences(text: str) -> list[str]:
+    text = re.sub(r"\s+", " ", text or "").strip()
     if not text:
         return []
-
-    protected = re.sub(
-        r"(?<=\d)\.(?=\d)",
-        "<DOT>",
-        text,
-    )
-
-    parts = re.split(
-        r"(?<=[.!?])\s+",
-        protected,
-    )
-
-    return [
-        part.replace(
-            "<DOT>",
-            ".",
-        ).strip()
-
-        for part in parts
-
-        if part.strip()
-    ]
+    parts = []
+    start = 0
+    # Decimal dots have no following whitespace and are never candidates.
+    # Slice the original text rather than inserting sentinel strings into it.
+    for boundary in re.finditer(r"(?<=[.!?])\s+", text):
+        prefix = text[max(0, boundary.start() - 16):boundary.start()]
+        if _CONTINUATION_ABBREVIATION.search(prefix):
+            continue
+        parts.append(text[start:boundary.start()])
+        start = boundary.end()
+    parts.append(text[start:])
+    return parts
 
 
 def _chunk_text(
