@@ -4,12 +4,17 @@ import type { ApiError, ErrorCode } from "../types";
 export class ApiRequestError extends Error {
   code: ErrorCode;
   requestId?: string;
-  constructor(code: ErrorCode, message: string, requestId?: string) {
+  retryAfterSeconds?: number;
+  constructor(code: ErrorCode, message: string, requestId?: string, retryAfterSeconds?: number) {
     super(message);
     this.code = code;
     this.requestId = requestId;
+    this.retryAfterSeconds = retryAfterSeconds;
   }
   toApiError(): ApiError {
-    return this.requestId ? { code: this.code, message: this.message, requestId: this.requestId } : { code: this.code, message: this.message };
+    const out: ApiError = { code: this.code, message: this.message };
+    if (this.requestId) out.requestId = this.requestId;
+    if (this.retryAfterSeconds) out.retryAfterSeconds = this.retryAfterSeconds;
+    return out;
   }
 }

@@ -71,6 +71,20 @@ describe("checkInput (gerçek API yolu)", () => {
     assert.equal(await codeOf(checkInput(REQ, new AbortController().signal)), "RATE_LIMITED");
   });
 
+  it("Retry-After başlığını saniye olarak taşır; geçersiz değeri yok sayar", async () => {
+    const withHeader = (v: string) => (async () => new Response(JSON.stringify({ error: "RATE_LIMITED" }), { status: 429, headers: { "Content-Type": "application/json", "Retry-After": v } })) as typeof fetch;
+    const retryOf = async () => {
+      try { await checkInput(REQ, new AbortController().signal); } catch (e) { return (e as InstanceType<typeof ApiRequestError>).retryAfterSeconds; }
+      return "NO_ERROR";
+    };
+    globalThis.fetch = withHeader("42");
+    assert.equal(await retryOf(), 42);
+    globalThis.fetch = withHeader("Wed, 21 Oct 2026 07:28:00 GMT");
+    assert.equal(await retryOf(), undefined);
+    globalThis.fetch = withHeader("999999");
+    assert.equal(await retryOf(), undefined);
+  });
+
   it("gerçek backend hata gövdesini (error düz yazı) kodlara çevirir", async () => {
     const cases: [number, string, string][] = [
       [422, "VALIDATION_ERROR", "INVALID_INPUT"],
