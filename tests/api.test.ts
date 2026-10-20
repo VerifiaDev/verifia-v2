@@ -86,6 +86,11 @@ describe("checkInput (gerçek API yolu)", () => {
       [504, "EXTRACTION_TIMEOUT", "TIMEOUT"],
       [502, "EXTRACTION_FAILED", "SERVICE_UNAVAILABLE"],
       [503, "CONFIG_ERROR", "SERVICE_UNAVAILABLE"],
+      // backend_v2 security.py ve #12 (upstream_errors.py)
+      [503, "LOW_MEMORY", "SERVER_BUSY"],
+      [503, "UPSTREAM_RATE_LIMITED", "SERVICE_UNAVAILABLE"],
+      // durum kodu değişse bile anlam korunur
+      [500, "UPSTREAM_RATE_LIMITED", "SERVICE_UNAVAILABLE"],
     ];
     for (const [status, error, expected] of cases) {
       globalThis.fetch = (async () => json(status, { status: "error", error, message: "x" })) as typeof fetch;

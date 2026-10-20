@@ -5,5 +5,6 @@ import nextTypescript from "eslint-config-next/typescript";
 export default defineConfig([
   ...nextVitals,
   ...nextTypescript,
-  globalIgnores([".next/**", "out/**", "build/**", "next-env.d.ts"]),
+  // "**/.next/**": alt klasörlerde kalmış eski derleme çıktıları da (ör. önceki depo yapısından frontend/.next) taranmaz.
+  globalIgnores(["**/.next/**", "out/**", "build/**", "next-env.d.ts"]),
 ]);
