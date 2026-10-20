@@ -8,7 +8,7 @@
 ## Kısa sonuç
 
 - Gizlilik sayfası bugünkü hâliyle sağlayıcı belgeleriyle **büyük ölçüde uyumlu**. Yanlış bir cümle bulunmadı.
-- **Eksik 1 (backend_v2 yayına alınınca):** 6 saatlik bellek önbelleği sayfada yok (aşağıda B1).
+- **Eksik 1 (20 Ekim'de giderildi):** 6 saatlik bellek önbelleği sayfada yok (aşağıda B1).
 - **Eksik 2 (hukuki):** yurt dışına aktarımın KVKK m.9'a göre hangi dayanakla yapıldığı yazmıyor (aşağıda K1).
 - **Kolay kazanç:** Groq konsolunda "Zero Data Retention" açılırsa sayfa "Groq metni saklamaz" diyebilir (G2).
 - **Dikkat:** Tavily sorguları hizmetini geliştirmek (ve model eğitimi) için kullanabileceğini yazıyor. Herkese açık
@@ -99,8 +99,8 @@ G1 ve T1 uygulandı (sağlayıcı belgelerinden doğrulanmış olgular). Diğerl
 
 | Kod | Ne zaman | Öneri |
 |---|---|---|
-| B1 | backend_v2 yayına alınınca | "Ne kadar saklanır?" bölümüne: "Aynı iddia tekrar incelendiğinde hızlı yanıt vermek için iddia ve sonuç, sunucunun belleğinde en fazla 6 saat tutulur; diske ya da veritabanına yazılmaz ve sunucu yeniden başlayınca silinir." (`CACHE_TTL_SECONDS=21600`, `backend_v2/app/pipeline.py`, `TTLCache`) |
-| B2 | backend_v2 yayına alınınca | Render maddesinden "metninizden üretilen web araması sorguları yer alabilir" kısmı çıkarılır; yerine "Sunucu kayıtlarında IP adresiniz ve isteğin zamanı yer alır; metniniz kayıtlara yazılmaz." |
+| B1 | **uygulandı (20 Ekim)** | "Ne kadar saklanır?" bölümüne: "Aynı iddia tekrar incelendiğinde hızlı yanıt vermek için iddia ve sonuç, sunucunun belleğinde en fazla 6 saat tutulur; diske ya da veritabanına yazılmaz ve sunucu yeniden başlayınca silinir." (`CACHE_TTL_SECONDS=21600`, `backend_v2/app/pipeline.py`, `TTLCache`) |
+| B2 | **uygulandı (20 Ekim; IP ifadesi kasıtlı çıkarıldı, Render altyapı kaydı koddan doğrulanamaz)** | Render maddesinden "metninizden üretilen web araması sorguları yer alabilir" kısmı çıkarılır; yerine "Sunucu kayıtlarında IP adresiniz ve isteğin zamanı yer alır; metniniz kayıtlara yazılmaz." |
 | G1 | **uygulandı (16 Ekim)** | Groq maddesine: "Groq bu içerikleri model eğitiminde kullanmaz." |
 | G2 | Groq'ta ZDR açılınca | Groq maddesi: "Groq bu içerikleri saklamaz ve model eğitiminde kullanmaz." (30 gün cümlesi kalkar) |
 | R1 | Render bölgesi öğrenilince | "Sunucumuz ...'da (bölge) çalışır." |

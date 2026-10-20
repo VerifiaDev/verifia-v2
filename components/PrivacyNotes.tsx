@@ -23,7 +23,7 @@ export function PrivacyNotes() {
           <h3 className="t-h4">Kimler görür, ne kadar saklanır?</h3>
           <p className="muted">
             {sendsText
-              ? "Metniniz Render'daki inceleme sunucumuza, oradan Groq'un yapay zekâ modeline gider; iddialardan üretilen arama sorguları Tavily'ye gönderilir. Bu servisler yurt dışındadır. Sunucu kayıtları IP adresinizi ve arama sorgularını içerebilir ve en çok 30 gün saklanır. "
+              ? "Metniniz Render'daki inceleme sunucumuza, oradan Groq'un yapay zekâ modeline gider; iddialardan üretilen arama sorguları Tavily'ye gönderilir. Bu servisler yurt dışındadır. Sunucu kayıtlarına metniniz ve arama sorgularınız yazılmaz; barındırma kayıtları en çok 30 gün saklanır. İddia ve sonucu en fazla 6 saat sunucunun belleğinde tutulur. "
               : ""}
             Çerez, analitik ve reklam kullanılmaz. Hazır örnek rapor yazdığınız metni kullanmaz; kopyalama ve yazdırma
             yalnızca tarayıcınızda çalışır.
