@@ -3,7 +3,7 @@ Verify backend v2.
 
 Endpoints
   GET  /              liveness
-  GET  /health        config + which keys are set (never the keys themselves)
+  GET  /health        readiness; local development also includes config diagnostics
   GET  /health/deep   makes one tiny real call to Groq and to the search
                       provider and reports latency / errors for each.
                       -> run this first when "something is wrong"
@@ -85,7 +85,14 @@ async def lifespan(app: FastAPI):
     yield
 
 
-app = FastAPI(title="Verify Backend", version="2.0.0", lifespan=lifespan)
+app = FastAPI(
+    title="Verify Backend",
+    version="2.0.0",
+    lifespan=lifespan,
+    docs_url=None if settings.production else "/docs",
+    redoc_url=None if settings.production else "/redoc",
+    openapi_url=None if settings.production else "/openapi.json",
+)
 
 guard = Guard()
 ip_diagnostics = IPDiagnostics()
@@ -175,8 +182,11 @@ def root(request: Request):
 
 @app.get("/health")
 def health():
+    status = "ok" if state["init_error"] is None else "degraded"
+    if settings.production:
+        return {"status": status}
     return {
-        "status": "ok" if state["init_error"] is None else "degraded",
+        "status": status,
         "service": "verify-backend",
         "version": "2.0.0",
         "init_error": state["init_error"] if settings.pipeline.expose_detail else None,
