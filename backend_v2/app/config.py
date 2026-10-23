@@ -43,10 +43,12 @@ class Settings:
     upstream_concurrency: int  # paid per-claim calls (search + verdict) at once, over ALL requests
     frontend_origin: str
     pipeline: PipelineConfig
+    production: bool = False  # Render supplies RENDER=true; local development stays unchanged.
 
     @classmethod
     def from_env(cls) -> "Settings":
         return cls(
+            production=_bool("RENDER", False),
             groq_api_key=os.getenv("GROQ_API_KEY", "").strip(),
             tavily_api_key=os.getenv("TAVILY_API_KEY", "").strip(),
             model_name=os.getenv("FACTCHECK_MODEL_NAME", "openai/gpt-oss-20b").strip(),

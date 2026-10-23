@@ -93,7 +93,7 @@ themselves: with real services each claim takes seconds and their rate limits de
 
 ## API
 
-- `GET /health` – config and which keys are set (never the keys)
+- `GET /health` – readiness (`status`: `ok` or `degraded`); local development also includes config diagnostics (never key values)
 - `GET /health/deep` – live latency / error check of Groq and Tavily
 - `POST /verify` `{"text": "..."}` – same shape as before. New fields: `partial`, `timings`, and per claim
   `status` (`ok` | `error` | `timeout` | `skipped`), `error_code`, `failed_stage`, `detail`, `cached`, `timings_ms`.
@@ -127,6 +127,13 @@ is the easiest extra speed-up (see `.env.example`).
 Make sure `retrieval_demo_lite/` is committed (the image copies it). Build from the **repo root**: `docker build -f backend_v2/Dockerfile -t verify-backend .`
 On Render/Railway: Dockerfile path `backend_v2/Dockerfile`, build context = repository root, and set
 `GROQ_API_KEY` and `TAVILY_API_KEY` in the dashboard. Set `EXPOSE_ERROR_DETAIL=0` once things are stable.
+
+Render automatically sets `RENDER=true`. `Settings` uses this existing platform variable
+to disable `/docs`, `/redoc`, and `/openapi.json` (404), and to return only `status` from
+`/health`, even with `EXPOSE_ERROR_DETAIL=1`. No new application environment variable is
+required. Without `RENDER=true`, local documentation and health diagnostics remain available.
+For deployments outside Render (including Railway), set `RENDER=true` explicitly to apply
+the same public endpoint restrictions. The setting is read at startup; restart after changes.
 
 ## Known limits
 
