@@ -1,4 +1,10 @@
-"""Process-local quotas and HTTP security boundary; no request content logs."""
+"""Process-local quotas and HTTP security boundary; no request content logs.
+
+Verification admission order after body checks: LOW_MEMORY, BUSY, RATE_LIMITED.
+Unlike quota-first admission, memory/capacity rejections do not spend any quota.
+Once admitted and charged, later validation/provider errors or cancellation do
+not refund quota. The reservation remains owned until pending sync work finishes.
+"""
 import ipaddress
 import logging
 import math
@@ -190,9 +196,6 @@ class SecurityMiddleware:
                     return await original_receive()
 
                 receive = replay
-                retry = self.guard.quota(self.guard.client_ip(scope))
-                if retry:
-                    return await error("RATE_LIMITED", 429, retry)(scope, receive, output)
                 try:
                     rss, peak = memory_mb()
                 except Exception:
@@ -203,6 +206,12 @@ class SecurityMiddleware:
                     return await error("BUSY", 429, 1)(scope, receive, output)
                 lease = Lease(self.guard)
                 token = current_lease.set(lease)
+                # Admission precedes quota charging: LOW_MEMORY/BUSY never spend
+                # a user's budget. Install the lease first so quota rejection or
+                # failure releases the reservation through the same finally path.
+                retry = self.guard.quota(self.guard.client_ip(scope))
+                if retry:
+                    return await error("RATE_LIMITED", 429, retry)(scope, receive, output)
             await self.app(scope, receive, output)
         except Exception:
             if started:

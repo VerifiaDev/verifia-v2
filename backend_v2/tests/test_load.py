@@ -134,7 +134,7 @@ def test_concurrent_requests_succeed_overlap_and_do_not_mix(echo, monkeypatch):
     accepted = []
     for i, (r, _) in enumerate(out):
         if r.status_code == 429:
-            assert r.json()["error"] in {"BUSY", "RATE_LIMITED"}
+            assert r.json()["error"] == "BUSY"
             assert int(r.headers["retry-after"]) > 0
             continue
         accepted.append(r)
@@ -146,8 +146,14 @@ def test_concurrent_requests_succeed_overlap_and_do_not_mix(echo, monkeypatch):
         assert all(f"istek-{i} #" in x["explanation"] for x in body["results"])
     assert len(accepted) == main.guard.maximum == 2
     errors = [r.json().get("error") for r, _ in out]
-    assert errors.count("BUSY") == 8
-    assert errors.count("RATE_LIMITED") == 15
+    # Capacity rejects do not consume quota: only the two admitted requests count.
+    assert errors.count("BUSY") == 23
+    assert errors.count("RATE_LIMITED") == 0
+    assert main.guard.active == 0
+    assert main.guard.global_count[1] == 2
+    assert len(main.guard.clients) == 1
+    counters = next(iter(main.guard.clients.values()))[1]
+    assert [counters[seconds][1] for seconds in (60, 3600, 86400)] == [2, 2, 2]
     assert echo.started == 4  # rejected requests did not reach retrieval
     ids = {r.headers["x-request-id"] for r, _ in out}
     assert len(ids) == n, "every request needs its own X-Request-ID"
@@ -335,7 +341,7 @@ def test_many_disconnected_streams_leave_no_tasks_behind(echo, monkeypatch):
         assert sum(b"event: claims" in body for body in responses) == 2
         for body in responses:
             if b"event: claims" not in body:
-                assert json.loads(body)["error"] in {"BUSY", "RATE_LIMITED"}
+                assert json.loads(body)["error"] == "BUSY"
         await asyncio.sleep(0.05)
         return [t for t in asyncio.all_tasks() if t is not asyncio.current_task()]
 
